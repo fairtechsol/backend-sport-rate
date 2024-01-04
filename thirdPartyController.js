@@ -32,7 +32,8 @@ class ThirdPartyController {
 			let options = {
 				method: 'GET',
 				// url: URL + 'odds.php?eid=' + marketId,
-				url: 'http://13.41.184.61:8443/api/betfair/' + marketId,
+				// url: 'http://13.41.184.61:8443/api/betfair/' + marketId,
+				url: 'https://3200dev.fairgame.club/matchOddsNew/' + marketId,
 				headers: { 'cache-control': 'no-cache' }
 			};
 			Request(options, function (error, response, body) {
