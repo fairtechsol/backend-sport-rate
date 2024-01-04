@@ -65,7 +65,7 @@ internalRedis.on('error', (error) => {
 // job.start();
 
 app.get("/", (req, res) => {
-  res.send("call the api");
+  return res.send("call the api");
 });
 
 let IntervalIds = [];
@@ -90,7 +90,7 @@ app.get("/matchList", (req, res) => {
   let type = req.query.type;
   let typeId = gameType[type];
   ThirdPartyController.getMatchList(typeId).then(function (data) {
-    res.send(data);
+    return res.send(data);
   });
 });
 
@@ -98,14 +98,14 @@ app.get("/competitionList", (req, res) => {
   let type = req.query.type;
   let typeId = gameType[type];
   ThirdPartyController.getCompetitionList(type).then(function (data) {
-    res.send(data);
+    return res.send(data);
   });
 });
 
 app.get("/eventList/:competitionId", (req, res) => {
   let competitionId = req.params.competitionId
   ThirdPartyController.getEventList(competitionId).then(function (data) {
-    res.send(data);
+    return res.send(data);
   });
 });
 
@@ -113,9 +113,9 @@ app.get("/matchOdds/:marketId", (req, res) => {
   let markertId = req.params.marketId;
   ThirdPartyController.getMatchOdds(markertId).then(function (data) {
     if (data && data[0]) {
-      res.send(data[0].runners);
+      return res.send(data[0].runners);
     }
-    res.send(data);
+    return res.send(data);
   });
 });
 
@@ -123,23 +123,23 @@ app.get("/bookmaker/:marketId", (req, res) => {
   let markertId = req.params.marketId;
   ThirdPartyController.getBookmakerMarket(markertId).then(function (data) {
     if (data && data[0]) {
-      res.send(data[0].runners);
+      return res.send(data[0].runners);
     }
-    res.send(null);
+    return res.send(null);
   });
 });
 
 app.get("/session/:marketId", (req, res) => {
   let markertId = req.params.marketId;
   ThirdPartyController.getSessions(markertId).then(function (data) {
-    res.send(data);
+    return res.send(data);
   });
 });
 
 app.get("/extraMarketList/:eventId", (req, res) => {
   let eventId = req.params.eventId;
   ThirdPartyController.getExtraEventList(eventId).then(function (data) {
-    res.send(data);
+    return res.send(data);
   });
 });
 
