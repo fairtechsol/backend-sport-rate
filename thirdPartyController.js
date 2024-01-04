@@ -155,7 +155,7 @@ class ThirdPartyController {
 			let options = {
 				method: 'GET',
 				// url: URL + 'list.php',
-				url: 'https://3200dev.fairgame.club/competitionList/' + typeId,
+				url: 'https://3200dev.fairgame.club/competitionList?type=' + typeId,
 				headers: { 'cache-control': 'no-cache' }
 			};
 			Request(options, function (error, response, body) {
