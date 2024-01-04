@@ -86,57 +86,6 @@ const liveGameType = {
   Teen: "Teen",
 }
 
-app.get("/market/:id", (req, res) => {
-  let marketId = req.params.id;
-  let marketIds = JSON.parse(localStorage.getItem("marketIds"));
-  if (marketIds == null || !marketIds.includes(marketId)) {
-    IntervalIds.push(marketId);
-    IntervalIds[marketId] = setInterval(getMarketRate, getRateTimer, marketId);
-    if (marketIds == null) {
-      marketIds = [];
-    }
-    marketIds.push(marketId);
-    localStorage.setItem("marketIds", JSON.stringify(marketIds));
-  }
-  res.send(marketId);
-});
-
-app.get("/event/:id", (req, res) => {
-  let eventId = req.params.id;
-  let eventIds = JSON.parse(localStorage.getItem("eventIds"));
-  if (eventIds == null || !eventIds.includes(eventId)) {
-    IntervalIds.push(eventId);
-    IntervalIds[eventId] = setInterval(getLiveScore, liveScoreTimer, eventId);
-    if (eventIds == null) {
-      eventIds = [];
-    }
-    eventIds.push(eventId);
-    localStorage.setItem("eventIds", JSON.stringify(eventIds));
-  }
-  res.send(eventId);
-});
-
-async function getLiveScore(eventId) {
-  let result = await ThirdPartyController.getLiveScore(eventId);
-  io.to(eventId).emit("liveScore" + eventId, result);
-}
-
-function getMarketRate(marketId) {
-  getRate(marketId).then(function (data) {
-    io.to(marketId).emit("matchOdds" + marketId, data['matchOdds']);
-    io.to(marketId).emit("bookmaker" + marketId, data['bookmaker']);
-    io.to(marketId).emit("session" + marketId, data['session']);
-  });
-}
-
-async function getRate(marketId) {
-  let result = [];
-  result['matchOdds'] = await ThirdPartyController.getMatchOdds_old(marketId);
-  result['bookmaker'] = await ThirdPartyController.getBookmakerMarket(marketId);
-  result['session'] = await ThirdPartyController.getSessions(marketId);
-  return result;
-}
-
 app.get("/matchList", (req, res) => {
   let type = req.query.type;
   let typeId = gameType[type];
@@ -144,7 +93,6 @@ app.get("/matchList", (req, res) => {
     res.send(data);
   });
 });
-
 
 app.get("/competitionList", (req, res) => {
   let type = req.query.type;
@@ -164,9 +112,9 @@ app.get("/eventList/:competitionId", (req, res) => {
 app.get("/matchOdds/:marketId", (req, res) => {
   let markertId = req.params.marketId;
   ThirdPartyController.getMatchOdds(markertId).then(function (data) {
-    // if (data && data[0]) {
-    //   res.send(data[0].runners);
-    // }
+    if (data && data[0]) {
+      res.send(data[0].runners);
+    }
     res.send(data);
   });
 });
@@ -195,137 +143,7 @@ app.get("/extraMarketList/:eventId", (req, res) => {
   });
 });
 
-app.get("/test/:matchId", async (req, res) => {
-  let matchId = req.params.matchId;
-  let matchDetail = await internalRedis.hgetall(matchId + "_match");
-  marketId = matchDetail.marketId;
-  let isAPISessionActive = matchDetail.apiSessionActive ? JSON.parse(matchDetail.apiSessionActive) : false;
-  let isManualSessionActive = matchDetail.manualSessionActive ? JSON.parse(matchDetail.manualSessionActive) : false;
-  let ismatchOddActive = matchDetail.matchOdd ? (JSON.parse(matchDetail.matchOdd)).isActive : false;
-  let ismarketCompleteMatchActive = matchDetail.marketCompleteMatch ? (JSON.parse(matchDetail.marketCompleteMatch)).isActive : false;
-  let ismarketBookmakerActive = matchDetail.marketBookmaker ? (JSON.parse(matchDetail.marketBookmaker)).isActive : false;
-  let ismarketTiedMatchActive = matchDetail.marketTiedMatch ? (JSON.parse(matchDetail.marketTiedMatch)).isActive : false;
-
-  let promiseRequestArray = []
-  let oddIds = [];
-
-  //  do not change the sequence of if conditions
-  if (ismatchOddActive) {
-    oddIds.push(marketId);
-    // promiseRequestArray.push(ThirdPartyController.getMatchOdds_old(marketId));
-  }
-  if (ismarketCompleteMatchActive) {
-    oddIds.push((JSON.parse(matchDetail.marketCompleteMatch)).marketId);
-  }
-  if (ismarketTiedMatchActive) {
-    oddIds.push((JSON.parse(matchDetail.marketTiedMatch)).marketId);
-  }
-  if (oddIds.length) {
-    promiseRequestArray.push(ThirdPartyController.getMatchOdds(oddIds.join(',')));
-  }
-
-  if (ismarketBookmakerActive) {
-    promiseRequestArray.push(ThirdPartyController.getBookmakerMarket(marketId));
-  }
-  if (isAPISessionActive) {
-    promiseRequestArray.push(ThirdPartyController.getSessions(marketId));
-  }
-  // Wait for all requests to complete using Promise.all
-  let respo = await Promise.allSettled(promiseRequestArray);
-
-  let returnResult = {};
-  let index = 0;
-  if (oddIds.length) {
-    let ind = 0;
-    let result = respo[index]?.value;
-    if (ismatchOddActive) {
-      returnResult.matchOdd = result?.length ? result[ind] : null;
-      ind++;
-    }
-    if (ismarketCompleteMatchActive) {
-      returnResult.marketCompleteMatch = result?.length ? result[ind] : null;
-      ind++;
-    }
-    if (ismarketTiedMatchActive) {
-      returnResult.apiTiedMatch = result?.length ? result[ind] : null;
-      ind++;
-    }
-    index++;
-  }
-
-  if (ismarketBookmakerActive) {
-    let result = respo[index].value;
-    returnResult.bookmaker = result?.length ? result[0] : null;
-    index++;
-  }
-  if (isAPISessionActive) {
-    let liveSession = await internalRedis.hgetall(matchId + "_selectionId");
-    let liveSelectionIds = liveSession ? Object.keys(liveSession) : [];
-    let result = respo[index].value;
-    result = result.filter(session => {
-      if (liveSelectionIds.includes(session.SelectionId)) {
-        session["id"] = liveSession[session.SelectionId];
-        return true;
-      }
-      return false;
-
-    });
-    returnResult.apiSession = result;
-    index++;
-  }
-
-
-  let redisPromise = []
-  redisPromise.push(internalRedis.hgetall(matchId + "_manualBetting"));
-  if (isManualSessionActive) {
-    redisPromise.push(internalRedis.hgetall(matchId + "_session"));
-  }
-
-  let manuallyResponse = await Promise.allSettled(redisPromise);
-  if (isManualSessionActive) {
-    let result = manuallyResponse[1].value;
-    returnResult.sessionBettings = result;
-  }
-  let manuallyMatchDetails = manuallyResponse[0].value;
-  if (manuallyMatchDetails) {
-    returnResult.quickbookmaker = []
-    if (manuallyMatchDetails.tiedMatch2) {
-      let json = JSON.parse(manuallyMatchDetails.tiedMatch2);
-      if (json.isActive) {
-        returnResult["manualTideMatch"] = json;
-      }
-    }
-    if (manuallyMatchDetails.quickbookmaker1) {
-      let json = JSON.parse(manuallyMatchDetails.quickbookmaker1);
-      if (json.isActive) {
-        returnResult.quickbookmaker.push(json);
-      }
-    }
-    if (manuallyMatchDetails.quickbookmaker2) {
-      let json = JSON.parse(manuallyMatchDetails.quickbookmaker2);
-      if (json.isActive) {
-        returnResult.quickbookmaker.push(json);
-      }
-    }
-    if (manuallyMatchDetails.quickbookmaker3) {
-      let json = JSON.parse(manuallyMatchDetails.quickbookmaker3);
-      if (json.isActive) {
-        returnResult.quickbookmaker.push(json);
-      }
-    }
-  }
-
-
-  // Send the combined data as the API response
-  res.json(returnResult);
-});
-
 io.on('connection', (socket) => {
-  socket.on('init', function (market) {
-    let marketId = market.id;
-    socket.join(marketId);
-  });
-
   socket.on('score', function (event) {
     let eventId = event.id;
     socket.join(eventId);
@@ -372,7 +190,7 @@ io.on('connection', (socket) => {
   socket.on('initCricketData', async function (event) {
     let matchId = event.matchId;
     let roleName = event.roleName;
-    if(roleName == 'expert'){
+    if (roleName == 'expert') {
       socket.join(matchId + 'expert');
     } else {
       socket.join(matchId);
@@ -390,12 +208,12 @@ io.on('connection', (socket) => {
     let matchId = event.matchId;
     let roleName = event.roleName;
     let roomName = '';
-    if(roleName == 'expert'){
+    if (roleName == 'expert') {
       roomName = matchId + 'expert';
     } else {
       roomName = matchId;
     }
-      socket.leave(roomName);
+    socket.leave(roomName);
     const room = io.sockets.adapter.rooms.get(matchId);
     try {
       if (!(room && room.size != 0)) {
@@ -408,11 +226,6 @@ io.on('connection', (socket) => {
     } catch (error) {
       console.log("error at disconnectCricketData ", error);
     }
-  });
-
-
-  socket.on("disconnect_market", (market) => {
-    // clearMarket(market.id);
   });
 
   socket.on('disconnect', async () => {
@@ -463,23 +276,48 @@ async function getCricketData(marketId, matchId) {
 
   let returnResult = {};
   let expertResult = {};
+  returnResult.id = matchId;
+  returnResult.marketId = marketId;
+  expertResult.id = matchId;
+  expertResult.marketId = marketId;
   let index = 0;
   if (oddIds.length) {
     let ind = 0;
     let result = respo[index]?.value;
     if (ismatchOddActive) {
-      returnResult.matchOdd = result?.length ? result[ind] : null;
-      expertResult.matchOdd = returnResult.matchOdd;
+      let matchOddDetails = JSON.parse(matchDetail.matchOdd);
+      let obj = result?.length ? result[ind] : null;
+      obj.id = matchOddDetails.id;
+      obj.name = matchOddDetails.name;
+      obj.minBet = matchOddDetails.minBet;
+      obj.maxBet = matchOddDetails.maxBet;
+      obj.type = matchOddDetails.type;
+      returnResult.matchOdd = obj;
+      expertResult.matchOdd = obj;
       ind++;
     }
     if (ismarketCompleteMatchActive) {
-      returnResult.marketCompleteMatch = result?.length ? result[ind] : null;
-      expertResult.marketCompleteMatch = returnResult.marketCompleteMatch;
+      let marketCompleteMatch = JSON.parse(matchDetail.marketCompleteMatch);
+      let obj = result?.length ? result[ind] : null;
+      obj.id = marketCompleteMatch.id;
+      obj.name = marketCompleteMatch.name;
+      obj.minBet = marketCompleteMatch.minBet;
+      obj.maxBet = marketCompleteMatch.maxBet;
+      obj.type = marketCompleteMatch.type;
+      returnResult.marketCompleteMatch = obj;
+      expertResult.marketCompleteMatch = obj;
       ind++;
     }
     if (ismarketTiedMatchActive) {
-      returnResult.apiTiedMatch = result?.length ? result[ind] : null;
-      expertResult.apiTiedMatch = returnResult.apiTiedMatch;
+      let marketTiedMatch = JSON.parse(matchDetail.marketTiedMatch);
+      let obj = result?.length ? result[ind] : null;
+      obj.id = marketTiedMatch.id;
+      obj.name = marketTiedMatch.name;
+      obj.minBet = marketTiedMatch.minBet;
+      obj.maxBet = marketTiedMatch.maxBet;
+      obj.type = marketTiedMatch.type;
+      returnResult.apiTiedMatch = obj;
+      expertResult.apiTiedMatch = obj;
       ind++;
     }
     index++;
@@ -487,8 +325,15 @@ async function getCricketData(marketId, matchId) {
 
   if (ismarketBookmakerActive) {
     let result = respo[index].value;
-    returnResult.bookmaker = result?.length ? result[0] : null;
-    expertResult.bookmaker = returnResult.bookmaker;
+    let marketBookmaker = JSON.parse(matchDetail.marketBookmaker);
+    let obj = result?.length ? result[0] : null;
+    obj.id = marketBookmaker.id;
+    obj.name = marketBookmaker.name;
+    obj.minBet = marketBookmaker.minBet;
+    obj.maxBet = marketBookmaker.maxBet;
+    obj.type = marketBookmaker.type;
+    returnResult.bookmaker = obj;
+    expertResult.bookmaker = obj;
     index++;
   }
   if (isAPISessionActive) {
@@ -518,7 +363,7 @@ async function getCricketData(marketId, matchId) {
   let manuallyResponse = await Promise.allSettled(redisPromise);
   if (isManualSessionActive) {
     let result = manuallyResponse[1].value;
-    returnResult.sessionBettings = result;
+    returnResult.sessionBettings = Object.values(result);
   }
   let manuallyMatchDetails = manuallyResponse[0].value;
   if (manuallyMatchDetails) {
@@ -570,14 +415,6 @@ function clearLiveScoreInterval(eventId) {
     eventIds.splice(eventIds.indexOf(eventId), 1);
     localStorage.setItem("eventIds", JSON.stringify(eventIds));
   }
-}
-
-async function clearMarket(marketId) {
-  clearInterval(IntervalIds[marketId]);
-  localStorage.removeItem(marketId + "market");
-  let marketIds = JSON.parse(localStorage.getItem("marketIds"));
-  marketIds.splice(marketIds.indexOf(marketId), 1);
-  localStorage.setItem("marketIds", JSON.stringify(marketIds));
 }
 
 async function getLiveGameData(gameType) {

@@ -125,7 +125,7 @@ class ThirdPartyController {
 		});
 	}
 
-	
+
 	async getLiveScore(eventId) {
 		return new Promise(function (resolve, reject) {
 			let options = {
@@ -155,7 +155,7 @@ class ThirdPartyController {
 			let options = {
 				method: 'GET',
 				// url: URL + 'list.php',
-				url: 'http://13.41.184.61/betfair/competition_list/' + typeId,
+				url: 'https://3200dev.fairgame.club/competitionList/' + typeId,
 				headers: { 'cache-control': 'no-cache' }
 			};
 			Request(options, function (error, response, body) {
@@ -179,7 +179,7 @@ class ThirdPartyController {
 			let options = {
 				method: 'GET',
 				// url: URL + 'list.php',
-				url: 'http://13.41.184.61/betfair/event_list_by_competition/'+competitionId,
+				url: 'https://3200dev.fairgame.club/eventList/' + competitionId,
 				headers: { 'cache-control': 'no-cache' }
 			};
 			Request(options, function (error, response, body) {
@@ -248,7 +248,7 @@ class ThirdPartyController {
 		return new Promise(function (resolve, reject) {
 			let options = {
 				method: 'GET',
-				url: 'http://13.41.184.61/betfair/cricket_extra_market_list/'+eventId,
+				url: 'https://3200dev.fairgame.club/extraMarketLis/' + eventId,
 				headers: { 'cache-control': 'no-cache' }
 			};
 			Request(options, function (error, response, body) {
