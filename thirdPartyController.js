@@ -248,7 +248,7 @@ class ThirdPartyController {
 		return new Promise(function (resolve, reject) {
 			let options = {
 				method: 'GET',
-				url: 'https://3200dev.fairgame.club/extraMarketLis/' + eventId,
+				url: 'https://3200dev.fairgame.club/extraMarketList/' + eventId,
 				headers: { 'cache-control': 'no-cache' }
 			};
 			Request(options, function (error, response, body) {
