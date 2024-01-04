@@ -262,7 +262,6 @@ app.get("/test/:matchId", async (req, res) => {
     let liveSession = await internalRedis.hgetall(matchId + "_selectionId");
     let liveSelectionIds = liveSession ? Object.keys(liveSession) : [];
     let result = respo[index].value;
-    console.log(result);
     result = result.filter(session => {
       if (liveSelectionIds.includes(session.SelectionId)) {
         session["id"] = liveSession[session.SelectionId];
@@ -372,7 +371,12 @@ io.on('connection', (socket) => {
 
   socket.on('initCricketData', async function (event) {
     let matchId = event.matchId;
-    socket.join(matchId);
+    let roleName = event.roleName;
+    if(roleName == 'expert'){
+      socket.join(matchId + 'expert');
+    } else {
+      socket.join(matchId);
+    }
     let isIntervalExist = await internalRedis.hget("matchInterval", matchId);
     if (!isIntervalExist) {
       let matchDetail = await internalRedis.hgetall(matchId + "_match");
@@ -384,12 +388,18 @@ io.on('connection', (socket) => {
 
   socket.on('disconnectCricketData', async function (event) {
     let matchId = event.matchId;
-    socket.leave(matchId);
+    let roleName = event.roleName;
+    let roomName = '';
+    if(roleName == 'expert'){
+      roomName = matchId + 'expert';
+    } else {
+      roomName = matchId;
+    }
+      socket.leave(roomName);
     const room = io.sockets.adapter.rooms.get(matchId);
     try {
       if (!(room && room.size != 0)) {
         let isIntervalExist = await internalRedis.hget("matchInterval", matchId);
-        console.log("id is ", isIntervalExist);
         if (isIntervalExist) {
           clearInterval(parseInt(isIntervalExist));
           internalRedis.hdel("matchInterval", matchId);
@@ -452,20 +462,24 @@ async function getCricketData(marketId, matchId) {
   let respo = await Promise.allSettled(promiseRequestArray);
 
   let returnResult = {};
+  let expertResult = {};
   let index = 0;
   if (oddIds.length) {
     let ind = 0;
     let result = respo[index]?.value;
     if (ismatchOddActive) {
       returnResult.matchOdd = result?.length ? result[ind] : null;
+      expertResult.matchOdd = returnResult.matchOdd;
       ind++;
     }
     if (ismarketCompleteMatchActive) {
       returnResult.marketCompleteMatch = result?.length ? result[ind] : null;
+      expertResult.marketCompleteMatch = returnResult.marketCompleteMatch;
       ind++;
     }
     if (ismarketTiedMatchActive) {
       returnResult.apiTiedMatch = result?.length ? result[ind] : null;
+      expertResult.apiTiedMatch = returnResult.apiTiedMatch;
       ind++;
     }
     index++;
@@ -474,13 +488,14 @@ async function getCricketData(marketId, matchId) {
   if (ismarketBookmakerActive) {
     let result = respo[index].value;
     returnResult.bookmaker = result?.length ? result[0] : null;
+    expertResult.bookmaker = returnResult.bookmaker;
     index++;
   }
   if (isAPISessionActive) {
     let liveSession = await internalRedis.hgetall(matchId + "_selectionId");
     let liveSelectionIds = liveSession ? Object.keys(liveSession) : [];
     let result = respo[index].value;
-    console.log(result);
+    expertResult.apiSession = result;
     result = result.filter(session => {
       if (liveSelectionIds.includes(session.SelectionId)) {
         session["id"] = liveSession[session.SelectionId];
@@ -535,6 +550,7 @@ async function getCricketData(marketId, matchId) {
   }
 
   io.to(matchId).emit("liveData" + matchId, returnResult);
+  io.to(matchId + 'expert').emit("liveData" + matchId, expertResult);
 }
 
 function ClearAllSocketRoom() {
