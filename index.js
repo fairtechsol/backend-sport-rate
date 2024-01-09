@@ -286,7 +286,7 @@ async function getCricketData(marketId, matchId) {
     let result = respo[index]?.value;
     if (ismatchOddActive) {
       let matchOddDetails = JSON.parse(matchDetail.matchOdd);
-      let obj = result?.length ? result[ind] : {};
+      let obj = result?.length && result[ind] ? result[ind] : {};
       obj.id = matchOddDetails.id;
       obj.name = matchOddDetails.name;
       obj.minBet = matchOddDetails.minBet;
@@ -298,7 +298,7 @@ async function getCricketData(marketId, matchId) {
     }
     if (ismarketCompleteMatchActive) {
       let marketCompleteMatch = JSON.parse(matchDetail.marketCompleteMatch);
-      let obj = result?.length ? result[ind] : {};
+      let obj = result?.length && result[ind] ? result[ind] : {};
       obj.id = marketCompleteMatch.id;
       obj.name = marketCompleteMatch.name;
       obj.minBet = marketCompleteMatch.minBet;
@@ -310,7 +310,7 @@ async function getCricketData(marketId, matchId) {
     }
     if (ismarketTiedMatchActive) {
       let marketTiedMatch = JSON.parse(matchDetail.marketTiedMatch);
-      let obj = result?.length ? result[ind] : {};
+      let obj = result?.length && result[ind] ? result[ind] : {};
       obj.id = marketTiedMatch.id;
       obj.name = marketTiedMatch.name;
       obj.minBet = marketTiedMatch.minBet;
@@ -326,7 +326,7 @@ async function getCricketData(marketId, matchId) {
   if (ismarketBookmakerActive) {
     let result = respo[index].value;
     let marketBookmaker = JSON.parse(matchDetail.marketBookmaker);
-    let obj = result?.length ? result[0] : {};
+    let obj = result?.length && result[0] ? result[0] : {};
     obj.id = marketBookmaker.id;
     obj.name = marketBookmaker.name;
     obj.minBet = marketBookmaker.minBet;
