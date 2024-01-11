@@ -292,6 +292,8 @@ async function getCricketData(marketId, matchId) {
       obj.minBet = matchOddDetails.minBet;
       obj.maxBet = matchOddDetails.maxBet;
       obj.type = matchOddDetails.type;
+      obj.isActive = matchOddDetails.isActive;
+      obj.activeStatus = matchOddDetails.activeStatus;
       returnResult.matchOdd = obj;
       expertResult.matchOdd = obj;
       ind++;
@@ -304,6 +306,8 @@ async function getCricketData(marketId, matchId) {
       obj.minBet = marketCompleteMatch.minBet;
       obj.maxBet = marketCompleteMatch.maxBet;
       obj.type = marketCompleteMatch.type;
+      obj.isActive = marketCompleteMatch.isActive;
+      obj.activeStatus = marketCompleteMatch.activeStatus;
       returnResult.marketCompleteMatch = obj;
       expertResult.marketCompleteMatch = obj;
       ind++;
@@ -316,6 +320,8 @@ async function getCricketData(marketId, matchId) {
       obj.minBet = marketTiedMatch.minBet;
       obj.maxBet = marketTiedMatch.maxBet;
       obj.type = marketTiedMatch.type;
+      obj.isActive = marketTiedMatch.isActive;
+      obj.activeStatus = marketTiedMatch.activeStatus;
       returnResult.apiTiedMatch = obj;
       expertResult.apiTiedMatch = obj;
       ind++;
@@ -332,6 +338,8 @@ async function getCricketData(marketId, matchId) {
     obj.minBet = marketBookmaker.minBet;
     obj.maxBet = marketBookmaker.maxBet;
     obj.type = marketBookmaker.type;
+    obj.isActive = marketBookmaker.isActive;
+    obj.activeStatus = marketBookmaker.activeStatus;
     returnResult.bookmaker = obj;
     expertResult.bookmaker = obj;
     index++;
