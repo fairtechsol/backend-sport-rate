@@ -341,7 +341,7 @@ async function getCricketData(marketId, matchId) {
     let liveSelectionIds = liveSession ? Object.keys(liveSession) : [];
     let result = respo[index].value;
     expertResult.apiSession = result;
-    result = result.filter(session => {
+    result = result?.filter(session => {
       if (liveSelectionIds.includes(session.SelectionId)) {
         session["id"] = liveSession[session.SelectionId];
         return true;
