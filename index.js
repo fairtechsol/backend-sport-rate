@@ -32,8 +32,20 @@ const internalRedis = new Redis({
   password: process.env.INTERNAL_REDIS_PASSWORD || ''
 });
 // Listen for the 'connect' event
-internalRedis.on('connect', () => {
+internalRedis.on('connect', async () => {
   console.log('Connected to Internal Redis server');
+  let existInterval = await internalRedis.hgetall("matchInterval");
+  let matchIdArray = Object.keys(existInterval);
+  if (matchIdArray.length) {
+    matchIdArray.map(async matchId => {
+      let matchDetail = await internalRedis.hgetall(matchId + "_match");
+      if (matchDetail && matchDetail.marketId) {
+        let marketId = matchDetail.marketId;
+        let intervalNumber = setInterval(getCricketData, liveGameTypeTime, marketId, matchId);
+        internalRedis.hset("matchInterval", { [matchId]: intervalNumber });
+      }
+    })
+  }
 });
 // Handle other Redis events if needed
 internalRedis.on('error', (error) => {
