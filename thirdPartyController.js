@@ -1,269 +1,162 @@
 const URL = 'http://bihun.in/api11/';
-const Request = require('request');
+const axios = require('axios');
 class ThirdPartyController {
+
+	callAxios(options, resolve, errorConst) {
+        axios(options)
+            .then(response => {
+                resolve(response.data);
+            })
+            .catch(error => {
+                console.log(errorConst, " ", error);
+                resolve(null);
+            });
+    }
 
 	//----------------------------------------------get competition---------------------------------------\\
 	async getMatchOdds_old(marketId) {
-		return new Promise(function (resolve, reject) {
+		return new Promise((resolve, reject) => {
 			let options = {
 				method: 'GET',
 				// url: URL + 'odds.php?eid=' + marketId,
 				url: 'https://betfair.openapi.live/api/v2/listMarketBookOdds?market_id=' + marketId,
 				headers: { 'cache-control': 'no-cache' }
 			};
-			Request(options, function (error, response, body) {
-				if (error) {
-					console.log("at reject match-odds ", error);
-					// reject(error);
-					resolve(null)
-				} else {
-					try {
-						resolve(JSON.parse(body));
-					} catch {
-						resolve(null);
-					}
-				}
-			});
+			let errorConst = "at reject match-odds old";
+			this.callAxios(options, resolve, errorConst);
 		});
 	}
 
 	async getMatchOdds(marketId) {
-		return new Promise(function (resolve, reject) {
+		return new Promise((resolve, reject) => {
 			let options = {
 				method: 'GET',
 				// url: URL + 'odds.php?eid=' + marketId,
-				// url: 'http://13.41.184.61:8443/api/betfair/' + marketId,
-				url: 'https://3200dev.fairgame.club/matchOddsNew/' + marketId,
+				url: 'http://13.41.184.61:8443/api/betfair/' + marketId,
+				// url: 'http://3.89.232.255:3200/matchOddsNew/' + marketId,
+				// url: 'https://betfair.openapi.live/api/v2/listMarketBookOdds?market_id=' + marketId,
 				headers: { 'cache-control': 'no-cache' }
 			};
-			Request(options, function (error, response, body) {
-				if (error) {
-					console.log("at reject match-odds ", error);
-					// reject(error);
-					resolve(null);
-					process.exit(0);
-				} else {
-					try {
-						resolve(JSON.parse(body));
-					} catch {
-						resolve(null);
-					}
-				}
-			});
+			let errorConst = "at reject match-odds";
+			this.callAxios(options, resolve, errorConst);
 		});
 	}
 
 	async getBookmakerMarket(marketId) {
-		return new Promise(function (resolve, reject) {
+		return new Promise((resolve, reject) => {
 			let options = {
 				method: 'GET',
 				// url: URL + 'bookmaker.php?eid=' + marketId,
 				url: 'https://fancy.betpro.gold/api/betfair/bookmaker/' + marketId,
 				headers: { 'cache-control': 'no-cache' }
 			};
-			Request(options, function (error, response, body) {
-				if (error) {
-					console.log("at reject bookmaker-markert ", error);
-					// reject(error);
-					resolve(null)
-				} else {
-					try {
-						resolve(JSON.parse(body));
-					} catch {
-						resolve(null);
-					}
-				}
-			});
+			let errorConst = "at reject bookmaker-markert";
+			this.callAxios(options, resolve, errorConst);
 		});
 	}
 
 	async getSessions(marketId) {
-		return new Promise(function (resolve, reject) {
+		return new Promise((resolve, reject) => {
 			let options = {
 				method: 'GET',
 				// url: URL + 'fancy1.php?eid=' + marketId,
 				url: 'https://fancy.betpro.gold/api/betfair/fancy/' + marketId,
 				headers: { 'cache-control': 'no-cache' }
 			};
-			Request(options, function (error, response, body) {
-				if (error) {
-					console.log("at reject session ", error);
-					// reject(error);
-					resolve(null)
-				} else {
-					try {
-						resolve(JSON.parse(body));
-					} catch {
-						resolve(null);
-					}
-				}
-			});
+			let errorConst = "at reject session";
+			this.callAxios(options, resolve, errorConst);
 		});
 	}
 
 	async getMatchList(typeId) {
-		return new Promise(function (resolve, reject) {
+		return new Promise((resolve, reject) => {
 			let options = {
 				method: 'GET',
 				// url: URL + 'list.php',
 				url: 'https://api.bullsoffer9.in/markets/' + typeId,
 				headers: { 'cache-control': 'no-cache' }
 			};
-			Request(options, function (error, response, body) {
-				if (error) {
-					console.log("at reject get match list ", error);
-					// reject(error);
-					resolve(null)
-				} else {
-					try {
-						resolve(JSON.parse(response.body));
-					} catch {
-						resolve(null);
-					}
-				}
-			});
+			let errorConst = "at reject get match list";
+			this.callAxios(options, resolve, errorConst);
 		});
 	}
 
 
 	async getLiveScore(eventId) {
-		return new Promise(function (resolve, reject) {
+		return new Promise((resolve, reject) => {
 			let options = {
 				method: 'GET',
 				// url: URL + 'fancy1.php?eid=' + marketId,   https://super007.in/
 				url: 'https://openapi.live/api/MatchOdds/score/' + eventId,
 				headers: { 'cache-control': 'no-cache' }
 			};
-			Request(options, function (error, response, body) {
-				if (error) {
-					console.log("at reject live score ", error);
-					// reject(error);
-					resolve(null)
-				} else {
-					try {
-						resolve(JSON.parse(body));
-					} catch {
-						resolve(null);
-					}
-				}
-			});
+			let errorConst = "at reject live score";
+			this.callAxios(options, resolve, errorConst);
 		});
 	}
 
 	async getCompetitionList(typeId) {
-		return new Promise(function (resolve, reject) {
+		return new Promise((resolve, reject) => {
 			let options = {
 				method: 'GET',
 				// url: URL + 'list.php',
-				url: 'https://3200dev.fairgame.club/competitionList?type=' + typeId,
+				// url: 'http://3.89.232.255:3200/competitionList?type=' + typeId,
+				url: 'http://13.41.184.61/betfair/competition_list/' + typeId,
 				headers: { 'cache-control': 'no-cache' }
 			};
-			Request(options, function (error, response, body) {
-				if (error) {
-					console.log("at reject get competition list ", error);
-					// reject(error);
-					resolve(null)
-				} else {
-					try {
-						resolve(JSON.parse(response.body));
-					} catch {
-						resolve(null);
-					}
-				}
-			});
+			let errorConst = "at reject get competition list";
+			this.callAxios(options, resolve, errorConst);
 		});
 	}
 
 	async getEventList(competitionId) {
-		return new Promise(function (resolve, reject) {
+		return new Promise((resolve, reject) => {
 			let options = {
 				method: 'GET',
 				// url: URL + 'list.php',
-				url: 'https://3200dev.fairgame.club/eventList/' + competitionId,
+				// url: 'http://3.89.232.255:3200/eventList/' + competitionId,
+				url: 'http://13.41.184.61/betfair/event_list_by_competition/'+competitionId,
 				headers: { 'cache-control': 'no-cache' }
 			};
-			Request(options, function (error, response, body) {
-				if (error) {
-					console.log("at reject get event list ", error);
-					// reject(error);
-					resolve(null)
-				} else {
-					try {
-						resolve(JSON.parse(response.body));
-					} catch {
-						resolve(null);
-					}
-				}
-			});
+			let errorConst = "at reject get event list";
+			this.callAxios(options, resolve, errorConst);
 		});
 	}
 
 	async getLiveGameData(gameType) {
-		return new Promise(function (resolve, reject) {
+		return new Promise((resolve, reject) => {
 			let options = {
 				method: 'GET',
 				url: 'http://45.79.120.59:3000/getdata/' + gameType,
 				headers: { 'cache-control': 'no-cache' }
 			};
-			Request(options, function (error, response, body) {
-				if (error) {
-					console.log(`at reject get live game data "${gameType}" `, error);
-					// reject(error);
-					resolve(null);
-				} else {
-					try {
-						resolve(JSON.parse(body));
-					} catch {
-						resolve(null);
-					}
-				}
-			});
+			let errorConst = `at reject get live game data "${gameType}"`;
+			this.callAxios(options, resolve, errorConst);
 		});
 	}
 
 	async getliveGameResultTop10(gameType) {
-		return new Promise(function (resolve, reject) {
+		return new Promise((resolve, reject) => {
 			let options = {
 				method: 'GET',
 				url: 'http://45.79.120.59:3000/getResultata/' + gameType,
 				headers: { 'cache-control': 'no-cache' }
 			};
-			Request(options, function (error, response, body) {
-				if (error) {
-					console.log(`at reject get live game Result Top 10 "${gameType}" `, error);
-					// reject(error);
-					resolve(null);
-				} else {
-					try {
-						resolve(JSON.parse(body));
-					} catch {
-						resolve(null);
-					}
-				}
-			});
+			let errorConst = `at reject get live game Result Top 10 "${gameType}"`;
+			this.callAxios(options, resolve, errorConst);
 		});
 	}
 
 	async getExtraEventList(eventId) {
-		return new Promise(function (resolve, reject) {
+		return new Promise((resolve, reject) => {
 			let options = {
 				method: 'GET',
-				url: 'https://3200dev.fairgame.club/extraMarketList/' + eventId,
+				// url: 'http://3.89.232.255:3200/extraMarketList/' + eventId,
+				url: 'http://13.41.184.61/betfair/cricket_extra_market_list/'+eventId,
 				headers: { 'cache-control': 'no-cache' }
 			};
-			Request(options, function (error, response, body) {
-				if (error) {
-					console.log("at reject get extra event list ", error);
-					// reject(error);
-					resolve(null)
-				} else {
-					try {
-						resolve(JSON.parse(response.body));
-					} catch {
-						resolve(null);
-					}
-				}
-			});
+			let errorConst = `at reject get extra event list `;
+			this.callAxios(options, resolve, errorConst);
 		});
 	}
 
