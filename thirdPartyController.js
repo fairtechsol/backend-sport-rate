@@ -3,15 +3,15 @@ const axios = require('axios');
 class ThirdPartyController {
 
 	callAxios(options, resolve, errorConst) {
-        axios(options)
-            .then(response => {
-                resolve(response.data);
-            })
-            .catch(error => {
-                console.log(errorConst, " ", error);
-                resolve(null);
-            });
-    }
+		axios(options)
+			.then(response => {
+				resolve(response.data);
+			})
+			.catch(error => {
+				console.log(errorConst, " ", error);
+				resolve(null);
+			});
+	}
 
 	//----------------------------------------------get competition---------------------------------------\\
 	async getMatchOdds_old(marketId) {
@@ -115,7 +115,7 @@ class ThirdPartyController {
 				method: 'GET',
 				// url: URL + 'list.php',
 				// url: 'http://3.89.232.255:3200/eventList/' + competitionId,
-				url: 'http://13.41.184.61/betfair/event_list_by_competition/'+competitionId,
+				url: 'http://13.41.184.61/betfair/event_list_by_competition/' + competitionId,
 				headers: { 'cache-control': 'no-cache' }
 			};
 			let errorConst = "at reject get event list";
@@ -152,7 +152,7 @@ class ThirdPartyController {
 			let options = {
 				method: 'GET',
 				// url: 'http://3.89.232.255:3200/extraMarketList/' + eventId,
-				url: 'http://13.41.184.61/betfair/cricket_extra_market_list/'+eventId,
+				url: 'http://13.41.184.61/betfair/cricket_extra_market_list/' + eventId,
 				headers: { 'cache-control': 'no-cache' }
 			};
 			let errorConst = `at reject get extra event list `;

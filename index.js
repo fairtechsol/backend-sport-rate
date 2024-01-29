@@ -155,6 +155,20 @@ app.get("/extraMarketList/:eventId", (req, res) => {
   });
 });
 
+app.get("/matchOddsNew/:marketId", (req, res) => {
+  let markertId = req.params.marketId;
+  ThirdPartyController.getMatchOdds(markertId).then(function (data) {
+    return res.send(data);
+  });
+});
+
+app.get("/bookmakerNew/:marketId", (req, res) => {
+  let markertId = req.params.marketId;
+  ThirdPartyController.getBookmakerMarket(markertId).then(function (data) {
+    return res.send(null);
+  });
+});
+
 io.on('connection', (socket) => {
   socket.on('score', function (event) {
     let eventId = event.id;
