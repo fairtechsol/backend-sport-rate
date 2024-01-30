@@ -109,7 +109,7 @@ app.get("/matchList", (req, res) => {
 app.get("/competitionList", (req, res) => {
   let type = req.query.type;
   let typeId = gameType[type];
-  ThirdPartyController.getCompetitionList(type).then(function (data) {
+  ThirdPartyController.getCompetitionList(typeId).then(function (data) {
     return res.send(data);
   });
 });
