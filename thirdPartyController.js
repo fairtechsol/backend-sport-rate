@@ -8,7 +8,7 @@ class ThirdPartyController {
 				resolve(response.data);
 			})
 			.catch(error => {
-				console.log(errorConst, " ", error);
+				console.log(errorConst, " ", error.response.data);
 				resolve(null);
 			});
 	}
