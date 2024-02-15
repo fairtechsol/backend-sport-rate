@@ -225,8 +225,10 @@ io.on('connection', (socket) => {
     if (!isIntervalExist) {
       let matchDetail = await internalRedis.hgetall(matchId + "_match");
       let marketId = matchDetail.marketId;
-      let intervalNumber = setInterval(getCricketData, liveGameTypeTime, marketId, matchId);
-      await internalRedis.hset("matchInterval", { [matchId]: intervalNumber });
+      if (marketId) {
+        let intervalNumber = setInterval(getCricketData, liveGameTypeTime, marketId, matchId);
+        await internalRedis.hset("matchInterval", { [matchId]: intervalNumber });
+      }
     }
   });
 
@@ -275,31 +277,6 @@ async function getCricketData(marketId, matchId) {
 
   let promiseRequestArray = []
   let oddIds = [];
-
-  //  do not change the sequence of if conditions
-  if (ismatchOddActive) {
-    oddIds.push(marketId);
-    // promiseRequestArray.push(ThirdPartyController.getMatchOdds_old(marketId));
-  }
-  if (ismarketCompleteMatchActive) {
-    oddIds.push((JSON.parse(matchDetail.marketCompleteMatch)).marketId);
-  }
-  if (ismarketTiedMatchActive) {
-    oddIds.push((JSON.parse(matchDetail.marketTiedMatch)).marketId);
-  }
-  if (oddIds.length) {
-    promiseRequestArray.push(ThirdPartyController.getMatchOdds(oddIds.join(',')));
-  }
-
-  if (ismarketBookmakerActive) {
-    promiseRequestArray.push(ThirdPartyController.getBookmakerMarket(marketId));
-  }
-  if (isAPISessionActive) {
-    promiseRequestArray.push(ThirdPartyController.getSessions(marketId));
-  }
-  // Wait for all requests to complete using Promise.all
-  let respo = await Promise.allSettled(promiseRequestArray);
-
   let returnResult = {};
   let expertResult = {};
   returnResult.id = matchId;
@@ -307,87 +284,114 @@ async function getCricketData(marketId, matchId) {
   expertResult.id = matchId;
   expertResult.marketId = marketId;
   let index = 0;
-  if (oddIds.length) {
-    let ind = 0;
-    let result = respo[index]?.value;
+
+  let isManual = marketId?.split(/(\d+)/)[0] == 'manual';
+  if (!isManual) {
+    //  do not change the sequence of if conditions
     if (ismatchOddActive) {
-      let matchOddDetails = JSON.parse(matchDetail.matchOdd);
-      let obj = result?.length && result[ind] ? result[ind] : {};
-      obj.id = matchOddDetails.id;
-      obj.name = matchOddDetails.name;
-      obj.minBet = matchOddDetails.minBet;
-      obj.maxBet = matchOddDetails.maxBet;
-      obj.type = matchOddDetails.type;
-      obj.isActive = matchOddDetails.isActive;
-      obj.activeStatus = matchOddDetails.activeStatus;
-      returnResult.matchOdd = obj;
-      expertResult.matchOdd = obj;
-      ind++;
+      oddIds.push(marketId);
+      // promiseRequestArray.push(ThirdPartyController.getMatchOdds_old(marketId));
     }
     if (ismarketCompleteMatchActive) {
-      let marketCompleteMatch = JSON.parse(matchDetail.marketCompleteMatch);
-      let obj = result?.length && result[ind] ? result[ind] : {};
-      obj.id = marketCompleteMatch.id;
-      obj.name = marketCompleteMatch.name;
-      obj.minBet = marketCompleteMatch.minBet;
-      obj.maxBet = marketCompleteMatch.maxBet;
-      obj.type = marketCompleteMatch.type;
-      obj.isActive = marketCompleteMatch.isActive;
-      obj.activeStatus = marketCompleteMatch.activeStatus;
-      returnResult.marketCompleteMatch = obj;
-      expertResult.marketCompleteMatch = obj;
-      ind++;
+      oddIds.push((JSON.parse(matchDetail.marketCompleteMatch)).marketId);
     }
     if (ismarketTiedMatchActive) {
-      let marketTiedMatch = JSON.parse(matchDetail.marketTiedMatch);
-      let obj = result?.length && result[ind] ? result[ind] : {};
-      obj.id = marketTiedMatch.id;
-      obj.name = marketTiedMatch.name;
-      obj.minBet = marketTiedMatch.minBet;
-      obj.maxBet = marketTiedMatch.maxBet;
-      obj.type = marketTiedMatch.type;
-      obj.isActive = marketTiedMatch.isActive;
-      obj.activeStatus = marketTiedMatch.activeStatus;
-      returnResult.apiTiedMatch = obj;
-      expertResult.apiTiedMatch = obj;
-      ind++;
+      oddIds.push((JSON.parse(matchDetail.marketTiedMatch)).marketId);
     }
-    index++;
-  }
+    if (oddIds.length) {
+      promiseRequestArray.push(ThirdPartyController.getMatchOdds(oddIds.join(',')));
+    }
 
-  if (ismarketBookmakerActive) {
-    let result = respo[index].value;
-    let marketBookmaker = JSON.parse(matchDetail.marketBookmaker);
-    let obj = result?.length && result[0] ? result[0] : {};
-    obj.id = marketBookmaker.id;
-    obj.name = marketBookmaker.name;
-    obj.minBet = marketBookmaker.minBet;
-    obj.maxBet = marketBookmaker.maxBet;
-    obj.type = marketBookmaker.type;
-    obj.isActive = marketBookmaker.isActive;
-    obj.activeStatus = marketBookmaker.activeStatus;
-    returnResult.bookmaker = obj;
-    expertResult.bookmaker = obj;
-    index++;
-  }
-  if (isAPISessionActive) {
-    let liveSession = await internalRedis.hgetall(matchId + "_selectionId");
-    let liveSelectionIds = liveSession ? Object.keys(liveSession) : [];
-    let result = respo[index].value;
-    let expertSession = [];
-    let onlyLiveSession = []
-    result?.map(session => {
-      if (liveSelectionIds.includes(session.SelectionId)) {
-        session["id"] = liveSession[session.SelectionId];
-        onlyLiveSession.push(session);
+    if (ismarketBookmakerActive) {
+      promiseRequestArray.push(ThirdPartyController.getBookmakerMarket(marketId));
+    }
+    if (isAPISessionActive) {
+      promiseRequestArray.push(ThirdPartyController.getSessions(marketId));
+    }
+    // Wait for all requests to complete using Promise.all
+    let respo = await Promise.allSettled(promiseRequestArray);
+
+    if (oddIds.length) {
+      let ind = 0;
+      let result = respo[index]?.value;
+      if (ismatchOddActive) {
+        let matchOddDetails = JSON.parse(matchDetail.matchOdd);
+        let obj = result?.length && result[ind] ? result[ind] : {};
+        obj.id = matchOddDetails.id;
+        obj.name = matchOddDetails.name;
+        obj.minBet = matchOddDetails.minBet;
+        obj.maxBet = matchOddDetails.maxBet;
+        obj.type = matchOddDetails.type;
+        obj.isActive = matchOddDetails.isActive;
+        obj.activeStatus = matchOddDetails.activeStatus;
+        returnResult.matchOdd = obj;
+        expertResult.matchOdd = obj;
+        ind++;
       }
-      expertSession.push(session);
-    });
-    returnResult.apiSession = onlyLiveSession;
-    expertResult.apiSession = expertSession;
-    index++;
-  }
+      if (ismarketCompleteMatchActive) {
+        let marketCompleteMatch = JSON.parse(matchDetail.marketCompleteMatch);
+        let obj = result?.length && result[ind] ? result[ind] : {};
+        obj.id = marketCompleteMatch.id;
+        obj.name = marketCompleteMatch.name;
+        obj.minBet = marketCompleteMatch.minBet;
+        obj.maxBet = marketCompleteMatch.maxBet;
+        obj.type = marketCompleteMatch.type;
+        obj.isActive = marketCompleteMatch.isActive;
+        obj.activeStatus = marketCompleteMatch.activeStatus;
+        returnResult.marketCompleteMatch = obj;
+        expertResult.marketCompleteMatch = obj;
+        ind++;
+      }
+      if (ismarketTiedMatchActive) {
+        let marketTiedMatch = JSON.parse(matchDetail.marketTiedMatch);
+        let obj = result?.length && result[ind] ? result[ind] : {};
+        obj.id = marketTiedMatch.id;
+        obj.name = marketTiedMatch.name;
+        obj.minBet = marketTiedMatch.minBet;
+        obj.maxBet = marketTiedMatch.maxBet;
+        obj.type = marketTiedMatch.type;
+        obj.isActive = marketTiedMatch.isActive;
+        obj.activeStatus = marketTiedMatch.activeStatus;
+        returnResult.apiTiedMatch = obj;
+        expertResult.apiTiedMatch = obj;
+        ind++;
+      }
+      index++;
+    }
 
+    if (ismarketBookmakerActive) {
+      let result = respo[index].value;
+      let marketBookmaker = JSON.parse(matchDetail.marketBookmaker);
+      let obj = result?.length && result[0] ? result[0] : {};
+      obj.id = marketBookmaker.id;
+      obj.name = marketBookmaker.name;
+      obj.minBet = marketBookmaker.minBet;
+      obj.maxBet = marketBookmaker.maxBet;
+      obj.type = marketBookmaker.type;
+      obj.isActive = marketBookmaker.isActive;
+      obj.activeStatus = marketBookmaker.activeStatus;
+      returnResult.bookmaker = obj;
+      expertResult.bookmaker = obj;
+      index++;
+    }
+    if (isAPISessionActive) {
+      let liveSession = await internalRedis.hgetall(matchId + "_selectionId");
+      let liveSelectionIds = liveSession ? Object.keys(liveSession) : [];
+      let result = respo[index].value;
+      let expertSession = [];
+      let onlyLiveSession = []
+      result?.map(session => {
+        if (liveSelectionIds.includes(session.SelectionId)) {
+          session["id"] = liveSession[session.SelectionId];
+          onlyLiveSession.push(session);
+        }
+        expertSession.push(session);
+      });
+      returnResult.apiSession = onlyLiveSession;
+      expertResult.apiSession = expertSession;
+      index++;
+    }
+  }
 
   let redisPromise = []
   redisPromise.push(internalRedis.hgetall(matchId + "_manualBetting"));
