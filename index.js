@@ -398,17 +398,15 @@ async function getCricketData(marketId, matchId) {
       let onlyLiveSession = []
       result?.map(session => {
         let sessionIndex = sessionAPI.findIndex(obj => obj.selectionId == session.SelectionId);
-        if (sessionIndex > -1 && sessionAPI[sessionIndex].activeStatus == 'live') {
+        if (sessionIndex > -1) {
           session["id"] = sessionAPI[sessionIndex].id // liveSession[session.SelectionId];
+          session["activeStatus"] = sessionAPI[sessionIndex].activeStatus;
           onlyLiveSession.push(session);
         }
         // if (liveSelectionIds.includes(session.SelectionId)) {
         //   session["id"] = liveSession[session.SelectionId];
         //   onlyLiveSession.push(session);
         // }
-        if (sessionIndex > -1) {
-          session["id"] = sessionAPI[sessionIndex].id // liveSession[session.SelectionId];
-        }
         expertSession.push(session);
       });
       returnResult.apiSession = onlyLiveSession;
