@@ -411,7 +411,7 @@ async function getCricketData(marketId, matchId) {
         expertSession.push(session);
       });
       selectionArray.map(index =>{
-        if(index > -1){
+        if(index == -1){
           let session = sessionAPI[index]
           let obj = {
             "SelectionId": session.selectionId,
