@@ -245,11 +245,13 @@ io.on('connection', (socket) => {
     const room = io.sockets.adapter.rooms.get(matchId);
     try {
       if (!(room && room.size != 0)) {
-        let isIntervalExist = await internalRedis.hget("matchInterval", matchId);
-        if (isIntervalExist) {
-          internalRedis.hdel("matchInterval", matchId);
-          await clearInterval(parseInt(isIntervalExist));
-        }
+        const pipeline = internalRedis.pipeline();
+        pipeline.hget("matchInterval", matchId);
+        pipeline.hdel("matchInterval", matchId);
+        const [isIntervalExist, deleteResult] = await pipeline.exec();
+        if (isIntervalExist && isIntervalExist[1]) {
+          clearInterval(parseInt(isIntervalExist[1]));
+      }
       }
     } catch (error) {
       console.log("error at disconnectCricketData ", error);
