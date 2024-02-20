@@ -397,9 +397,9 @@ async function getCricketData(marketId, matchId) {
       let expertSession = [];
       let onlyLiveSession = []
       result?.map(session => {
-        let sessionIndex = sessionAPI.findIndex(obj => obj.selectionId == session.SelectionId)
-        if (sessionIndex > -1 && sessionIndex[sessionIndex].activeStatus == 'live') {
-          session["id"] = sessionIndex[sessionIndex].id // liveSession[session.SelectionId];
+        let sessionIndex = sessionAPI.findIndex(obj => obj.selectionId == session.SelectionId);
+        if (sessionIndex > -1 && sessionAPI[sessionIndex].activeStatus == 'live') {
+          session["id"] = sessionAPI[sessionIndex].id // liveSession[session.SelectionId];
           onlyLiveSession.push(session);
         }
         // if (liveSelectionIds.includes(session.SelectionId)) {
@@ -407,7 +407,7 @@ async function getCricketData(marketId, matchId) {
         //   onlyLiveSession.push(session);
         // }
         if (sessionIndex > -1) {
-          session["id"] = sessionIndex[sessionIndex].id // liveSession[session.SelectionId];
+          session["id"] = sessionAPI[sessionIndex].id // liveSession[session.SelectionId];
         }
         expertSession.push(session);
       });
