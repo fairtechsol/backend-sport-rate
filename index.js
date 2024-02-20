@@ -286,6 +286,7 @@ async function getCricketData(marketId, matchId) {
   expertResult.id = matchId;
   expertResult.marketId = marketId;
   let index = 0;
+  let sessionAPI = [], sessionManual = []
 
   let isManual = marketId?.split(/(\d+)/)[0] == 'manual';
   if (!isManual) {
@@ -377,7 +378,6 @@ async function getCricketData(marketId, matchId) {
       index++;
     }
 
-    let sessionAPI = [], sessionManual = []
     if(isAPISessionActive || isManualSessionActive){
       let sessionData = await internalRedis.hgetall(matchId + "_session");
       sessionData = sessionData ? Object.values(sessionData) : [];
