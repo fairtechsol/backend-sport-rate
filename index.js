@@ -395,9 +395,10 @@ async function getCricketData(marketId, matchId) {
       // let liveSelectionIds = sessionData ? Object.keys(liveSession) : [];
       let result = respo[index].value;
       let expertSession = [];
-      let onlyLiveSession = []
+      let onlyLiveSession = [], selectionArray = [];
       result?.map(session => {
         let sessionIndex = sessionAPI.findIndex(obj => obj.selectionId == session.SelectionId);
+        selectionArray.push(sessionAPI[sessionIndex].selectionId);
         if (sessionIndex > -1) {
           session["id"] = sessionAPI[sessionIndex].id // liveSession[session.SelectionId];
           session["activeStatus"] = sessionAPI[sessionIndex].activeStatus;
@@ -409,6 +410,20 @@ async function getCricketData(marketId, matchId) {
         // }
         expertSession.push(session);
       });
+      sessionAPI.map(obj =>{
+        if(!selectionArray.includes(obj.selectionId)){
+          let obj = {
+            "SelectionId": obj.selectionId,
+            "RunnerName": obj.name,
+            "min": obj.minBet,
+            "max": obj.maxBet,
+            "id": obj.id,
+            "activeStatus": obj.activeStatus
+          }
+          expertSession.push(obj);
+          onlyLiveSession.push(obj);
+        }
+      })
       returnResult.apiSession = onlyLiveSession;
       expertResult.apiSession = expertSession;
       index++;
