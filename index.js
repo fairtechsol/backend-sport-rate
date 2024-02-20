@@ -380,7 +380,7 @@ async function getCricketData(marketId, matchId) {
     let sessionAPI = [], sessionManual = []
     if(isAPISessionActive || isManualSessionActive){
       let sessionData = await internalRedis.hgetall(matchId + "_session");
-      sessionData = sessionData ? Object.values(liveSession) : [];
+      sessionData = sessionData ? Object.values(sessionData) : [];
       sessionData.map( sessionString => {
         if((JSON.parse(sessionString).isManual)){
           sessionManual.push(sessionString);
