@@ -85,7 +85,7 @@ let IntervalIds = [];
 let liveGameObject = {}
 
 const gameType = {
-  soccer: 1,
+  football: 1,
   tennis: 2,
   golf: 3,
   cricket: 4,
@@ -376,16 +376,38 @@ async function getCricketData(marketId, matchId) {
       expertResult.bookmaker = obj;
       index++;
     }
+
+    let sessionAPI = [], sessionManual = []
+    if(isAPISessionActive || isManualSessionActive){
+      let sessionData = await internalRedis.hgetall(matchId + "_session");
+      sessionData = sessionData ? Object.values(liveSession) : [];
+      sessionData.map( sessionString => {
+        if((JSON.parse(sessionString).isManual)){
+          sessionManual.push(sessionString);
+        } else {
+          sessionAPI.push(JSON.parse(sessionString));
+        }
+      });
+      
+    }
     if (isAPISessionActive) {
-      let liveSession = await internalRedis.hgetall(matchId + "_selectionId");
-      let liveSelectionIds = liveSession ? Object.keys(liveSession) : [];
+      // let liveSession = await internalRedis.hgetall(matchId + "_selectionId");
+      // let liveSelectionIds = sessionData ? Object.keys(liveSession) : [];
       let result = respo[index].value;
       let expertSession = [];
       let onlyLiveSession = []
       result?.map(session => {
-        if (liveSelectionIds.includes(session.SelectionId)) {
-          session["id"] = liveSession[session.SelectionId];
+        let sessionIndex = sessionAPI.findIndex(obj => obj.selectionId == session.SelectionId)
+        if (sessionIndex > -1 && sessionIndex[sessionIndex].activeStatus == 'live') {
+          session["id"] = sessionIndex[sessionIndex].id // liveSession[session.SelectionId];
           onlyLiveSession.push(session);
+        }
+        // if (liveSelectionIds.includes(session.SelectionId)) {
+        //   session["id"] = liveSession[session.SelectionId];
+        //   onlyLiveSession.push(session);
+        // }
+        if (sessionIndex > -1) {
+          session["id"] = sessionIndex[sessionIndex].id // liveSession[session.SelectionId];
         }
         expertSession.push(session);
       });
@@ -397,14 +419,15 @@ async function getCricketData(marketId, matchId) {
 
   let redisPromise = []
   redisPromise.push(internalRedis.hgetall(matchId + "_manualBetting"));
-  if (isManualSessionActive) {
-    redisPromise.push(internalRedis.hgetall(matchId + "_session"));
-  }
+  // if (isManualSessionActive) {
+  //   redisPromise.push(internalRedis.hgetall(matchId + "_session"));
+  // }
 
   let manuallyResponse = await Promise.allSettled(redisPromise);
   if (isManualSessionActive) {
-    let result = manuallyResponse[1].value;
-    returnResult.sessionBettings = Object.values(result);
+    // let result = manuallyResponse[1].value;
+    returnResult.sessionBettings = sessionManual;
+    // returnResult.sessionBettings = Object.values(result);
   }
   let manuallyMatchDetails = manuallyResponse[0].value;
   if (manuallyMatchDetails) {
