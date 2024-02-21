@@ -2,12 +2,15 @@ const express = require('express'); // using express
 const socketIO = require('socket.io');
 const Redis = require('ioredis');
 const http = require('http')
-const port = process.env.port ? parseInt(process.env.port) : 3200 // setting the port
-let liveScoreTimer = process.env.liveScoreTimer ? parseInt(process.env.liveScoreTimer) : 30000;
-let getRateTimer = process.env.getRateTimer ? parseInt(process.env.getRateTimer) : 300;
-let liveGameTypeTime = process.env.liveGameTypeTime ? parseInt(process.env.liveGameTypeTime) : 1000;
+var cors = require('cors');
+var LocalStorage = require('node-localstorage').LocalStorage;
+const cron = require('node-cron');
+const { match } = require('assert');
+
 let app = express();
 let server = http.createServer(app)
+app.use(cors());
+require("dotenv").config();
 const ThirdPartyController = require('./thirdPartyController');
 let io = socketIO(server, {
   cors: {
@@ -15,16 +18,13 @@ let io = socketIO(server, {
     methods: ["GET", "POST"]
   }
 })
-var cors = require('cors');
-var LocalStorage = require('node-localstorage').LocalStorage;
-localStorage = new LocalStorage('./scratch');
 app.set('socketio', io);
-app.use(cors());
+localStorage = new LocalStorage('./scratch');
 
-const cron = require('node-cron');
-const { match } = require('assert');
-
-require("dotenv").config();
+const port = process.env.port ? parseInt(process.env.port) : 3200 // setting the port
+let liveScoreTimer = process.env.liveScoreTimer ? parseInt(process.env.liveScoreTimer) : 30000;
+let getRateTimer = process.env.getRateTimer ? parseInt(process.env.getRateTimer) : 300;
+let liveGameTypeTime = process.env.liveGameTypeTime ? parseInt(process.env.liveGameTypeTime) : 1000;
 
 const internalRedis = new Redis({
   host: process.env.INTERNAL_REDIS_HOST || 'localhost',
@@ -81,7 +81,7 @@ app.get("/", (req, res) => {
 });
 
 let IntervalIds = [];
-
+let matchIntervalIds = [];
 let liveGameObject = {}
 
 const gameType = {
@@ -221,21 +221,27 @@ io.on('connection', (socket) => {
     } else {
       socket.join(matchId);
     }
-    let isIntervalExist = await internalRedis.hget("matchInterval", matchId);
-    if (!isIntervalExist) {
+
+    let matchIds = localStorage.getItem("matchDBds") ? JSON.parse(localStorage.getItem("matchDBds")) : null;
+    if (matchIds == null || !matchIds.includes(matchId)) {
       let matchDetail = await internalRedis.hgetall(matchId + "_match");
-      let marketId = matchDetail.marketId;
-      if (marketId) {
-        let intervalNumber = setInterval(getCricketData, liveGameTypeTime, marketId, matchId);
-        await internalRedis.hset("matchInterval", { [matchId]: intervalNumber });
+      let marketId = matchDetail?.marketId;
+      if(marketId){
+        matchIntervalIds.push(matchId);
+        matchIntervalIds[matchId] = setInterval(getCricketData, liveGameTypeTime, marketId, matchId);
+        if (matchIds == null) {
+          matchIds = [];
+        } else {
+          matchIds = JSON.parse(localStorage.getItem("matchDBds"));
+        }
+        matchIds.push(matchId);
+        localStorage.setItem("matchDBds", JSON.stringify(matchIds));
       }
     }
   });
 
   socket.on('disconnectCricketData', async function (event) {
-    let matchId = event.matchId;
-    let roleName = event.roleName;
-    let roomName = '';
+    let matchId = event.matchId, roleName = event.roleName, roomName = '';
     if (roleName == 'expert') {
       roomName = matchId + 'expert';
     } else {
@@ -245,13 +251,12 @@ io.on('connection', (socket) => {
     const room = io.sockets.adapter.rooms.get(matchId);
     try {
       if (!(room && room.size != 0)) {
-        const pipeline = internalRedis.pipeline();
-        pipeline.hget("matchInterval", matchId);
-        pipeline.hdel("matchInterval", matchId);
-        const [isIntervalExist, deleteResult] = await pipeline.exec();
-        if (isIntervalExist && isIntervalExist[1]) {
-          clearInterval(parseInt(isIntervalExist[1]));
-      }
+        clearInterval(matchIntervalIds[matchId]);
+        let matchIds = localStorage.getItem("matchDBds") ? JSON.parse(localStorage.getItem("matchDBds")) : null;
+        if(matchIds){
+          matchIds.splice(matchIds.indexOf(matchId), 1);
+          localStorage.setItem("matchDBds", JSON.stringify(matchIds));
+        }
       }
     } catch (error) {
       console.log("error at disconnectCricketData ", error);
@@ -518,6 +523,18 @@ server.listen(port, () => {
     marketIds.map(marketId => {
       IntervalIds.push(marketId);
       IntervalIds[marketId] = setInterval(getMarketRate, getRateTimer, marketId);
+    })
+  }
+  
+  let matchDBds = localStorage.getItem("matchDBds") ? JSON.parse(localStorage.getItem("matchDBds")) : null;
+  if (matchDBds && matchDBds.length) {
+    matchDBds.map(async matchId => {
+      let matchDetail = await internalRedis.hgetall(matchId + "_match");
+      let marketId = matchDetail?.marketId;
+      if(marketId){
+        matchIntervalIds.push(matchId);
+        matchIntervalIds[matchId] = setInterval(getCricketData, liveGameTypeTime, marketId, matchId);
+      }
     })
   }
 
