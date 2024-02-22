@@ -209,21 +209,18 @@ io.on('connection', (socket) => {
     } else {
       socket.join(matchId);
     }
-
+    let matchDetail = await internalRedis.hgetall(matchId + "_match");
     let matchIds = localStorage.getItem("matchDBds") ? JSON.parse(localStorage.getItem("matchDBds")) : null;
     if (matchIds == null || !matchIds.includes(matchId)) {
-      let matchDetail = await internalRedis.hgetall(matchId + "_match");
       let marketId = matchDetail?.marketId;
       if(marketId){
-        matchIntervalIds.push(matchId);
-        matchIntervalIds[matchId] = setInterval(getCricketData, liveGameTypeTime, marketId, matchId);
         if (matchIds == null) {
           matchIds = [];
-        } else {
-          matchIds = JSON.parse(localStorage.getItem("matchDBds"));
         }
         matchIds.push(matchId);
         localStorage.setItem("matchDBds", JSON.stringify(matchIds));
+        matchIntervalIds.push(matchId);
+        matchIntervalIds[matchId] = setInterval(getCricketData, liveGameTypeTime, marketId, matchId);
       }
     }
   });
@@ -262,6 +259,7 @@ io.on('connection', (socket) => {
 });
 
 async function getCricketData(marketId, matchId) {
+console.log("in interval ", matchId, " interval ", matchIntervalIds[matchId]);
   let matchDetail = await internalRedis.hgetall(matchId + "_match");
   let isAPISessionActive = matchDetail.apiSessionActive ? JSON.parse(matchDetail.apiSessionActive) : false;
   let isManualSessionActive = matchDetail.manualSessionActive ? JSON.parse(matchDetail.manualSessionActive) : false;
