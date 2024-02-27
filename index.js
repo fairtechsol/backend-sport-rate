@@ -211,18 +211,18 @@ io.on('connection', (socket) => {
     }
     let matchDetail = await internalRedis.hgetall(matchId + "_match");
     let matchIds = localStorage.getItem("matchDBds") ? JSON.parse(localStorage.getItem("matchDBds")) : null;
-    if (matchIds == null || !matchIds.includes(matchId)) {
+    if (!matchIntervalIds[matchId]) {
       console.log("matchIds are ", matchIds, " new match id ", matchId);
       let marketId = matchDetail?.marketId;
       if(marketId){
         if (matchIds == null) {
           matchIds = [];
         }
+        matchIntervalIds.push(matchId);
+        matchIntervalIds[matchId] = setInterval(getCricketData, liveGameTypeTime, marketId, matchId);
         matchIds.push(matchId);
         localStorage.setItem("matchDBds", JSON.stringify(matchIds));
         console.log(" after same matchIds are ", matchIds);
-        matchIntervalIds.push(matchId);
-        matchIntervalIds[matchId] = setInterval(getCricketData, liveGameTypeTime, marketId, matchId);
       }
     }
   });
