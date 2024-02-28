@@ -69,7 +69,7 @@ app.get("/", (req, res) => {
 });
 
 let IntervalIds = [];
-let matchIntervalIds = [];
+let matchIntervalIds = {};
 let liveGameObject = {}
 
 const gameType = {
@@ -218,7 +218,6 @@ io.on('connection', (socket) => {
         if (matchIds == null) {
           matchIds = [];
         }
-        matchIntervalIds.push(matchId);
         matchIntervalIds[matchId] = setInterval(getCricketData, liveGameTypeTime, marketId, matchId);
         matchIds.push(matchId);
         localStorage.setItem("matchDBds", JSON.stringify(matchIds));
@@ -239,6 +238,7 @@ io.on('connection', (socket) => {
     try {
       if (!(room && room.size != 0)) {
         clearInterval(matchIntervalIds[matchId]);
+        delete matchIntervalIds[matchId];
         let matchIds = localStorage.getItem("matchDBds") ? JSON.parse(localStorage.getItem("matchDBds")) : null;
         if(matchIds){
           matchIds.splice(matchIds.indexOf(matchId), 1);
@@ -520,7 +520,6 @@ server.listen(port, () => {
       let matchDetail = await internalRedis.hgetall(matchId + "_match");
       let marketId = matchDetail?.marketId;
       if(marketId){
-        matchIntervalIds.push(matchId);
         matchIntervalIds[matchId] = setInterval(getCricketData, liveGameTypeTime, marketId, matchId);
       }
     })
