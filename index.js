@@ -202,6 +202,7 @@ io.on('connection', (socket) => {
   });
 
   socket.on('initCricketData', async function (event) {
+
     let matchId = event.matchId;
     let roleName = event.roleName;
     if (roleName == 'expert') {
@@ -212,7 +213,6 @@ io.on('connection', (socket) => {
     let matchDetail = await internalRedis.hgetall(matchId + "_match");
     let matchIds = localStorage.getItem("matchDBds") ? JSON.parse(localStorage.getItem("matchDBds")) : null;
     if (!matchIntervalIds[matchId]) {
-      console.log("matchIds are ", matchIds, " new match id ", matchId);
       let marketId = matchDetail?.marketId;
       if(marketId){
         if (matchIds == null) {
@@ -221,13 +221,14 @@ io.on('connection', (socket) => {
         matchIntervalIds[matchId] = setInterval(getCricketData, liveGameTypeTime, marketId, matchId);
         matchIds.push(matchId);
         localStorage.setItem("matchDBds", JSON.stringify(matchIds));
-        console.log(" after same matchIds are ", matchIds);
       }
     }
   });
 
   socket.on('disconnectCricketData', async function (event) {
-    let matchId = event.matchId, roleName = event.roleName, roomName = '';
+    let matchId = event.matchId;
+    let roleName = event.roleName;
+    let roomName = '';
     if (roleName == 'expert') {
       roomName = matchId + 'expert';
     } else {
@@ -261,7 +262,6 @@ io.on('connection', (socket) => {
 });
 
 async function getCricketData(marketId, matchId) {
-console.log("in interval ", matchId, " interval ");
   let matchDetail = await internalRedis.hgetall(matchId + "_match");
   let isAPISessionActive = matchDetail.apiSessionActive ? JSON.parse(matchDetail.apiSessionActive) : false;
   let isManualSessionActive = matchDetail.manualSessionActive ? JSON.parse(matchDetail.manualSessionActive) : false;
@@ -460,6 +460,12 @@ console.log("in interval ", matchId, " interval ");
       let json = JSON.parse(manuallyMatchDetails.quickbookmaker3);
       if (json.isActive) {
         returnResult.quickbookmaker.push(json);
+      }
+    }
+    if (manuallyMatchDetails.completeManual) {
+      let json = JSON.parse(manuallyMatchDetails.completeManual);
+      if (json.isActive) {
+        returnResult["completeManual"] = json;
       }
     }
   }
