@@ -394,6 +394,8 @@ async function getCricketData(marketId, matchId) {
         if (sessionIndex > -1) {
           session["id"] = sessionAPI[sessionIndex].id // liveSession[session.SelectionId];
           session["activeStatus"] = sessionAPI[sessionIndex].activeStatus;
+          session["min"] = sessionAPI[sessionIndex].minBet,
+          session["max"] = sessionAPI[sessionIndex].maxBet,
           onlyLiveSession.push(session);
         selectionArray.push(session.SelectionId);
         }
