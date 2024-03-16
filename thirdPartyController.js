@@ -147,12 +147,12 @@ class ThirdPartyController {
 		});
 	}
 
-	async getExtraEventList(eventId) {
+	async getExtraEventList(eventId,eventType) {
 		return new Promise((resolve, reject) => {
 			let options = {
 				method: 'GET',
 				// url: 'http://3.89.232.255:3200/extraMarketList/' + eventId,
-				url: 'http://13.41.184.61/betfair/cricket_extra_market_list/' + eventId,
+				url: 'http://13.41.184.61/betfair/' + eventType + '/' + eventId,
 				headers: { 'cache-control': 'no-cache' }
 			};
 			let errorConst = `at reject get extra event list `;
