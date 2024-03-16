@@ -142,7 +142,7 @@ app.get("/session/:marketId", (req, res) => {
 
 app.get("/extraMarketList/:eventId", (req, res) => {
   let eventId = req.params.eventId;
-  let eventType = req.query.eventType;
+  let eventType = req.query?.eventType;
   eventType = eventUrl[eventType] ? eventUrl[eventType] : eventUrl.cricket;
   ThirdPartyController.getExtraEventList(eventId, eventType).then(function (data) {
     return res.send(data);
@@ -301,7 +301,7 @@ async function getCricketData(marketId, matchId) {
       oddIds.push((JSON.parse(matchDetail.marketTiedMatch)).marketId);
     }
     if (oddIds.length) {
-      promiseRequestArray.push(ThirdPartyController.getMatchOdds_old(oddIds.join(',')));
+      promiseRequestArray.push(ThirdPartyController.getMatchOdds(oddIds.join(',')));
     }
 
     if (ismarketBookmakerActive) {
