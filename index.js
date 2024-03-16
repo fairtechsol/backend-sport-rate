@@ -143,7 +143,7 @@ app.get("/session/:marketId", (req, res) => {
 app.get("/extraMarketList/:eventId", (req, res) => {
   let eventId = req.params.eventId;
   let eventType = req.query.eventType;
-  eventType = eventUrl[eventType] ? eventUrl[eventType]:eventUrl.cricket;
+  eventType = eventUrl[eventType] ? eventUrl[eventType] : eventUrl.cricket;
   ThirdPartyController.getExtraEventList(eventId, eventType).then(function (data) {
     return res.send(data);
   });
