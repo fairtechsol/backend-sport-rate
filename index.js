@@ -79,6 +79,10 @@ const gameType = {
   cricket: 4,
   boxing: 6
 }
+const eventUrl = {
+  football: "under_over_goal_market_list",
+  cricket: "cricket_extra_market_list"
+}
 
 const liveGameType = {
   teen8: "teen8",
@@ -138,7 +142,9 @@ app.get("/session/:marketId", (req, res) => {
 
 app.get("/extraMarketList/:eventId", (req, res) => {
   let eventId = req.params.eventId;
-  ThirdPartyController.getExtraEventList(eventId).then(function (data) {
+  let eventType = req.query?.eventType;
+  eventType = eventUrl[eventType] ? eventUrl[eventType] : eventUrl.cricket;
+  ThirdPartyController.getExtraEventList(eventId, eventType).then(function (data) {
     return res.send(data);
   });
 });
@@ -214,7 +220,7 @@ io.on('connection', (socket) => {
     let matchIds = localStorage.getItem("matchDBds") ? JSON.parse(localStorage.getItem("matchDBds")) : null;
     if (!matchIntervalIds[matchId]) {
       let marketId = matchDetail?.marketId;
-      if(marketId){
+      if (marketId) {
         if (matchIds == null) {
           matchIds = [];
         }
@@ -241,7 +247,7 @@ io.on('connection', (socket) => {
         clearInterval(matchIntervalIds[matchId]);
         delete matchIntervalIds[matchId];
         let matchIds = localStorage.getItem("matchDBds") ? JSON.parse(localStorage.getItem("matchDBds")) : null;
-        if(matchIds){
+        if (matchIds) {
           matchIds.splice(matchIds.indexOf(matchId), 1);
           localStorage.setItem("matchDBds", JSON.stringify(matchIds));
         }
@@ -371,17 +377,17 @@ async function getCricketData(marketId, matchId) {
       index++;
     }
 
-    if(isAPISessionActive || isManualSessionActive){
+    if (isAPISessionActive || isManualSessionActive) {
       let sessionData = await internalRedis.hgetall(matchId + "_session");
       sessionData = sessionData ? Object.values(sessionData) : [];
-      sessionData.map( sessionString => {
-        if((JSON.parse(sessionString).isManual)){
+      sessionData.map(sessionString => {
+        if ((JSON.parse(sessionString).isManual)) {
           sessionManual.push(sessionString);
         } else {
           sessionAPI.push(JSON.parse(sessionString));
         }
       });
-      
+
     }
     if (isAPISessionActive) {
       // let liveSession = await internalRedis.hgetall(matchId + "_selectionId");
@@ -397,7 +403,7 @@ async function getCricketData(marketId, matchId) {
           session["min"] = sessionAPI[sessionIndex].minBet,
           session["max"] = sessionAPI[sessionIndex].maxBet,
           onlyLiveSession.push(session);
-        selectionArray.push(session.SelectionId);
+          selectionArray.push(session.SelectionId);
         }
         // if (liveSelectionIds.includes(session.SelectionId)) {
         //   session["id"] = liveSession[session.SelectionId];
@@ -405,8 +411,8 @@ async function getCricketData(marketId, matchId) {
         // }
         expertSession.push(session);
       });
-      sessionAPI.map(session =>{
-        if(!selectionArray.includes(session.selectionId)){
+      sessionAPI.map(session => {
+        if (!selectionArray.includes(session.selectionId)) {
           let obj = {
             "SelectionId": session.selectionId,
             "RunnerName": session.name,
@@ -521,13 +527,13 @@ server.listen(port, () => {
       IntervalIds[marketId] = setInterval(getMarketRate, getRateTimer, marketId);
     })
   }
-  
+
   let matchDBds = localStorage.getItem("matchDBds") ? JSON.parse(localStorage.getItem("matchDBds")) : null;
   if (matchDBds && matchDBds.length) {
     matchDBds.map(async matchId => {
       let matchDetail = await internalRedis.hgetall(matchId + "_match");
       let marketId = matchDetail?.marketId;
-      if(marketId){
+      if (marketId) {
         matchIntervalIds[matchId] = setInterval(getCricketData, liveGameTypeTime, marketId, matchId);
       }
     })
