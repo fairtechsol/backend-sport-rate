@@ -269,6 +269,14 @@ io.on('connection', (socket) => {
 
 async function getCricketData(marketId, matchId) {
   let matchDetail = await internalRedis.hgetall(matchId + "_match");
+  if (matchDetail.matchType == 'football') {
+    let returnResult = {};
+    let expertResult = {};
+    await getFootBallData(matchDetail, returnResult, expertResult);
+    io.to(matchId).emit("liveData" + matchId, returnResult);
+    io.to(matchId + 'expert').emit("liveData" + matchId, expertResult);
+    return;
+  }
   let isAPISessionActive = matchDetail.apiSessionActive ? JSON.parse(matchDetail.apiSessionActive) : false;
   let isManualSessionActive = matchDetail.manualSessionActive ? JSON.parse(matchDetail.manualSessionActive) : false;
   let ismatchOddActive = matchDetail.matchOdd ? (JSON.parse(matchDetail.matchOdd)).isActive : false;
@@ -401,8 +409,8 @@ async function getCricketData(marketId, matchId) {
           session["id"] = sessionAPI[sessionIndex].id // liveSession[session.SelectionId];
           session["activeStatus"] = sessionAPI[sessionIndex].activeStatus;
           session["min"] = sessionAPI[sessionIndex].minBet,
-          session["max"] = sessionAPI[sessionIndex].maxBet,
-          onlyLiveSession.push(session);
+            session["max"] = sessionAPI[sessionIndex].maxBet,
+            onlyLiveSession.push(session);
           selectionArray.push(session.SelectionId);
         }
         // if (liveSelectionIds.includes(session.SelectionId)) {
@@ -480,6 +488,109 @@ async function getCricketData(marketId, matchId) {
 
   io.to(matchId).emit("liveData" + matchId, returnResult);
   io.to(matchId + 'expert').emit("liveData" + matchId, expertResult);
+}
+
+async function getFootBallData(matchDetail, returnResult, expertResult) {
+  let liveIds = [];
+  let promiseRequestArray = [];
+  let typeIdObject = {}  // it will store the marketId as key and key as value so find id, min, max and other
+  let firstHalfGoldLive = Object.keys(matchDetail).filter(key => key.startsWith("firstHalfGoal"));
+  firstHalfGoldLive.map(key => {
+    let value = matchDetail[key];
+    value = JSON.parse(value);
+    let isLive = value.isActive;
+    liveIds.push(value.marketId);
+    typeIdObject[value.marketId] = key;
+  })
+
+  let halfTimeLive = Object.keys(matchDetail).filter(key => key.startsWith("halfTime"));
+  halfTimeLive.map(key => {
+    let value = matchDetail[key];
+    value = JSON.parse(value);
+    let isLive = value.isActive;
+    liveIds.push(value.marketId);
+    typeIdObject[value.marketId] = key;
+  })
+
+  let matchOddLive = Object.keys(matchDetail).filter(key => key.startsWith("matchOdd"));
+  matchOddLive.map(key => {
+    let value = matchDetail[key];
+    value = JSON.parse(value);
+    let isLive = value.isActive;
+    liveIds.push(value.marketId);
+    typeIdObject[value.marketId] = key;
+  })
+
+  let overUnderLive = Object.keys(matchDetail).filter(key => key.startsWith("overUnder"));
+  overUnderLive.map(key => {
+    let value = matchDetail[key];
+    value = JSON.parse(value);
+    let isLive = value.isActive;
+    liveIds.push(value.marketId);
+    typeIdObject[value.marketId] = key;
+  })
+
+  if (liveIds.length) {
+    promiseRequestArray.push(ThirdPartyController.getMatchOdds(liveIds.join(',')));
+  }
+  let ismarketBookmakerActive = matchDetail.marketBookmaker ? (JSON.parse(matchDetail.marketBookmaker)).isActive : false;
+  if (ismarketBookmakerActive) {
+    promiseRequestArray.push(ThirdPartyController.getBookmakerMarket(matchDetail.marketId));
+  }
+  let respo = await Promise.allSettled(promiseRequestArray);
+  let index = 0;
+
+  let results = respo[index]?.value;
+  results.map((result, index) => {
+    let marketId = liveIds[index];
+    let key = typeIdObject[marketId];
+    let value = matchDetail[key];
+    value = JSON.parse(value);
+    if (!result) {
+      result = {};
+    }
+    result.id = value.id;
+    result.name = value.name;
+    result.minBet = value.minBet;
+    result.maxBet = value.maxBet;
+    result.type = value.type;
+    result.isActive = value.isActive;
+    result.activeStatus = value.activeStatus;
+
+    expertResult[value.type] = result;
+    if (result.isActive) {
+      returnResult[value.type] = result
+    }
+  });
+
+  let redisPromise = []
+  redisPromise.push(internalRedis.hgetall(matchId + "_manualBetting"));
+
+  let manuallyResponse = await Promise.allSettled(redisPromise);
+  let manuallyMatchDetails = manuallyResponse[0].value;
+
+  if (manuallyMatchDetails) {
+    returnResult.quickbookmaker = []
+    if (manuallyMatchDetails.quickbookmaker1) {
+      let json = JSON.parse(manuallyMatchDetails.quickbookmaker1);
+      if (json.isActive) {
+        returnResult.quickbookmaker.push(json);
+      }
+    }
+    if (manuallyMatchDetails.quickbookmaker2) {
+      let json = JSON.parse(manuallyMatchDetails.quickbookmaker2);
+      if (json.isActive) {
+        returnResult.quickbookmaker.push(json);
+      }
+    }
+    if (manuallyMatchDetails.quickbookmaker3) {
+      let json = JSON.parse(manuallyMatchDetails.quickbookmaker3);
+      if (json.isActive) {
+        returnResult.quickbookmaker.push(json);
+      }
+    }
+  }
+
 }
 
 function ClearAllSocketRoom() {
