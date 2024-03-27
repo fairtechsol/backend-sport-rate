@@ -269,13 +269,13 @@ io.on('connection', (socket) => {
 
 async function getCricketData(marketId, matchId) {
   let matchDetail = await internalRedis.hgetall(matchId + "_match");
+  let returnResult = {};
+  let expertResult = {};
+  returnResult.id = matchId;
+  returnResult.marketId = marketId;
+  expertResult.id = matchId;
+  expertResult.marketId = marketId;
   if (matchDetail.matchType == 'football') {
-    let returnResult = {};
-    let expertResult = {};
-    returnResult.id = matchId;
-    returnResult.marketId = marketId;
-    expertResult.id = matchId;
-    expertResult.marketId = marketId;
     await getFootBallData(matchDetail, returnResult, expertResult);
     io.to(matchId).emit("liveData" + matchId, returnResult);
     io.to(matchId + 'expert').emit("liveData" + matchId, expertResult);
@@ -290,12 +290,6 @@ async function getCricketData(marketId, matchId) {
 
   let promiseRequestArray = []
   let oddIds = [];
-  let returnResult = {};
-  let expertResult = {};
-  returnResult.id = matchId;
-  returnResult.marketId = marketId;
-  expertResult.id = matchId;
-  expertResult.marketId = marketId;
   let index = 0;
   let sessionAPI = [], sessionManual = []
 
