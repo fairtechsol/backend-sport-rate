@@ -493,6 +493,8 @@ async function getFootBallData(matchDetail, returnResult, expertResult) {
   let promiseRequestArray = [];
   let typeIdObject = {}  // it will store the marketId as key and key as value so find id, min, max and other
   let firstHalfGoldLive = Object.keys(matchDetail).filter(key => key.startsWith("firstHalfGoal"));
+  returnResult["firstHalfGoal"] = [];
+  expertResult["firstHalfGoal"] = [];
   firstHalfGoldLive.map(key => {
     let value = matchDetail[key];
     value = JSON.parse(value);
@@ -502,6 +504,8 @@ async function getFootBallData(matchDetail, returnResult, expertResult) {
   })
 
   let halfTimeLive = Object.keys(matchDetail).filter(key => key.startsWith("halfTime"));
+  returnResult["halfTime"] = [];
+  expertResult["halfTime"] = [];
   halfTimeLive.map(key => {
     let value = matchDetail[key];
     value = JSON.parse(value);
@@ -520,6 +524,8 @@ async function getFootBallData(matchDetail, returnResult, expertResult) {
   })
 
   let overUnderLive = Object.keys(matchDetail).filter(key => key.startsWith("overUnder"));
+  returnResult["overUnder"] = [];
+  expertResult["overUnder"] = [];
   overUnderLive.map(key => {
     let value = matchDetail[key];
     value = JSON.parse(value);
@@ -555,9 +561,29 @@ async function getFootBallData(matchDetail, returnResult, expertResult) {
     result.isActive = value.isActive;
     result.activeStatus = value.activeStatus;
 
-    expertResult[value.type] = result;
-    if (result.isActive) {
-      returnResult[value.type] = result
+    if(key.startsWith("firstHalfGoal")){
+      expertResult["firstHalfGoal"].push(result);
+      if (result.isActive) {
+        returnResult["firstHalfGoal"].push(result);
+      }
+    } else
+    if(key.startsWith("halfTime")){
+      expertResult["halfTime"].push(result);
+      if (result.isActive) {
+        returnResult["halfTime"].push(result);
+      }
+    } else
+    if(key.startsWith("overUnder")){
+      expertResult["overUnder"].push(result);
+      if (result.isActive) {
+        returnResult["overUnder"].push(result);
+      }
+    } else
+     {
+      expertResult[value.type] = result;
+      if (result.isActive) {
+        returnResult[value.type] = result
+      }
     }
   });
 
