@@ -491,7 +491,7 @@ async function getCricketData(marketId, matchId) {
 }
 
 async function getFootBallData(matchDetail, returnResult, expertResult) {
-  let liveIds = [];
+  let liveIds = [], matchId = matchDetail.id;
   let promiseRequestArray = [];
   let typeIdObject = {}  // it will store the marketId as key and key as value so find id, min, max and other
   let firstHalfGoldLive = Object.keys(matchDetail).filter(key => key.startsWith("firstHalfGoal"));
