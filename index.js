@@ -272,6 +272,10 @@ async function getCricketData(marketId, matchId) {
   if (matchDetail.matchType == 'football') {
     let returnResult = {};
     let expertResult = {};
+    returnResult.id = matchId;
+    returnResult.marketId = marketId;
+    expertResult.id = matchId;
+    expertResult.marketId = marketId;
     await getFootBallData(matchDetail, returnResult, expertResult);
     io.to(matchId).emit("liveData" + matchId, returnResult);
     io.to(matchId + 'expert').emit("liveData" + matchId, expertResult);
