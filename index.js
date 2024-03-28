@@ -396,27 +396,24 @@ async function getCricketData(marketId, matchId) {
 
     }
     if (isAPISessionActive) {
-      // let liveSession = await internalRedis.hgetall(matchId + "_selectionId");
-      // let liveSelectionIds = sessionData ? Object.keys(liveSession) : [];
       let result = respo[index].value;
       let expertSession = [];
       let onlyLiveSession = [], selectionArray = [];
-      result?.map(session => {
-        let sessionIndex = sessionAPI.findIndex(obj => obj.selectionId == session.SelectionId);
-        if (sessionIndex > -1) {
-          session["id"] = sessionAPI[sessionIndex].id // liveSession[session.SelectionId];
-          session["activeStatus"] = sessionAPI[sessionIndex].activeStatus;
-          session["min"] = sessionAPI[sessionIndex].minBet,
-            session["max"] = sessionAPI[sessionIndex].maxBet,
-            onlyLiveSession.push(session);
-          selectionArray.push(session.SelectionId);
-        }
-        // if (liveSelectionIds.includes(session.SelectionId)) {
-        //   session["id"] = liveSession[session.SelectionId];
-        //   onlyLiveSession.push(session);
-        // }
-        expertSession.push(session);
-      });
+      if(result){
+        result?.map(session => {
+          let sessionIndex = sessionAPI.findIndex(obj => obj.selectionId == session.SelectionId);
+          if (sessionIndex > -1) {
+            session["id"] = sessionAPI[sessionIndex].id // liveSession[session.SelectionId];
+            session["activeStatus"] = sessionAPI[sessionIndex].activeStatus;
+            session["min"] = sessionAPI[sessionIndex].minBet,
+              session["max"] = sessionAPI[sessionIndex].maxBet,
+              onlyLiveSession.push(session);
+            selectionArray.push(session.SelectionId);
+          }
+          expertSession.push(session);
+        });
+      }
+
       sessionAPI.map(session => {
         if (!selectionArray.includes(session.selectionId)) {
           let obj = {
@@ -545,47 +542,49 @@ async function getFootBallData(matchDetail, returnResult, expertResult) {
   let index = 0;
 
   let results = respo[index]?.value;
-  results.map((result, index) => {
-    let marketId = liveIds[index];
-    let key = typeIdObject[marketId];
-    let value = matchDetail[key];
-    value = JSON.parse(value);
-    if (!result) {
-      result = {};
-    }
-    result.id = value.id;
-    result.name = value.name;
-    result.minBet = value.minBet;
-    result.maxBet = value.maxBet;
-    result.type = value.type;
-    result.isActive = value.isActive;
-    result.activeStatus = value.activeStatus;
+  if(results){
+    results.map((result, index) => {
+      let marketId = liveIds[index];
+      let key = typeIdObject[marketId];
+      let value = matchDetail[key];
+      value = JSON.parse(value);
+      if (!result) {
+        result = {};
+      }
+      result.id = value.id;
+      result.name = value.name;
+      result.minBet = value.minBet;
+      result.maxBet = value.maxBet;
+      result.type = value.type;
+      result.isActive = value.isActive;
+      result.activeStatus = value.activeStatus;
 
-    if(key.startsWith("firstHalfGoal")){
-      expertResult["firstHalfGoal"].push(result);
-      if (result.isActive) {
-        returnResult["firstHalfGoal"].push(result);
+      if(key.startsWith("firstHalfGoal")){
+        expertResult["firstHalfGoal"].push(result);
+        if (result.isActive) {
+          returnResult["firstHalfGoal"].push(result);
+        }
+      } else
+      if(key.startsWith("halfTime")){
+        expertResult["halfTime"].push(result);
+        if (result.isActive) {
+          returnResult["halfTime"].push(result);
+        }
+      } else
+      if(key.startsWith("overUnder")){
+        expertResult["overUnder"].push(result);
+        if (result.isActive) {
+          returnResult["overUnder"].push(result);
+        }
+      } else
+      {
+        expertResult[value.type] = result;
+        if (result.isActive) {
+          returnResult[value.type] = result
+        }
       }
-    } else
-    if(key.startsWith("halfTime")){
-      expertResult["halfTime"].push(result);
-      if (result.isActive) {
-        returnResult["halfTime"].push(result);
-      }
-    } else
-    if(key.startsWith("overUnder")){
-      expertResult["overUnder"].push(result);
-      if (result.isActive) {
-        returnResult["overUnder"].push(result);
-      }
-    } else
-     {
-      expertResult[value.type] = result;
-      if (result.isActive) {
-        returnResult[value.type] = result
-      }
-    }
-  });
+    });
+  }
 
   let redisPromise = []
   redisPromise.push(internalRedis.hgetall(matchId + "_manualBetting"));
