@@ -565,12 +565,6 @@ async function getFootBallData(matchDetail, returnResult, expertResult) {
           returnResult["firstHalfGoal"].push(result);
         }
       } else
-      if(key.startsWith("halfTime")){
-        expertResult["halfTime"].push(result);
-        if (result.isActive) {
-          returnResult["halfTime"].push(result);
-        }
-      } else
       if(key.startsWith("overUnder")){
         expertResult["overUnder"].push(result);
         if (result.isActive) {
