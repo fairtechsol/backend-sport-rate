@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Football Rate</title>
+</head>
+
+<body>
+    <div id="events"></div>
+
+    <!-- <script src="script.js"></script> -->
+    <script>
+        document.addEventListener("DOMContentLoaded", async function () {
+            // Call the first API to get the list of events
+
+            const eventsResponse = await fetch("http://107.23.165.155:3200/competitionList?type=football");
+            const eventsData = await eventsResponse.json();
+
+            const eventsContainer = document.getElementById("events");
+            // Loop through each event and extract eventId
+            for (const event of eventsData) {
+                const competitionId = event.competition.id;
+
+                // Call the second API to get the list of markets for the current eventId
+                const marketsResponse = await fetch(`http://107.23.165.155:3200/eventList/${competitionId}`);
+                const marketsData = await marketsResponse.json();
+
+                const dataDiv = document.createElement("div");
+                dataDiv.style.margin = "20px";
+                eventsContainer.appendChild(dataDiv);
+                // Loop through each market and extract marketId
+                for (const market of marketsData) {
+                    const eventID = market.event.id;
+                    if ((new Date()).toLocaleDateString() >= (new Date(market.marketStartTime)).toLocaleDateString()) {
+                        // Call the third API to get the data for the current marketId
+                        const dataResponse = await fetch(`http://107.23.165.155:3200/extraMarketList/${eventID}?eventType=football`);
+                        const data = await dataResponse.json();
+
+                        let marketIds = []
+
+                        for (const market of data) {
+                            marketIds.push(market.marketId);
+                        }
+                        // Do something with the data...
+                        console.log(market?.event?.name, "  ", market?.competition?.name, " ", marketIds);
+
+                        // Call the third API to get the data for the current marketId
+                        const marketRates = await fetch(`http://107.23.165.155:3200/matchOddsNew/${marketIds.join(',')}`);
+                        const rate = await marketRates.json();
+                        console.log(rate);
+                        let len = rate.filter(l => { if (l) { return true } else { return false } })
+                        if (len.length > 1) {
+                            console.log("length is more ", len)
+                            const dataDiv = document.createElement("div");
+                            dataDiv.textContent = market?.competition?.name + " ------ " + market?.event?.name + " ----- " + (new Date(market.marketStartTime)).toLocaleString() + " ----- " + len.length;
+
+                            // Append the data to the eventsContainer
+                            eventsContainer.appendChild(dataDiv);
+                        }
+                    }
+                }
+            }
+        });
+
+    </script>
+</body>
+
+</html>

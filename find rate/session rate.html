@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Session Rate</title>
+</head>
+
+<body>
+    <div id="events"></div>
+
+    <!-- <script src="script.js"></script> -->
+    <script>
+        document.addEventListener("DOMContentLoaded", async function () {
+            // Call the first API to get the list of events
+
+            const eventsResponse = await fetch("https://api.bullsoffer9.in/markets/4");
+            const eventsData = await eventsResponse.json();
+
+            const eventsContainer = document.getElementById("events");
+            // Loop through each event and extract eventId
+            for (const event of eventsData) {
+                const MarketId = event.MarketId;
+
+                // Call the second API to get the list of markets for the current eventId
+                const marketsResponse = await fetch(`https://fancy.betpro.gold/api/betfair/fancy/${MarketId}`);
+                const marketsData = await marketsResponse.json();
+
+                const dataDiv = document.createElement("div");
+                dataDiv.style.margin = "10px";
+                dataDiv.textContent = event.CompetitionName + " ------ " + event.EventName;
+                let textContent = (new Date(event.EventDate)).toLocaleString();
+                const dataDiv1 = document.createElement("div");
+
+                console.log(marketsData);
+                if (marketsData.length > 1) {
+                    textContent = textContent + " ----- " + marketsData.length;
+                }
+                dataDiv1.textContent = textContent;
+                dataDiv.appendChild(dataDiv1);
+                eventsContainer.appendChild(dataDiv);
+            }
+        });
+
+    </script>
+</body>
+
+</html>
