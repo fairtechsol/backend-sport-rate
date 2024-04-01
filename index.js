@@ -648,13 +648,6 @@ async function getLiveGameData(gameType) {
 
 server.listen(port, () => {
   console.log(`Betting app listening at Port:${port}`)
-  let marketIds = JSON.parse(localStorage.getItem("marketIds"));
-  if (marketIds && marketIds.length) {
-    marketIds.map(marketId => {
-      IntervalIds.push(marketId);
-      IntervalIds[marketId] = setInterval(getMarketRate, getRateTimer, marketId);
-    })
-  }
 
   let matchDBds = localStorage.getItem("matchDBds") ? JSON.parse(localStorage.getItem("matchDBds")) : null;
   if (matchDBds && matchDBds.length) {
@@ -667,11 +660,4 @@ server.listen(port, () => {
     })
   }
 
-  let eventIds = JSON.parse(localStorage.getItem("eventIds"));
-  if (eventIds && eventIds.length) {
-    eventIds.map(eventId => {
-      IntervalIds.push(eventId);
-      IntervalIds[eventId] = setInterval(getLiveScore, liveScoreTimer, eventId);
-    })
-  }
 });
