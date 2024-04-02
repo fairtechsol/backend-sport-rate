@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Match Odds Rate</title>
+    <!-- <title>Fetch Data from URL Array using AJAX</title> -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+</head>
+
+<body>
+
+    <div id="data"></div>
+
+    <script>
+        $(document).ready(function () {
+            getMatchList().then(mar => {
+
+                var urls = mar.map(ob => {
+                    if ((new Date()).toLocaleDateString() == (new Date(ob.EventDate)).toLocaleDateString()) {
+                        console.log("MarketId = ", ob.MarketId);
+                        console.log("CompetitionName = ", ob.CompetitionName);
+                        console.log("EventName = ", ob.EventName);
+                        console.log("EventDate = ", (new Date(ob.EventDate)).toLocaleString());
+                        console.log("EventId = ", ob.EventId);
+                        console.log("    ");
+                        return ob.MarketId;
+                    }
+                    else {
+                        console.log('--------------')
+                        console.log("MarketId = ", ob.MarketId);
+                        console.log("CompetitionName = ", ob.CompetitionName);
+                        console.log("EventName = ", ob.EventName);
+                        console.log("EventDate = ", (new Date(ob.EventDate)).toLocaleString());
+                        console.log("EventId = ", ob.EventId);
+                        console.log('--------------')
+                        console.log("    ");
+                        return ob.MarketId;
+                    }
+                })
+
+                $.when.apply($, $.map(mar, function (url) {
+                    return $.ajax({
+                        url: "https://betfair.openapi.live/api/v2/listMarketBookOdds?market_id=" + url.MarketId,
+                        dataType: 'json'
+                    });
+                })).done(function () {
+                    var results = Array.prototype.slice.call(arguments);
+                    for (var i = 0; i < results.length; i++) {
+                        if (results[i][0].length) {
+                            // console.log(results[i][0][0]);
+                            console.log(results[i][0][0].marketId);
+                            let Obj = mar.find(er => er.MarketId == results[i][0][0].marketId)
+                            // $('#data').append('<p>' + Obj.EventName + '</p>');
+                            let string = Obj.EventName + "&nbsp;&nbsp; &emsp; " + (new Date(Obj.EventDate)).toLocaleString() + '</br>';
+                            results[i][0][0].runners.map((runner, index) => {
+                                if (index != 0) {
+                                    string = string + "</br>";
+                                }
+                                string = string + "status: " + runner.status + "</br>  back &emsp;"; // + JSON.stringify(runner.ex, null, 2) + "";
+                                runner.ex["availableToBack"].reverse().map(pr =>{
+                                    string = string + " &ensp;" + pr.price;
+                                });
+                                string = string + "&nbsp;&nbsp; &emsp; lay &nbsp;&nbsp; &emsp;"
+                                runner.ex["availableToLay"].map(pr =>{
+                                    string = string + " &ensp;" + pr.price;
+                                });
+                            });
+                            $('#data').append('<p>' + string + '</p>');
+                            // $('#data').append('<p>' + JSON.stringify(results[i][0][0].runners) + '</p>');
+                        }
+                    }
+                }).fail(function (jqXHR, textStatus, errorThrown) {
+                    $('#data').html('<p>Error: ' + errorThrown + '</p>');
+                });
+            });
+        });
+        function getMatchList() {
+            return new Promise(function (resolve, reject) {
+                $.ajax({
+                    url: 'https://api.bullsoffer9.in/markets/4',
+                    dataType: 'json',
+                    success: function (data) {
+                        resolve(data);
+                    },
+                    error: function (jqXHR, textStatus, errorThrown) {
+                        reject(errorThrown);
+                    }
+                });
+            });
+        }
+
+    </script>
+
+</body>
+
+</html>

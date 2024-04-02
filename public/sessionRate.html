@@ -10,20 +10,16 @@
 <body>
     <div id="events"></div>
 
-    <!-- <script src="script.js"></script> -->
     <script>
         document.addEventListener("DOMContentLoaded", async function () {
-            // Call the first API to get the list of events
 
             const eventsResponse = await fetch("https://api.bullsoffer9.in/markets/4");
             const eventsData = await eventsResponse.json();
 
             const eventsContainer = document.getElementById("events");
-            // Loop through each event and extract eventId
             for (const event of eventsData) {
                 const MarketId = event.MarketId;
 
-                // Call the second API to get the list of markets for the current eventId
                 const marketsResponse = await fetch(`https://fancy.betpro.gold/api/betfair/fancy/${MarketId}`);
                 const marketsData = await marketsResponse.json();
 
