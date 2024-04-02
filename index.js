@@ -6,10 +6,13 @@ var cors = require('cors');
 var LocalStorage = require('node-localstorage').LocalStorage;
 const cron = require('node-cron');
 const { match } = require('assert');
+const path = require('path');
 
 let app = express();
 let server = http.createServer(app)
 app.use(cors());
+
+
 require("dotenv").config();
 const ThirdPartyController = require('./thirdPartyController');
 let io = socketIO(server, {
@@ -20,6 +23,12 @@ let io = socketIO(server, {
 })
 app.set('socketio', io);
 localStorage = new LocalStorage('./scratch');
+
+
+if (process.env.NODE_ENV !== 'production') {
+  __dirname = path.resolve();
+  app.use(express.static(path.join(__dirname, "public")));
+}
 
 const port = process.env.port ? parseInt(process.env.port) : 3200 // setting the port
 let liveScoreTimer = process.env.liveScoreTimer ? parseInt(process.env.liveScoreTimer) : 30000;

@@ -17,6 +17,7 @@
     "ioredis": "^5.3.2",
     "node-cron": "^3.0.3",
     "node-localstorage": "^3.0.5",
+    "path": "^0.12.7",
     "socket.io": "^4.7.4"
   }
 }
