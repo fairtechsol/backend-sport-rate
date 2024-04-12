@@ -49,30 +49,6 @@ internalRedis.on('error', (error) => {
   console.error('Error:', error);
 });
 
-// const job = cron.schedule('0 22 * * *', () => {
-//   console.log('Running cron job every day ', (new Date()).toLocaleString('en-US', { timeZone: 'Asia/Kolkata' }));
-//   let marketIds = JSON.parse(localStorage.getItem("marketIds"));
-//   marketIds.map(id => {
-//     clearInterval(IntervalIds[id]);
-//     localStorage.removeItem(id + "market");
-//   })
-//   let eventIds = JSON.parse(localStorage.getItem("eventIds"));
-//   eventIds.map(id => {
-//     clearInterval(IntervalIds[id]);
-//     localStorage.removeItem(id + "market");
-//   })
-//   localStorage.removeItem("marketIds");
-//   localStorage.removeItem("market");
-//   localStorage.removeItem("eventIds");
-//   if (IntervalIds.length) {
-//     IntervalIds.forEach(clearInterval);
-//   }
-//   IntervalIds = [];
-//   ClearAllSocketRoom()
-// });
-
-// job.start();
-
 app.get("/", (req, res) => {
   return res.send("call the api");
 });
