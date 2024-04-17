@@ -12,7 +12,7 @@
 
     <script>
         document.addEventListener("DOMContentLoaded", async function () {
-
+            let index = 1;
             const eventsResponse = await fetch("http://107.23.165.155:3200/competitionList?type=cricket");
             const eventsData = await eventsResponse.json();
 
@@ -39,7 +39,7 @@
                     for (const market of data) {
                         marketIds.push(market.marketId);
                     }
-                    
+
                     console.log(market?.event?.name, "  ", market?.competition?.name, " ", marketIds);
 
                     const marketRates = await fetch(`http://107.23.165.155:3200/matchOddsNew/${marketIds.join(',')}`);
@@ -50,15 +50,18 @@
 
                     const dataDiv = document.createElement("div");
                     dataDiv.style.margin = "10px";
-                    dataDiv.textContent = market?.competition?.name + " ------ " + market?.event?.name;
+                    dataDiv.textContent = index + "  => " + market?.competition?.name + " ------ " + market?.event?.name;
                     let textContent = (new Date(market.marketStartTime)).toLocaleString();
                     const dataDiv1 = document.createElement("div");
+                    dataDiv1.style.marginLeft = "70px";
 
                     textContent = textContent + " ----- " + len.length;
 
                     dataDiv1.textContent = textContent;
                     dataDiv.appendChild(dataDiv1);
                     eventsContainer.appendChild(dataDiv);
+                    dataDiv.scrollIntoView({ behavior: "smooth", block: "end", inline: "nearest" });
+                    index++;
                 }
             }
         });

@@ -11,7 +11,7 @@
     <div id="events"></div>
     <script>
         document.addEventListener("DOMContentLoaded", async function () {
-
+            let index = 1;
             const eventsResponse = await fetch("http://107.23.165.155:3200/competitionList?type=football");
             const eventsData = await eventsResponse.json();
 
@@ -25,7 +25,7 @@
                 const dataDiv = document.createElement("div");
                 dataDiv.style.margin = "20px";
                 eventsContainer.appendChild(dataDiv);
-                
+
                 for (const market of marketsData) {
                     const eventID = market.event.id;
                     if ((new Date()).toLocaleDateString() >= (new Date(market.marketStartTime)).toLocaleDateString()) {
@@ -38,18 +38,37 @@
                             marketIds.push(market.marketId);
                         }
                         console.log(market?.event?.name, "  ", market?.competition?.name, " ", marketIds);
-                        
+
                         const marketRates = await fetch(`http://107.23.165.155:3200/matchOddsNew/${marketIds.join(',')}`);
                         const rate = await marketRates.json();
                         console.log(rate);
                         let len = rate.filter(l => { if (l) { return true } else { return false } })
-                        if (len.length > 1) {
-                            console.log("length is more ", len)
-                            const dataDiv = document.createElement("div");
-                            dataDiv.textContent = market?.competition?.name + " ------ " + market?.event?.name + " ----- " + (new Date(market.marketStartTime)).toLocaleString() + " ----- " + len.length;
 
-                            eventsContainer.appendChild(dataDiv);
-                        }
+                        const dataDiv = document.createElement("div");
+                        dataDiv.style.margin = "10px";
+                        dataDiv.textContent = index + "  => " + market?.competition?.name + " ------ " + market?.event?.name;
+                        let textContent = (new Date(market.marketStartTime)).toLocaleString();
+                        const dataDiv1 = document.createElement("div");
+                        dataDiv1.style.marginLeft = "70px";
+
+                        textContent = textContent + " ----- " + len.length;
+
+                        // if (len.length > 1) {
+                        //     console.log("length is more ", len)
+                        //     const dataDiv = document.createElement("div");
+                        //     dataDiv.textContent = market?.competition?.name + " ------ " + market?.event?.name + " ----- " + (new Date(market.marketStartTime)).toLocaleString() + " ----- " + len.length;
+
+                        //     eventsContainer.appendChild(dataDiv);
+                        //     // Scroll to the newly added dataDiv
+                        //     dataDiv.scrollIntoView({ behavior: "smooth", block: "end", inline: "nearest" });
+                        // }
+
+                        dataDiv1.textContent = textContent;
+                        dataDiv.appendChild(dataDiv1);
+                        eventsContainer.appendChild(dataDiv);
+                        dataDiv.scrollIntoView({ behavior: "smooth", block: "end", inline: "nearest" });
+                        index++;
+
                     }
                 }
             }

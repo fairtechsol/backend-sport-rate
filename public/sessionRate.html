@@ -36,6 +36,7 @@
                 dataDiv1.textContent = textContent;
                 dataDiv.appendChild(dataDiv1);
                 eventsContainer.appendChild(dataDiv);
+                dataDiv.scrollIntoView({ behavior: "smooth", block: "end", inline: "nearest" });
             }
         });
 
