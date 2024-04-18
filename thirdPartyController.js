@@ -159,7 +159,19 @@ class ThirdPartyController {
 			this.callAxios(options, resolve, errorConst);
 		});
 	}
-
+	
+	async getDirectMatchList(typeId) {
+		return new Promise((resolve, reject) => {
+			let options = {
+				method: 'GET',
+				// url: 'http://3.89.232.255:3200/extraMarketList/' + eventId,
+				url: 'http://13.41.184.61/betfair/get_latest_event_list/' + typeId,
+				headers: { 'cache-control': 'no-cache' }
+			};
+			let errorConst = `at reject get extra event list `;
+			this.callAxios(options, resolve, errorConst);
+		});
+	}
 }
 
 

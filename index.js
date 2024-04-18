@@ -148,6 +148,14 @@ app.get("/bookmakerNew/:marketId", (req, res) => {
   });
 });
 
+app.get("/getDirectMatchList", (req, res) => {
+  let type = req.query.type;
+  let typeId = gameType[type];
+  ThirdPartyController.getDirectMatchList(typeId).then(function (data) {
+    return res.send(data);
+  });
+});
+
 io.on('connection', (socket) => {
   socket.on('score', function (event) {
     let eventId = event.id;

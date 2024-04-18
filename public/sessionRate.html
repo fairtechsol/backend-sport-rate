@@ -13,20 +13,20 @@
     <script>
         document.addEventListener("DOMContentLoaded", async function () {
 
-            const eventsResponse = await fetch("https://api.bullsoffer9.in/markets/4");
+            const eventsResponse = await fetch("http://localhost:3200/getDirectMatchList?type=cricket");
             const eventsData = await eventsResponse.json();
 
             const eventsContainer = document.getElementById("events");
             for (const event of eventsData) {
-                const MarketId = event.MarketId;
+                const MarketId = event.MarketId || event.marketId;
 
                 const marketsResponse = await fetch(`https://fancy.betpro.gold/api/betfair/fancy/${MarketId}`);
                 const marketsData = await marketsResponse.json();
 
                 const dataDiv = document.createElement("div");
                 dataDiv.style.margin = "10px";
-                dataDiv.textContent = event.CompetitionName + " ------ " + event.EventName;
-                let textContent = (new Date(event.EventDate)).toLocaleString();
+                dataDiv.textContent = (event.CompetitionName || event.competition.name) + " ------ " + (event.EventName || event.event.name);
+                let textContent = (new Date(event.EventDate || event.marketStartTime)).toLocaleString();
                 const dataDiv1 = document.createElement("div");
 
                 console.log(marketsData);
