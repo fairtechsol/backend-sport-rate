@@ -19,7 +19,7 @@
             try {
                 eventsData = await eventsResponse.json();
             } catch (error) {
-                eventsResponse = await fetch("http://localhost:3200/getDirectMatchList?type=cricket");
+                eventsResponse = await fetch(`${window.location.origin}/getDirectMatchList?type=cricket`);
                 eventsData = await eventsResponse.json();
             }
 
