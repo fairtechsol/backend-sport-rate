@@ -13,14 +13,14 @@
     <script>
         document.addEventListener("DOMContentLoaded", async function () {
 
-            let eventsResponse = await fetch("https://api.bullsoffer9.in/markets/4");
             let eventsData;
             
             try {
+                let eventsResponse = await fetch("https://api.bullsoffer9.in/markets/4");
                 eventsData = await eventsResponse.json();
             } catch (error) {
-                eventsResponse = await fetch("http://localhost:3200/getDirectMatchList?type=cricket");
-                eventsData = await eventsResponse.json();
+               let eventsResponse = await fetch("http://localhost:3200/getDirectMatchList?type=cricket");
+               eventsData = await eventsResponse.json();
             }
 
             const eventsContainer = document.getElementById("events");
