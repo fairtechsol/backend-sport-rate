@@ -66,7 +66,8 @@ const gameType = {
 }
 const eventUrl = {
   football: "under_over_goal_market_list",
-  cricket: "cricket_extra_market_list"
+  cricket: "cricket_extra_market_list",
+  tennis: "set_winner"
 }
 
 const liveGameType = {
