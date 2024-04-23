@@ -19,7 +19,7 @@
                 let eventsResponse = await fetch("https://api.bullsoffer9.in/markets/4");
                 eventsData = await eventsResponse.json();
             } catch (error) {
-                eventsResponse = await fetch(`${window.location.origin}/getDirectMatchList?type=cricket`);
+                let eventsResponse = await fetch(`${window.location.origin}/getDirectMatchList?type=cricket`);
                 eventsData = await eventsResponse.json();
             }
 
