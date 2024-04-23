@@ -12,14 +12,14 @@
     <script>
         document.addEventListener("DOMContentLoaded", async function () {
             let index = 1;
-            const eventsResponse = await fetch("http://107.23.165.155:3200/competitionList?type=football");
+            const eventsResponse = await fetch(`${window.location.origin}/competitionList?type=football`);
             const eventsData = await eventsResponse.json();
 
             const eventsContainer = document.getElementById("events");
             for (const event of eventsData) {
                 const competitionId = event.competition.id;
 
-                const marketsResponse = await fetch(`http://107.23.165.155:3200/eventList/${competitionId}`);
+                const marketsResponse = await fetch(`${window.location.origin}/eventList/${competitionId}`);
                 const marketsData = await marketsResponse.json();
 
                 const dataDiv = document.createElement("div");
@@ -29,7 +29,7 @@
                 for (const market of marketsData) {
                     const eventID = market.event.id;
                     if ((new Date()).toLocaleDateString() >= (new Date(market.marketStartTime)).toLocaleDateString()) {
-                        const dataResponse = await fetch(`http://107.23.165.155:3200/extraMarketList/${eventID}?eventType=football`);
+                        const dataResponse = await fetch(`${window.location.origin}/extraMarketList/${eventID}?eventType=football`);
                         const data = await dataResponse.json();
 
                         let marketIds = []
@@ -39,7 +39,7 @@
                         }
                         console.log(market?.event?.name, "  ", market?.competition?.name, " ", marketIds);
 
-                        const marketRates = await fetch(`http://107.23.165.155:3200/matchOddsNew/${marketIds.join(',')}`);
+                        const marketRates = await fetch(`${window.location.origin}/matchOddsNew/${marketIds.join(',')}`);
                         const rate = await marketRates.json();
                         console.log(rate);
                         let len = rate.filter(l => { if (l) { return true } else { return false } })
