@@ -442,7 +442,8 @@ async function getCricketData(marketId, matchId) {
   }
   let manuallyMatchDetails = manuallyResponse[0].value;
   if (manuallyMatchDetails) {
-    returnResult.quickbookmaker = []
+    returnResult.quickbookmaker = [];
+    expertResult.quickbookmaker = [];
     if (manuallyMatchDetails.tiedMatch2) {
       let json = JSON.parse(manuallyMatchDetails.tiedMatch2);
       if (json.isActive) {
