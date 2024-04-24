@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tennis Rate</title>
+</head>
+
+<body>
+    <div id="events"></div>
+    <script>
+        document.addEventListener("DOMContentLoaded", async function () {
+            let index = 1;
+            const eventsResponse = await fetch(`${window.location.origin}/competitionList?type=tennis`);
+            const eventsData = await eventsResponse.json();
+
+            const eventsContainer = document.getElementById("events");
+            for (const event of eventsData) {
+                const competitionId = event.competition.id;
+
+                const marketsResponse = await fetch(`${window.location.origin}/eventList/${competitionId}`);
+                const marketsData = await marketsResponse.json();
+
+                const dataDiv = document.createElement("div");
+                dataDiv.style.margin = "20px";
+                eventsContainer.appendChild(dataDiv);
+
+                for (const market of marketsData) {
+                    const eventID = market.event.id;
+                    // if ((new Date()).toLocaleDateString() >= (new Date(market.marketStartTime)).toLocaleDateString()) {
+                    const dataResponse = await fetch(`${window.location.origin}/extraMarketList/${eventID}?eventType=tennis`);
+                    const data = await dataResponse.json();
+
+                    let marketIds = []
+
+                    for (const market of data) {
+                        marketIds.push(market.marketId);
+                    }
+                    console.log(market?.event?.name, "  ", market?.competition?.name, " ", marketIds);
+                    if (marketIds.length) {
+                        const marketRates = await fetch(`${window.location.origin}/matchOddsNew/${marketIds.join(',')}`);
+                        const rate = await marketRates.json();
+                        console.log(rate);
+                        let len = rate.filter(l => { if (l) { return true } else { return false } })
+                        if (!len.length) {
+                            continue;
+                        }
+
+                        const dataDiv = document.createElement("div");
+                        dataDiv.style.margin = "10px";
+                        dataDiv.textContent = index + "  => " + market?.competition?.name + " ------ " + market?.event?.name;
+                        let textContent = (new Date(market.marketStartTime)).toLocaleString();
+                        const dataDiv1 = document.createElement("div");
+                        dataDiv1.style.marginLeft = "70px";
+
+                        textContent = textContent + " ----- " + len.length;
+
+                        dataDiv1.textContent = textContent;
+                        dataDiv.appendChild(dataDiv1);
+                        eventsContainer.appendChild(dataDiv);
+                        dataDiv.scrollIntoView({ behavior: "smooth", block: "end", inline: "nearest" });
+                        index++;
+                    }
+                }
+            }
+            // }
+        });
+
+    </script>
+</body>
+
+</html>
