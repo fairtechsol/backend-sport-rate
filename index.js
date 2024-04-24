@@ -447,30 +447,35 @@ async function getCricketData(marketId, matchId) {
       let json = JSON.parse(manuallyMatchDetails.tiedMatch2);
       if (json.isActive) {
         returnResult["manualTideMatch"] = json;
-      }
+        expertResult["manualTideMatch"] = json;
+    }
     }
     if (manuallyMatchDetails.quickbookmaker1) {
       let json = JSON.parse(manuallyMatchDetails.quickbookmaker1);
       if (json.isActive) {
         returnResult.quickbookmaker.push(json);
+        expertResult.quickbookmaker.push(json);
       }
     }
     if (manuallyMatchDetails.quickbookmaker2) {
       let json = JSON.parse(manuallyMatchDetails.quickbookmaker2);
       if (json.isActive) {
         returnResult.quickbookmaker.push(json);
+        expertResult.quickbookmaker.push(json);
       }
     }
     if (manuallyMatchDetails.quickbookmaker3) {
       let json = JSON.parse(manuallyMatchDetails.quickbookmaker3);
       if (json.isActive) {
         returnResult.quickbookmaker.push(json);
+        expertResult.quickbookmaker.push(json);
       }
     }
     if (manuallyMatchDetails.completeManual) {
       let json = JSON.parse(manuallyMatchDetails.completeManual);
       if (json.isActive) {
         returnResult["completeManual"] = json;
+        expertResult["completeManual"] = json;
       }
     }
   }
