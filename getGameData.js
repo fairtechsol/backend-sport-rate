@@ -154,7 +154,8 @@ async function getCricketData(marketId, matchId) {
             "min": session.minBet,
             "max": session.maxBet,
             "id": session.id,
-            "activeStatus": session.activeStatus
+            "activeStatus": session.activeStatus,
+            "updatedAt": session.updatedAt
           };
           expertSession.push(obj);
           onlyLiveSession.push(obj);
