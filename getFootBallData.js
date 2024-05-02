@@ -240,8 +240,11 @@ async function getFootBallData(marketId, matchId) {
     let value = matchDetail[key];
     value = JSON.parse(value);
     let isLive = value.isActive;
-    liveIds.push(value.marketId);
-    typeIdObject[value.marketId] = key;
+
+    if (!value?.stopAt) {
+      liveIds.push(value.marketId);
+      typeIdObject[value.marketId] = key;
+    }
   });
 
   let halfTimeLive = Object.keys(matchDetail).filter(key => key.startsWith("halfTime"));
@@ -251,8 +254,10 @@ async function getFootBallData(marketId, matchId) {
     let value = matchDetail[key];
     value = JSON.parse(value);
     let isLive = value.isActive;
-    liveIds.push(value.marketId);
-    typeIdObject[value.marketId] = key;
+    if (!value?.stopAt) {
+      liveIds.push(value.marketId);
+      typeIdObject[value.marketId] = key;
+    }
   });
 
   let matchOddLive = Object.keys(matchDetail).filter(key => key.startsWith("matchOdd"));
@@ -260,8 +265,10 @@ async function getFootBallData(marketId, matchId) {
     let value = matchDetail[key];
     value = JSON.parse(value);
     let isLive = value.isActive;
-    liveIds.push(value.marketId);
-    typeIdObject[value.marketId] = key;
+    if (!value?.stopAt) {
+      liveIds.push(value.marketId);
+      typeIdObject[value.marketId] = key;
+    }
   });
 
   let overUnderLive = Object.keys(matchDetail).filter(key => key.startsWith("overUnder"));
@@ -271,8 +278,10 @@ async function getFootBallData(marketId, matchId) {
     let value = matchDetail[key];
     value = JSON.parse(value);
     let isLive = value.isActive;
-    liveIds.push(value.marketId);
-    typeIdObject[value.marketId] = key;
+    if (!value?.stopAt) {
+      liveIds.push(value.marketId);
+      typeIdObject[value.marketId] = key;
+    }
   });
 
   if (liveIds.length) {
@@ -381,8 +390,10 @@ async function getTennisData(marketId, matchId) {
     let value = matchDetail[key];
     value = JSON.parse(value);
     let isLive = value.isActive;
-    liveIds.push(value.marketId);
-    typeIdObject[value.marketId] = key;
+    if (!value?.stopAt) {
+      liveIds.push(value.marketId);
+      typeIdObject[value.marketId] = key;
+    }
   });
 
   let firstHalfGoldLive = Object.keys(matchDetail).filter(key => key.startsWith("setWinner"));
@@ -392,8 +403,10 @@ async function getTennisData(marketId, matchId) {
     let value = matchDetail[key];
     value = JSON.parse(value);
     let isLive = value.isActive;
-    liveIds.push(value.marketId);
-    typeIdObject[value.marketId] = key;
+    if (!value?.stopAt) {
+      liveIds.push(value.marketId);
+      typeIdObject[value.marketId] = key;
+    }
   });
 
   if (liveIds.length) {
