@@ -1,49 +1,39 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Football Rate</title>
 </head>
-
 <body>
     <div id="events"></div>
     <script>
         document.addEventListener("DOMContentLoaded", async function () {
             let index = 1;
-
             const eventsResponse = await fetch(`${window.location.origin}/competitionList?type=football`);
             const eventsData = await eventsResponse.json();
-
             const eventsContainer = document.getElementById("events");
             for (const event of eventsData) {
                 const competitionId = event.competition.id;
-
                 const marketsResponse = await fetch(`${window.location.origin}/eventList/${competitionId}`);
                 const marketsData = await marketsResponse.json();
-
                 const dataDiv = document.createElement("div");
                 dataDiv.style.margin = "20px";
                 eventsContainer.appendChild(dataDiv);
-
                 for (const market of marketsData) {
                     const eventID = market.event.id;
                     // if ((new Date()).toLocaleDateString() >= (new Date(market.marketStartTime)).toLocaleDateString()) {
-                        const dataResponse = await fetch(`${window.location.origin}/extraMarketList/${eventID}?eventType=tennis`);
+                        const dataResponse = await fetch(`${window.location.origin}/extraMarketList/${eventID}?eventType=football`);
                         const data = await dataResponse.json();
-
                         let marketIds = []
                         let allMarketName = [];
                         for (const market of data) {
                             marketIds.push(market.marketId);
                             allMarketName.push(market.marketName);
                         }
-
                         const marketRates = await fetch(`${window.location.origin}/matchOddsNew/${marketIds.join(',')}`);
                         const rate = await marketRates.json();
                         let len = rate.filter(l => l);
-
                         const dataDiv = document.createElement("div");
                         dataDiv.style.margin = "10px";
                         dataDiv.textContent = index + "  => " + market?.competition?.name + " ------ " + market?.event?.name;
@@ -51,34 +41,27 @@
                         const dataDiv1 = document.createElement("div");
                         dataDiv1.style.marginLeft = "70px";
                         textContent = textContent + " ========>>>>> " + len.length;
-
                         const marketNameDiv = document.createElement("div");
                         marketNameDiv.style.marginLeft = "70px";
-
                         allMarketName.forEach((marketName) => {
                             const marketNameElement = document.createElement("span");
                             marketNameElement.style.marginRight = "50px";
                             marketNameElement.textContent = marketName.padEnd(30, " "); // Add 30 spaces after each element
                             marketNameDiv.appendChild(marketNameElement);
                         });
-
                         dataDiv1.textContent = textContent;
                         dataDiv.appendChild(dataDiv1);
                         dataDiv.appendChild(marketNameDiv);
                         eventsContainer.appendChild(dataDiv);
                         
                         let newDivHeight = dataDiv.clientHeight;
-
                         let element = eventsContainer.getBoundingClientRect()
                         let bottom = element.bottom;
                         let top = element.top;
-
                         let visibleHeight = Math.min(bottom, window.innerHeight) - top;
-
                         // console.log("visible height ", visibleHeight, "     element hegit ", element.height - newDivHeight + 30, "     newDivHeight ", newDivHeight);
                         // // console.log("element hegit ", element.height);
                         // // console.log("newDivHeight ", newDivHeight);
-
                         if(parseInt(visibleHeight + newDivHeight) > parseInt(element.height - newDivHeight + 30)){
                             window.scrollTo({
                                 top: document.documentElement.scrollHeight,
@@ -89,10 +72,7 @@
                     // }
                 }
             }
-
         });
-
     </script>
 </body>
-
 </html>
