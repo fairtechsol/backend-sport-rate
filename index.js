@@ -45,7 +45,7 @@ internalRedis.on('connect', async () => {
 });
 exports.internalRedis = internalRedis;
 exports.io = io;
-const { getFootBallData, getCricketData, getTennisData } = require('./getFootBallData');
+const { getFootBallData, getCricketData, getTennisData } = require('./getGameData');
 
 // Handle other Redis events if needed
 internalRedis.on('error', (error) => {

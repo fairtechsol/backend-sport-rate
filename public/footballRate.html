@@ -12,6 +12,7 @@
     <script>
         document.addEventListener("DOMContentLoaded", async function () {
             let index = 1;
+
             const eventsResponse = await fetch(`${window.location.origin}/competitionList?type=football`);
             const eventsData = await eventsResponse.json();
 
@@ -33,16 +34,15 @@
                         const data = await dataResponse.json();
 
                         let marketIds = []
-
+                        let allMarketName = [];
                         for (const market of data) {
                             marketIds.push(market.marketId);
+                            allMarketName.push(market.marketName);
                         }
-                        console.log(market?.event?.name, "  ", market?.competition?.name, " ", marketIds);
 
                         const marketRates = await fetch(`${window.location.origin}/matchOddsNew/${marketIds.join(',')}`);
                         const rate = await marketRates.json();
-                        console.log(rate);
-                        let len = rate.filter(l => { if (l) { return true } else { return false } })
+                        let len = rate.filter(l => l);
 
                         const dataDiv = document.createElement("div");
                         dataDiv.style.margin = "10px";
@@ -50,28 +50,46 @@
                         let textContent = (new Date(market.marketStartTime)).toLocaleString();
                         const dataDiv1 = document.createElement("div");
                         dataDiv1.style.marginLeft = "70px";
+                        textContent = textContent + " ========>>>>> " + len.length;
 
-                        textContent = textContent + " ----- " + len.length;
+                        const marketNameDiv = document.createElement("div");
+                        marketNameDiv.style.marginLeft = "70px";
 
-                        // if (len.length > 1) {
-                        //     console.log("length is more ", len)
-                        //     const dataDiv = document.createElement("div");
-                        //     dataDiv.textContent = market?.competition?.name + " ------ " + market?.event?.name + " ----- " + (new Date(market.marketStartTime)).toLocaleString() + " ----- " + len.length;
-
-                        //     eventsContainer.appendChild(dataDiv);
-                        //     // Scroll to the newly added dataDiv
-                        //     dataDiv.scrollIntoView({ behavior: "smooth", block: "end", inline: "nearest" });
-                        // }
+                        allMarketName.forEach((marketName) => {
+                            const marketNameElement = document.createElement("span");
+                            marketNameElement.style.marginRight = "50px";
+                            marketNameElement.textContent = marketName.padEnd(30, " "); // Add 30 spaces after each element
+                            marketNameDiv.appendChild(marketNameElement);
+                        });
 
                         dataDiv1.textContent = textContent;
                         dataDiv.appendChild(dataDiv1);
+                        dataDiv.appendChild(marketNameDiv);
                         eventsContainer.appendChild(dataDiv);
-                        dataDiv.scrollIntoView({ behavior: "smooth", block: "end", inline: "nearest" });
-                        index++;
+                        
+                        let newDivHeight = dataDiv.clientHeight;
 
+                        let element = eventsContainer.getBoundingClientRect()
+                        let bottom = element.bottom;
+                        let top = element.top;
+
+                        let visibleHeight = Math.min(bottom, window.innerHeight) - top;
+
+                        // console.log("visible height ", visibleHeight, "     element hegit ", element.height - newDivHeight + 30, "     newDivHeight ", newDivHeight);
+                        // // console.log("element hegit ", element.height);
+                        // // console.log("newDivHeight ", newDivHeight);
+
+                        if(parseInt(visibleHeight + newDivHeight) > parseInt(element.height - newDivHeight + 30)){
+                            window.scrollTo({
+                                top: document.documentElement.scrollHeight,
+                                behavior: 'smooth'
+                            });
+                        }
+                        index++;
                     }
                 }
             }
+
         });
 
     </script>

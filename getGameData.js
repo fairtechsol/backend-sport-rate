@@ -1,4 +1,4 @@
-const ThirdPartyController = require('./thirdPartyController');
+const ThirdPartyController = require('./thirdPartyController.js');
 const { internalRedis, io } = require('./index.js');
 
 
@@ -136,8 +136,10 @@ async function getCricketData(marketId, matchId) {
             session["id"] = sessionAPI[sessionIndex].id; // liveSession[session.SelectionId];
             session["activeStatus"] = sessionAPI[sessionIndex].activeStatus;
             session["min"] = sessionAPI[sessionIndex].minBet,
-              session["max"] = sessionAPI[sessionIndex].maxBet,
-              onlyLiveSession.push(session);
+            session["max"] = sessionAPI[sessionIndex].maxBet,
+            session["createdAt"] = sessionAPI[sessionIndex].createdAt,
+            session["updatedAt"] = sessionAPI[sessionIndex].updatedAt
+            onlyLiveSession.push(session);
             selectionArray.push(session.SelectionId);
           }
           expertSession.push(session);
@@ -152,7 +154,8 @@ async function getCricketData(marketId, matchId) {
             "min": session.minBet,
             "max": session.maxBet,
             "id": session.id,
-            "activeStatus": session.activeStatus
+            "activeStatus": session.activeStatus,
+            "updatedAt": session.updatedAt
           };
           expertSession.push(obj);
           onlyLiveSession.push(obj);
