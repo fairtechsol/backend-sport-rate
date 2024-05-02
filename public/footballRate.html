@@ -29,8 +29,8 @@
 
                 for (const market of marketsData) {
                     const eventID = market.event.id;
-                    if ((new Date()).toLocaleDateString() >= (new Date(market.marketStartTime)).toLocaleDateString()) {
-                        const dataResponse = await fetch(`${window.location.origin}/extraMarketList/${eventID}?eventType=football`);
+                    // if ((new Date()).toLocaleDateString() >= (new Date(market.marketStartTime)).toLocaleDateString()) {
+                        const dataResponse = await fetch(`${window.location.origin}/extraMarketList/${eventID}?eventType=tennis`);
                         const data = await dataResponse.json();
 
                         let marketIds = []
@@ -86,7 +86,7 @@
                             });
                         }
                         index++;
-                    }
+                    // }
                 }
             }
 
