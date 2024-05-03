@@ -11,6 +11,17 @@ let app = express();
 let server = http.createServer(app)
 app.use(cors());
 
+// Store connected clients by match ID
+const clients = {};
+
+// Function to send SSE to clients for a specific match ID
+function sendSSE(matchId, data) {
+  if (clients[matchId]) {
+    clients[matchId].forEach(client => {
+      client.res.write(`data: ${JSON.stringify(data)}\n\n`);
+    });
+  }
+}
 
 require("dotenv").config();
 const ThirdPartyController = require('./thirdPartyController');
@@ -310,6 +321,32 @@ async function getLiveGameData(gameType) {
   }
 }
 
+
+
+// Middleware to handle SSE requests
+app.get('/match/:id', (req, res) => {
+  const matchId = req.params.id;
+
+  if (!clients[matchId]) {
+    clients[matchId] = [];
+  }
+
+  // Set headers for SSE
+  res.writeHead(200, {
+    'Content-Type': 'text/event-stream',
+    'Cache-Control': 'no-cache',
+    'Connection': 'keep-alive'
+  });
+
+  // Add client to the list of clients for this match
+  clients[matchId].push({ res });
+
+  // Remove client when connection closes
+  req.on('close', () => {
+    clients[matchId] = clients[matchId].filter(client => client.res !== res);
+  });
+});
+
 server.listen(port, () => {
   console.log(`Betting app listening at Port:${port}`)
   let matchDBds = localStorage.getItem("matchDBds") ? JSON.parse(localStorage.getItem("matchDBds")) : null;
@@ -323,3 +360,16 @@ server.listen(port, () => {
     })
   }
 });
+
+// Simulate sending data for each match every 5 seconds
+setInterval(() => {
+  console.log("clients ", clients);
+  Object.keys(clients).forEach(matchId => {
+    const data = {
+      matchId: matchId,
+      score: Math.floor(Math.random() * 100),
+      time: new Date().toLocaleTimeString()
+    };
+    sendSSE(matchId, data);
+  });
+}, 1000);
