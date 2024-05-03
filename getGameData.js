@@ -239,51 +239,63 @@ async function getFootBallData(marketId, matchId) {
   let firstHalfGoldLive = Object.keys(matchDetail).filter(key => key.startsWith("firstHalfGoal"));
   returnResult["firstHalfGoal"] = [];
   expertResult["firstHalfGoal"] = [];
-  firstHalfGoldLive.map(key => {
+  firstHalfGoldLive.forEach(key => {
     let value = matchDetail[key];
     value = JSON.parse(value);
     let isLive = value.isActive;
 
-    if (!value?.stopAt) {
+    if (!value?.stopAt && isLive) {
       liveIds.push(value.marketId);
       typeIdObject[value.marketId] = key;
+    }
+    else{
+      expertResult["firstHalfGoal"].push(value);
     }
   });
 
   let halfTimeLive = Object.keys(matchDetail).filter(key => key.startsWith("halfTime"));
-  returnResult["halfTime"] = [];
-  expertResult["halfTime"] = [];
-  halfTimeLive.map(key => {
+  returnResult["halfTime"] = {};
+  expertResult["halfTime"] = {};
+  halfTimeLive.forEach(key => {
     let value = matchDetail[key];
     value = JSON.parse(value);
     let isLive = value.isActive;
-    if (!value?.stopAt) {
+    if (!value?.stopAt && isLive) {
       liveIds.push(value.marketId);
       typeIdObject[value.marketId] = key;
+    }
+    else{
+      expertResult["halfTime"] = value;
     }
   });
 
   let matchOddLive = Object.keys(matchDetail).filter(key => key.startsWith("matchOdd"));
-  matchOddLive.map(key => {
+  matchOddLive.forEach(key => {
     let value = matchDetail[key];
     value = JSON.parse(value);
     let isLive = value.isActive;
-    if (!value?.stopAt) {
+    if (!value?.stopAt && isLive) {
       liveIds.push(value.marketId);
       typeIdObject[value.marketId] = key;
+    }
+    else {
+      expertResult["matchOdd"] = value;
     }
   });
 
   let overUnderLive = Object.keys(matchDetail).filter(key => key.startsWith("overUnder"));
   returnResult["overUnder"] = [];
   expertResult["overUnder"] = [];
-  overUnderLive.map(key => {
+  overUnderLive.forEach(key => {
     let value = matchDetail[key];
     value = JSON.parse(value);
     let isLive = value.isActive;
-    if (!value?.stopAt) {
+    if (!value?.stopAt && isLive) {
       liveIds.push(value.marketId);
       typeIdObject[value.marketId] = key;
+    }
+    else{
+      expertResult["overUnder"].push(value);
     }
   });
 
@@ -296,7 +308,6 @@ async function getFootBallData(marketId, matchId) {
   }
   let respo = await Promise.allSettled(promiseRequestArray);
   let index = 0;
-
   let results = respo[index]?.value;
   if (results) {
     results.map((result, index) => {
@@ -370,8 +381,6 @@ async function getFootBallData(marketId, matchId) {
 
   io.to(matchId).emit("liveData" + matchId, returnResult);
   io.to(matchId + 'expert').emit("liveData" + matchId, expertResult);
-  return;
-
 }
 exports.getFootBallData = getFootBallData;
 
@@ -389,26 +398,33 @@ async function getTennisData(marketId, matchId) {
   let typeIdObject = {}; // it will store the marketId as key and key as value so find id, min, max and other
 
   let matchOddLive = Object.keys(matchDetail).filter(key => key.startsWith("matchOdd"));
-  matchOddLive.map(key => {
+  matchOddLive.forEach(key => {
     let value = matchDetail[key];
     value = JSON.parse(value);
     let isLive = value.isActive;
-    if (!value?.stopAt) {
+    if (!value?.stopAt && isLive) {
       liveIds.push(value.marketId);
       typeIdObject[value.marketId] = key;
+    }
+    else{
+      expertResult["matchOdd"] = value;
+      
     }
   });
 
   let firstHalfGoldLive = Object.keys(matchDetail).filter(key => key.startsWith("setWinner"));
   returnResult["setWinner"] = [];
   expertResult["setWinner"] = [];
-  firstHalfGoldLive.map(key => {
+  firstHalfGoldLive.forEach(key => {
     let value = matchDetail[key];
     value = JSON.parse(value);
     let isLive = value.isActive;
-    if (!value?.stopAt) {
+    if (!value?.stopAt && isLive) {
       liveIds.push(value.marketId);
       typeIdObject[value.marketId] = key;
+    }
+    else{
+      expertResult["setWinner"].push(value);
     }
   });
 
