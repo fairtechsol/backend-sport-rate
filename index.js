@@ -11,6 +11,9 @@ let app = express();
 let server = http.createServer(app)
 app.use(cors());
 
+const EventEmitter = require('events');
+const Stream = new EventEmitter();
+
 // Store connected clients by match ID
 const clients = {};
 
@@ -327,23 +330,14 @@ async function getLiveGameData(gameType) {
 app.get('/match/:id', (req, res) => {
   const matchId = req.params.id;
 
-  if (!clients[matchId]) {
-    clients[matchId] = [];
-  }
-
-  // Set headers for SSE
   res.writeHead(200, {
     'Content-Type': 'text/event-stream',
     'Cache-Control': 'no-cache',
     'Connection': 'keep-alive'
   });
 
-  // Add client to the list of clients for this match
-  clients[matchId].push({ res });
-
-  // Remove client when connection closes
-  req.on('close', () => {
-    clients[matchId] = clients[matchId].filter(client => client.res !== res);
+  Stream.on("push", function (matchId, data) {
+    res.write("event: " + String(matchId) + "\n" + "data: " + JSON.stringify(data) + "\n\n");
   });
 });
 
@@ -361,15 +355,18 @@ server.listen(port, () => {
   }
 });
 
-// Simulate sending data for each match every 5 seconds
-setInterval(() => {
-  console.log("clients ", clients);
-  Object.keys(clients).forEach(matchId => {
-    const data = {
-      matchId: matchId,
-      score: Math.floor(Math.random() * 100),
-      time: new Date().toLocaleTimeString()
-    };
-    sendSSE(matchId, data);
-  });
-}, 1000);
+// // Simulate sending data for each match every 5 seconds
+// setInterval(() => {
+//   // console.log("clients ", clients);
+//   let matchId = Math.floor(Math.random() * 100);
+//   if (matchId % 10) {
+//     const data = {
+//       matchId: matchId,
+//       score: Math.floor(Math.random() * 100),
+//       time: new Date().toLocaleTimeString()
+//     };
+//     Stream.emit("push", matchId, { msg: data });
+//   } else {
+//     Stream.emit("push", 1, { msg: "admit one" });
+//   }
+// }, 5000);
