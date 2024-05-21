@@ -32,7 +32,7 @@ class ThirdPartyController {
 			let options = {
 				method: 'GET',
 				// url: URL + 'odds.php?eid=' + marketId,
-				url: 'http://13.41.184.61:8443/api/betfair/' + marketId,
+				url: 'http://13.42.165.216:8443/api/betfair/' + marketId,
 				// url: 'http://3.89.232.255:3200/matchOddsNew/' + marketId,
 				// url: 'https://betfair.openapi.live/api/v2/listMarketBookOdds?market_id=' + marketId,
 				headers: { 'cache-control': 'no-cache' }
@@ -101,7 +101,7 @@ class ThirdPartyController {
 				method: 'GET',
 				// url: URL + 'list.php',
 				// url: 'http://3.89.232.255:3200/competitionList?type=' + typeId,
-				url: 'http://13.41.184.61/betfair/competition_list/' + typeId,
+				url: 'http://13.42.165.216/betfair/competition_list/' + typeId,
 				headers: { 'cache-control': 'no-cache' }
 			};
 			let errorConst = "at reject get competition list";
@@ -115,7 +115,7 @@ class ThirdPartyController {
 				method: 'GET',
 				// url: URL + 'list.php',
 				// url: 'http://3.89.232.255:3200/eventList/' + competitionId,
-				url: 'http://13.41.184.61/betfair/event_list_by_competition/' + competitionId,
+				url: 'http://13.42.165.216/betfair/event_list_by_competition/' + competitionId,
 				headers: { 'cache-control': 'no-cache' }
 			};
 			let errorConst = "at reject get event list";
@@ -152,7 +152,7 @@ class ThirdPartyController {
 			let options = {
 				method: 'GET',
 				// url: 'http://3.89.232.255:3200/extraMarketList/' + eventId,
-				url: 'http://13.41.184.61/betfair/' + eventType + '/' + eventId,
+				url: 'http://13.42.165.216/betfair/' + eventType + '/' + eventId,
 				headers: { 'cache-control': 'no-cache' }
 			};
 			let errorConst = `at reject get extra event list `;
@@ -165,7 +165,7 @@ class ThirdPartyController {
 			let options = {
 				method: 'GET',
 				// url: 'http://3.89.232.255:3200/extraMarketList/' + eventId,
-				url: 'http://13.41.184.61/betfair/get_latest_event_list/' + typeId,
+				url: 'http://13.42.165.216/betfair/get_latest_event_list/' + typeId,
 				headers: { 'cache-control': 'no-cache' }
 			};
 			let errorConst = `at reject get extra event list `;
