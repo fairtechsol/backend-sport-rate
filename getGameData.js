@@ -554,10 +554,6 @@ async function getHorseRacingData(marketId, matchId) {
       if (!result) {
         result = {};
       }
-      let runners = [];
-      if (matchDetail.runners) {
-        runners = JSON.parse(matchDetail.runners);
-      }
       result.id = value.id;
       result.name = value.name;
       result.minBet = value.minBet;
@@ -565,18 +561,10 @@ async function getHorseRacingData(marketId, matchId) {
       result.type = value.type;
       result.isActive = value.isActive;
       result.activeStatus = value.activeStatus;
-      if (runners?.length > 0) {
-        result.runners= result?.runners?.map((item)=>{
-          let currRunner = runners?.find((runnerData) => runnerData?.selectionId == item?.selectionId);
-          return {
-            ...currRunner,
-            ...item
-          }
-        });
-      }
+      
       expertResult[value.type] = result;
         // if (result.isActive) {
-      returnResult[value.type] = result;
+          returnResult[value.type] = result;
         // }
       
     });
