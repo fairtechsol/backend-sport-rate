@@ -509,3 +509,68 @@ async function getTennisData(marketId, matchId) {
 
 }
 exports.getTennisData = getTennisData;
+
+async function getHorseRacingData(marketId, matchId) {
+  let matchDetail = await internalRedis.hgetall(matchId + "_match");
+  let returnResult = {};
+  let expertResult = {};
+  returnResult.id = matchId;
+  returnResult.marketId = marketId;
+  expertResult.id = matchId;
+  expertResult.marketId = marketId;
+
+  let liveIds = [];
+  let promiseRequestArray = [];
+  let typeIdObject = {}; // it will store the marketId as key and key as value so find id, min, max and other
+
+  let matchOddLive = Object.keys(matchDetail).filter(key => key.startsWith("matchOdd"));
+  matchOddLive.forEach(key => {
+    let value = matchDetail[key];
+    value = JSON.parse(value);
+    // let isLive = value.isActive;
+    if (!value?.stopAt) {
+      liveIds.push(value.marketId);
+      typeIdObject[value.marketId] = key;
+    }
+    else{
+      expertResult["matchOdd"] = value;
+    }
+  });
+
+  if (liveIds.length) {
+    promiseRequestArray.push(ThirdPartyController.getMatchOdds(liveIds.join(',')));
+  }
+  let respo = await Promise.allSettled(promiseRequestArray);
+  let index = 0;
+
+  let results = respo[index]?.value;
+ 
+  if (results) {
+    results.map((result, index) => {
+      let marketId = liveIds[index];
+      let key = typeIdObject[marketId];
+      let value = matchDetail[key];
+      value = JSON.parse(value);
+      if (!result) {
+        result = {};
+      }
+      result.id = value.id;
+      result.name = value.name;
+      result.minBet = value.minBet;
+      result.maxBet = value.maxBet;
+      result.type = value.type;
+      result.isActive = value.isActive;
+      result.activeStatus = value.activeStatus;
+      
+      expertResult[value.type] = result;
+        // if (result.isActive) {
+          returnResult[value.type] = result;
+        // }
+      
+    });
+  }
+
+  io.to(matchId).emit("liveData" + matchId, returnResult);
+  io.to(matchId + 'expert').emit("liveData" + matchId, expertResult);
+}
+exports.getHorseRacingData = getHorseRacingData;

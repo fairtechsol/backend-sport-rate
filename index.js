@@ -59,7 +59,7 @@ internalRedis.on('connect', async () => {
 });
 exports.internalRedis = internalRedis;
 exports.io = io;
-const { getFootBallData, getCricketData, getTennisData } = require('./getGameData');
+const { getFootBallData, getCricketData, getTennisData, getHorseRacingData } = require('./getGameData');
 
 // Handle other Redis events if needed
 internalRedis.on('error', (error) => {
@@ -80,7 +80,8 @@ const gameType = {
   golf: 3,
   cricket: 4,
   boxing: 6,
-  horseRacing: 7
+  horseRacing: 7,
+  greyhoundRacing: 443
 }
 const eventUrl = {
   football: "under_over_goal_market_list",
@@ -230,8 +231,10 @@ io.on('connection', (socket) => {
     }
     let matchDetail = await internalRedis.hgetall(matchId + "_match");
     let matchIds = localStorage.getItem("matchDBds") ? JSON.parse(localStorage.getItem("matchDBds")) : null;
+
     if (!matchIntervalIds[matchId]) {
       let marketId = matchDetail?.marketId;
+
       if (marketId) {
         if (matchIds == null) {
           matchIds = [];
@@ -246,6 +249,9 @@ io.on('connection', (socket) => {
           case 'tennis':
             matchIntervalIds[matchId] = setInterval(getTennisData, liveGameTypeTime, marketId, matchId);
             break;
+          case 'horseRacing':
+              matchIntervalIds[matchId] = setInterval(getHorseRacingData, liveGameTypeTime, marketId, matchId);
+              break;
         }
         matchIds.push(matchId);
         localStorage.setItem("matchDBds", JSON.stringify(matchIds));
