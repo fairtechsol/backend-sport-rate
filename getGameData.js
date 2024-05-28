@@ -511,7 +511,7 @@ async function getTennisData(marketId, matchId) {
 exports.getTennisData = getTennisData;
 
 async function getHorseRacingData(marketId, matchId) {
-  let matchDetail = await internalRedis.hgetall(matchId + "_race");
+  let matchDetail = await internalRedis.hgetall(matchId + "_match");
   let returnResult = {};
   let expertResult = {};
   returnResult.id = matchId;
@@ -524,6 +524,7 @@ async function getHorseRacingData(marketId, matchId) {
   let typeIdObject = {}; // it will store the marketId as key and key as value so find id, min, max and other
 
   let matchOddLive = Object.keys(matchDetail).filter(key => key.startsWith("matchOdd"));
+  console.log(matchOddLive);
   matchOddLive.forEach(key => {
     let value = matchDetail[key];
     value = JSON.parse(value);
@@ -544,6 +545,7 @@ async function getHorseRacingData(marketId, matchId) {
   let index = 0;
 
   let results = respo[index]?.value;
+ 
   if (results) {
     results.map((result, index) => {
       let marketId = liveIds[index];
@@ -562,9 +564,9 @@ async function getHorseRacingData(marketId, matchId) {
       result.activeStatus = value.activeStatus;
       
       expertResult[value.type] = result;
-        if (result.isActive) {
+        // if (result.isActive) {
           returnResult[value.type] = result;
-        }
+        // }
       
     });
   }

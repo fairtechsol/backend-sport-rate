@@ -230,8 +230,10 @@ io.on('connection', (socket) => {
     }
     let matchDetail = await internalRedis.hgetall(matchId + "_match");
     let matchIds = localStorage.getItem("matchDBds") ? JSON.parse(localStorage.getItem("matchDBds")) : null;
+
     if (!matchIntervalIds[matchId]) {
       let marketId = matchDetail?.marketId;
+
       if (marketId) {
         if (matchIds == null) {
           matchIds = [];
