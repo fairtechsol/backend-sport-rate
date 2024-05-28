@@ -524,7 +524,6 @@ async function getHorseRacingData(marketId, matchId) {
   let typeIdObject = {}; // it will store the marketId as key and key as value so find id, min, max and other
 
   let matchOddLive = Object.keys(matchDetail).filter(key => key.startsWith("matchOdd"));
-  console.log(matchOddLive);
   matchOddLive.forEach(key => {
     let value = matchDetail[key];
     value = JSON.parse(value);
