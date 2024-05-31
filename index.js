@@ -81,7 +81,7 @@ const gameType = {
   cricket: 4,
   boxing: 6,
   horseRacing: 7,
-  greyhoundRacing: 443
+  greyhoundRacing: 4339
 }
 const eventUrl = {
   football: "under_over_goal_market_list",
