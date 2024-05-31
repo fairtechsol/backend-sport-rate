@@ -59,7 +59,7 @@ internalRedis.on('connect', async () => {
 });
 exports.internalRedis = internalRedis;
 exports.io = io;
-const { getFootBallData, getCricketData, getTennisData, getHorseRacingData } = require('./getGameData');
+const { getFootBallData, getCricketData, getTennisData, getHorseRacingData, getGreyHoundRacingData } = require('./getGameData');
 
 // Handle other Redis events if needed
 internalRedis.on('error', (error) => {
@@ -250,8 +250,11 @@ io.on('connection', (socket) => {
             matchIntervalIds[matchId] = setInterval(getTennisData, liveGameTypeTime, marketId, matchId);
             break;
           case 'horseRacing':
-              matchIntervalIds[matchId] = setInterval(getHorseRacingData, liveGameTypeTime, marketId, matchId);
-              break;
+            matchIntervalIds[matchId] = setInterval(getHorseRacingData, liveGameTypeTime, marketId, matchId);
+            break;
+          case 'greyHound':
+            matchIntervalIds[matchId] = setInterval(getGreyHoundRacingData, liveGameTypeTime, marketId, matchId);
+            break;
         }
         matchIds.push(matchId);
         localStorage.setItem("matchDBds", JSON.stringify(matchIds));
