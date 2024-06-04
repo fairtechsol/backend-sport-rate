@@ -32,7 +32,7 @@ class ThirdPartyController {
 			let options = {
 				method: 'GET',
 				// url: URL + 'odds.php?eid=' + marketId,
-				url: 'http://13.42.165.216:8443/api/betfair/' + marketId,
+				url: 'http://107.23.165.155:3200/matchOddsNew/' + marketId,
 				// url: 'http://3.89.232.255:3200/matchOddsNew/' + marketId,
 				// url: 'https://betfair.openapi.live/api/v2/listMarketBookOdds?market_id=' + marketId,
 				headers: { 'cache-control': 'no-cache' }
@@ -169,6 +169,29 @@ class ThirdPartyController {
 				headers: { 'cache-control': 'no-cache' }
 			};
 			let errorConst = `at reject get extra event list `;
+			this.callAxios(options, resolve, errorConst);
+		});
+	}
+
+	async getCasinoRates(type) {
+		return new Promise((resolve, reject) => {
+			let options = {
+				method: 'GET',
+				url: 'http://13.201.235.114/api/tunnel/casino/odds/' + type,
+				headers: { 'cache-control': 'no-cache' }
+			};
+			let errorConst = `at reject get casino list `;
+			this.callAxios(options, resolve, errorConst);
+		});
+	}
+	async getCasinoResult(roundId) {
+		return new Promise((resolve, reject) => {
+			let options = {
+				method: 'GET',
+				url: 'http://13.201.235.114/api/tunnel/casino/individual-result/' + roundId,
+				headers: { 'cache-control': 'no-cache' }
+			};
+			let errorConst = `at reject get casino result `;
 			this.callAxios(options, resolve, errorConst);
 		});
 	}

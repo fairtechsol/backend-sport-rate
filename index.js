@@ -176,6 +176,22 @@ app.get("/getDirectMatchList", (req, res) => {
   });
 });
 
+app.get("/casino/rates/:type", (req, res) => {
+  const { type } = req.params;
+  
+  ThirdPartyController.getCasinoRates(type).then(function (data) {
+    return res.send(data);
+  });
+});
+
+app.get("/casino/result/:roundId", (req, res) => {
+  const { roundId } = req.params;
+  
+  ThirdPartyController.getCasinoResult(roundId).then(function (data) {
+    return res.send(data);
+  });
+});
+
 io.on('connection', (socket) => {
   socket.on('score', function (event) {
     let eventId = event.id;
