@@ -95,6 +95,15 @@ const liveGameType = {
   Teen: "Teen",
 }
 
+const casinoGameType = {
+  dragonTiger: "DRAGON_TIGER_20",
+  teen20: "TEEN_20",
+  lucky7: "LUCKY7",
+  card32: "CARD_32",
+  abj: "ABJ",
+}
+
+
 app.get("/matchList", (req, res) => {
   let type = req.query.type;
   let typeId = gameType[type];
@@ -178,8 +187,9 @@ app.get("/getDirectMatchList", (req, res) => {
 
 app.get("/casino/rates/:type", (req, res) => {
   const { type } = req.params;
+  let typeId = casinoGameType[type];
   
-  ThirdPartyController.getCasinoRates(type).then(function (data) {
+  ThirdPartyController.getCasinoRates(typeId).then(function (data) {
     return res.send(data);
   });
 });
@@ -188,6 +198,15 @@ app.get("/casino/result/:roundId", (req, res) => {
   const { roundId } = req.params;
   
   ThirdPartyController.getCasinoResult(roundId).then(function (data) {
+    return res.send(data);
+  });
+});
+
+app.get("/casino/topTen/result/:type", (req, res) => {
+  const { type } = req.params;
+  let typeId = casinoGameType[type];
+  
+  ThirdPartyController.getCasinoTopTenResults(typeId).then(function (data) {
     return res.send(data);
   });
 });
