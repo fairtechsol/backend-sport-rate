@@ -371,7 +371,7 @@ function clearLiveScoreInterval(eventId) {
 async function getLiveGameData(gameType) {
   let result = await ThirdPartyController.getLiveGameData(gameType);
   io.to(gameType).emit("liveGameData" + gameType, result);
-  let data = result.data;
+  let data = result?.data;
   if (data && data.t1 && data.t1[0]) {
     let mid = 0;
     try {
