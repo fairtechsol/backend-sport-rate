@@ -256,8 +256,24 @@ io.on('connection', (socket) => {
   });
 
   socket.on('initCricketData', async function (event) {
-
     let matchId = event.matchId;
+
+    // to check is any user exist in the interval or not. if not then close the interval
+    const room = io.sockets.adapter.rooms.get(matchId);
+    try {
+      if (!(room && room.size != 0)) {
+        clearInterval(matchIntervalIds[matchId]);
+        delete matchIntervalIds[matchId];
+        let matchIds = localStorage.getItem("matchDBds") ? JSON.parse(localStorage.getItem("matchDBds")) : null;
+        if (matchIds) {
+          matchIds.splice(matchIds.indexOf(matchId), 1);
+          localStorage.setItem("matchDBds", JSON.stringify(matchIds));
+        }
+      }
+    } catch (error) {
+      console.log("error at disconnectCricketData ", error);
+    }
+
     let roleName = event.roleName;
     if (roleName == 'expert') {
       socket.join(matchId + 'expert');
