@@ -95,14 +95,24 @@ const liveGameType = {
   Teen: "Teen",
 }
 
-const casinoGameType = {
-  dragonTiger: "DRAGON_TIGER_20",
-  teen20: "TEEN_20",
-  lucky7: "LUCKY7",
-  card32: "CARD_32",
-  abj: "ABJ",
+function CheckAndClearInterval(matchId) {
+  // to check is any user exist in the interval or not. if not then close the interval
+  const room = io.sockets.adapter.rooms.get(matchId);
+  try {
+    if (!(room && room.size != 0)) {
+      clearInterval(matchIntervalIds[matchId]);
+      delete matchIntervalIds[matchId];
+      let matchIds = localStorage.getItem("matchDBds") ? JSON.parse(localStorage.getItem("matchDBds")) : null;
+      if (matchIds) {
+        matchIds.splice(matchIds.indexOf(matchId), 1);
+        localStorage.setItem("matchDBds", JSON.stringify(matchIds));
+      }
+    }
+  } catch (error) {
+    console.log("error at disconnectCricketData ", error);
+  }
 }
-
+exports.CheckAndClearInterval = CheckAndClearInterval;
 
 app.get("/matchList", (req, res) => {
   let type = req.query.type;
@@ -181,32 +191,6 @@ app.get("/getDirectMatchList", (req, res) => {
   let type = req.query.type;
   let typeId = gameType[type];
   ThirdPartyController.getDirectMatchList(typeId).then(function (data) {
-    return res.send(data);
-  });
-});
-
-app.get("/casino/rates/:type", (req, res) => {
-  const { type } = req.params;
-  let typeId = casinoGameType[type];
-  
-  ThirdPartyController.getCasinoRates(typeId).then(function (data) {
-    return res.send(data);
-  });
-});
-
-app.get("/casino/result/:roundId", (req, res) => {
-  const { roundId } = req.params;
-  
-  ThirdPartyController.getCasinoResult(roundId).then(function (data) {
-    return res.send(data);
-  });
-});
-
-app.get("/casino/topTen/result/:type", (req, res) => {
-  const { type } = req.params;
-  let typeId = casinoGameType[type];
-  
-  ThirdPartyController.getCasinoTopTenResults(typeId).then(function (data) {
     return res.send(data);
   });
 });
@@ -349,16 +333,6 @@ io.on('connection', (socket) => {
 
 });
 
-function ClearAllSocketRoom() {
-  const rooms = io.of('/').adapter.rooms;
-  for (const [roomId, room] of rooms) {
-    room.forEach((socketId) => {
-      io.sockets.sockets.get(socketId).leave(room);
-    });
-    io.of('/').adapter.rooms.delete(room);
-  }
-}
-
 function clearLiveScoreInterval(eventId) {
   if (eventId) {
     clearInterval(IntervalIds[eventId]);
@@ -385,23 +359,6 @@ async function getLiveGameData(gameType) {
   }
 }
 
-
-
-// Middleware to handle SSE requests
-app.get('/match/:id', (req, res) => {
-  const matchId = req.params.id;
-
-  res.writeHead(200, {
-    'Content-Type': 'text/event-stream',
-    'Cache-Control': 'no-cache',
-    'Connection': 'keep-alive'
-  });
-
-  Stream.on("push", function (matchId, data) {
-    res.write("event: " + String(matchId) + "\n" + "data: " + JSON.stringify(data) + "\n\n");
-  });
-});
-
 server.listen(port, () => {
   console.log(`Betting app listening at Port:${port}`)
   let matchDBds = localStorage.getItem("matchDBds") ? JSON.parse(localStorage.getItem("matchDBds")) : null;
@@ -415,19 +372,3 @@ server.listen(port, () => {
     })
   }
 });
-
-// // Simulate sending data for each match every 5 seconds
-// setInterval(() => {
-//   // console.log("clients ", clients);
-//   let matchId = Math.floor(Math.random() * 100);
-//   if (matchId % 10) {
-//     const data = {
-//       matchId: matchId,
-//       score: Math.floor(Math.random() * 100),
-//       time: new Date().toLocaleTimeString()
-//     };
-//     Stream.emit("push", matchId, { msg: data });
-//   } else {
-//     Stream.emit("push", 1, { msg: "admit one" });
-//   }
-// }, 5000);

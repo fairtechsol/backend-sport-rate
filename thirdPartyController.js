@@ -173,40 +173,6 @@ class ThirdPartyController {
 		});
 	}
 
-	async getCasinoRates(type) {
-		return new Promise((resolve, reject) => {
-			let options = {
-				method: 'GET',
-				url: 'http://13.201.235.114/api/tunnel/casino/odds/' + type,
-				headers: { 'cache-control': 'no-cache' }
-			};
-			let errorConst = `at reject get casino list `;
-			this.callAxios(options, resolve, errorConst);
-		});
-	}
-	async getCasinoResult(roundId) {
-		return new Promise((resolve, reject) => {
-			let options = {
-				method: 'GET',
-				url: 'http://13.201.235.114/api/tunnel/casino/individual-result/' + roundId,
-				headers: { 'cache-control': 'no-cache' }
-			};
-			let errorConst = `at reject get casino result `;
-			this.callAxios(options, resolve, errorConst);
-		});
-	}
-
-	async getCasinoTopTenResults(type) {
-		return new Promise((resolve, reject) => {
-			let options = {
-				method: 'GET',
-				url: 'http://13.201.235.114/api/tunnel/casino/result/' + type,
-				headers: { 'cache-control': 'no-cache' }
-			};
-			let errorConst = `at reject get casino top 10 result `;
-			this.callAxios(options, resolve, errorConst);
-		});
-	}
 }
 
 
