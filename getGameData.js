@@ -1,8 +1,11 @@
 const ThirdPartyController = require('./thirdPartyController.js');
-const { internalRedis, io } = require('./index.js');
+const { internalRedis, io, CheckAndClearInterval } = require('./index.js');
 
 
 async function getCricketData(marketId, matchId) {
+
+  CheckAndClearInterval(matchId);
+
   let matchDetail = await internalRedis.hgetall(matchId + "_match");
   let returnResult = {};
   let expertResult = {};
@@ -225,6 +228,9 @@ async function getCricketData(marketId, matchId) {
 exports.getCricketData = getCricketData;
 
 async function getFootBallData(marketId, matchId) {
+
+  CheckAndClearInterval(matchId);
+
   let matchDetail = await internalRedis.hgetall(matchId + "_match");
   let returnResult = {};
   let expertResult = {};
@@ -385,6 +391,9 @@ async function getFootBallData(marketId, matchId) {
 exports.getFootBallData = getFootBallData;
 
 async function getTennisData(marketId, matchId) {
+
+  CheckAndClearInterval(matchId);
+
   let matchDetail = await internalRedis.hgetall(matchId + "_match");
   let returnResult = {};
   let expertResult = {};
@@ -511,6 +520,9 @@ async function getTennisData(marketId, matchId) {
 exports.getTennisData = getTennisData;
 
 async function getHorseRacingData(marketId, matchId) {
+
+  CheckAndClearInterval(matchId);
+
   let matchDetail = await internalRedis.hgetall(matchId + "_match");
   let returnResult = {};
   let expertResult = {};
@@ -576,6 +588,9 @@ async function getHorseRacingData(marketId, matchId) {
 exports.getHorseRacingData = getHorseRacingData;
 
 async function getGreyHoundRacingData(marketId, matchId) {
+
+  CheckAndClearInterval(matchId);
+
   let matchDetail = await internalRedis.hgetall(matchId + "_match");
   let returnResult = {};
   let expertResult = {};
