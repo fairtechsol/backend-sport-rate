@@ -47,8 +47,10 @@ let matchIntervalIds = {};
 exports.CheckAndClearInterval = (matchId) => {
   // to check is any user exist in the interval or not. if not then close the interval
   const room = io.sockets.adapter.rooms.get(matchId);
+  const roomExpert = io.sockets.adapter.rooms.get(`${matchId}expert`);
+
   try {
-    if (!(room && room.size != 0)) {
+    if (!(room && room.size != 0) && !(roomExpert && roomExpert.size != 0)) {
       clearInterval(matchIntervalIds[matchId]);
       delete matchIntervalIds[matchId];
       let matchIds = localStorage.getItem("matchDBds") ? JSON.parse(localStorage.getItem("matchDBds")) : null;
