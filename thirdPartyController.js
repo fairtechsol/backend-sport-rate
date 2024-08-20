@@ -1,5 +1,6 @@
 const URL = 'http://bihun.in/api11/';
 const axios = require('axios');
+const { apiEndPoints } = require('./constant');
 class ThirdPartyController {
 
 	callAxios(options, resolve, errorConst) {
@@ -27,12 +28,12 @@ class ThirdPartyController {
 		});
 	}
 
-	async getMatchOdds(marketId) {
+	async getMatchOdds(marketId, apiType = 0) {
 		return new Promise((resolve, reject) => {
 			let options = {
 				method: 'GET',
 				// url: URL + 'odds.php?eid=' + marketId,
-				url: 'http://13.42.165.216:8443/api/betfair/' + marketId,
+				url: apiEndPoints.matchOdd[apiType] + marketId,
 				// url: 'http://3.89.232.255:3200/matchOddsNew/' + marketId,
 				// url: 'https://betfair.openapi.live/api/v2/listMarketBookOdds?market_id=' + marketId,
 				headers: { 'cache-control': 'no-cache' }
@@ -147,7 +148,7 @@ class ThirdPartyController {
 		});
 	}
 
-	async getExtraEventList(eventId,eventType) {
+	async getExtraEventList(eventId, eventType) {
 		return new Promise((resolve, reject) => {
 			let options = {
 				method: 'GET',
@@ -159,7 +160,7 @@ class ThirdPartyController {
 			this.callAxios(options, resolve, errorConst);
 		});
 	}
-	
+
 	async getDirectMatchList(typeId) {
 		return new Promise((resolve, reject) => {
 			let options = {

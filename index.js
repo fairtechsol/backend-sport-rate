@@ -116,7 +116,8 @@ app.get("/eventList/:competitionId", (req, res) => {
 
 app.get("/matchOdds/:marketId", (req, res) => {
   let markertId = req.params.marketId;
-  ThirdPartyController.getMatchOdds(markertId).then(function (data) {
+  const { apiType } = req.query;
+  ThirdPartyController.getMatchOdds(markertId, apiType).then(function (data) {
     if (data && data[0]) {
       return res.send(data[0].runners);
     }
@@ -152,7 +153,9 @@ app.get("/extraMarketList/:eventId", (req, res) => {
 
 app.get("/matchOddsNew/:marketId", (req, res) => {
   let markertId = req.params.marketId;
-  ThirdPartyController.getMatchOdds(markertId).then(function (data) {
+  const { apiType } = req.query;
+
+  ThirdPartyController.getMatchOdds(markertId, apiType).then(function (data) {
     return res.send(data);
   });
 });
