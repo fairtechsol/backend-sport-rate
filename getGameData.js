@@ -40,7 +40,8 @@ async function getCricketData(marketId, matchId) {
       oddIds.push((JSON.parse(matchDetail.marketTiedMatch)).marketId);
     }
     if (oddIds.length) {
-      promiseRequestArray.push(ThirdPartyController.getMatchOdds(oddIds.join(',')));
+      let matchOddDetails = JSON.parse(matchDetail.matchOdd);
+      promiseRequestArray.push(ThirdPartyController.getMatchOdds(oddIds.join(','), matchOddDetails?.apiType));
     }
 
     if (ismarketBookmakerActive) {
@@ -306,7 +307,8 @@ async function getFootBallData(marketId, matchId) {
   });
 
   if (liveIds.length) {
-    promiseRequestArray.push(ThirdPartyController.getMatchOdds(liveIds.join(',')));
+    let matchOddDetails = JSON.parse(matchDetail.matchOdd);
+    promiseRequestArray.push(ThirdPartyController.getMatchOdds(liveIds.join(','), matchOddDetails?.apiType));
   }
   let ismarketBookmakerActive = matchDetail.marketBookmaker ? (JSON.parse(matchDetail.marketBookmaker)).isActive : false;
   if (ismarketBookmakerActive) {
@@ -438,7 +440,8 @@ async function getTennisData(marketId, matchId) {
   });
 
   if (liveIds.length) {
-    promiseRequestArray.push(ThirdPartyController.getMatchOdds(liveIds.join(',')));
+    let matchOddDetails = JSON.parse(matchDetail.matchOdd);
+    promiseRequestArray.push(ThirdPartyController.getMatchOdds(liveIds.join(','), matchOddDetails?.apiType));
   }
   let ismarketBookmakerActive = matchDetail.marketBookmaker ? (JSON.parse(matchDetail.marketBookmaker)).isActive : false;
   if (ismarketBookmakerActive) {
@@ -550,7 +553,8 @@ async function getHorseRacingData(marketId, matchId) {
   });
 
   if (liveIds.length) {
-    promiseRequestArray.push(ThirdPartyController.getMatchOdds(liveIds.join(',')));
+    let matchOddDetails = JSON.parse(matchDetail.matchOdd);
+    promiseRequestArray.push(ThirdPartyController.getMatchOdds(liveIds.join(','), matchOddDetails?.apiType));
   }
   let respo = await Promise.allSettled(promiseRequestArray);
   let index = 0;
@@ -618,7 +622,8 @@ async function getGreyHoundRacingData(marketId, matchId) {
   });
 
   if (liveIds.length) {
-    promiseRequestArray.push(ThirdPartyController.getMatchOdds(liveIds.join(',')));
+    let matchOddDetails = JSON.parse(matchDetail.matchOdd);
+    promiseRequestArray.push(ThirdPartyController.getMatchOdds(liveIds.join(','), matchOddDetails?.apiType));
   }
   let respo = await Promise.allSettled(promiseRequestArray);
   let index = 0;
