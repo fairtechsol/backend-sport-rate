@@ -171,7 +171,7 @@ app.get("/sportsList", (req, res) => {
 
 app.get("/getAllRateCricket/:eventId", (req, res) => {
   let markertId = req.params.eventId;
-  const { apiType } = req.query;
+  let { apiType } = req.query;
   apiType = apiType || 2;
 
   ThirdPartyController.getAllRateCricket(eventId, apiType).then(function (data) {
