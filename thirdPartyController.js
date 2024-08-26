@@ -174,6 +174,31 @@ class ThirdPartyController {
 		});
 	}
 
+	
+	async getAllRateCricket(eventId, apiType = 2) {
+		return new Promise((resolve, reject) => {
+			let options = {
+				method: 'GET',
+				url: apiEndPoints.matchOdd[apiType] + eventId,
+				headers: { 'cache-control': 'no-cache' }
+			};
+			let errorConst = "at reject get All Rate Cricket " + eventId;
+			this.callAxios(options, resolve, errorConst);
+		});
+	}
+		
+	async sportsList(typeId) {
+		return new Promise((resolve, reject) => {
+			let options = {
+				method: 'GET',
+				url: apiEndPoints.sportListEndPoint[typeId],
+				headers: { 'cache-control': 'no-cache' }
+			};
+			let errorConst = "at reject sports List" + typeId;
+			this.callAxios(options, resolve, errorConst);
+		});
+	}
+
 }
 
 
