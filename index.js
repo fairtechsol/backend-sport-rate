@@ -170,7 +170,7 @@ app.get("/sportsList", (req, res) => {
 });
 
 app.get("/getAllRateCricket/:eventId", (req, res) => {
-  let markertId = req.params.eventId;
+  let eventId = req.params.eventId;
   let { apiType } = req.query;
   apiType = apiType || 2;
 
