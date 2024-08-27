@@ -7,19 +7,19 @@ async function getCricketData(marketId, matchId) {
   CheckAndClearInterval(matchId);
 
   let matchDetail = await internalRedis.hgetall(matchId + "_match");
-  let returnResult = {};
-  let expertResult = {};
-  returnResult.id = matchId;
-  returnResult.marketId = marketId;
-  expertResult.id = matchId;
-  expertResult.marketId = marketId;
+  const returnResult = { id: matchId, marketId, eventId: matchDetail.eventId };
+  const expertResult = { id: matchId, marketId, eventId: matchDetail.eventId };
 
   let isAPISessionActive = matchDetail.apiSessionActive ? JSON.parse(matchDetail.apiSessionActive) : false;
   let isManualSessionActive = matchDetail.manualSessionActive ? JSON.parse(matchDetail.manualSessionActive) : false;
+
   let ismatchOddActive = matchDetail.matchOdd ? (JSON.parse(matchDetail.matchOdd)).isActive : false;
   let ismarketCompleteMatchActive = matchDetail.marketCompleteMatch ? (JSON.parse(matchDetail.marketCompleteMatch)).isActive : false;
-  let ismarketBookmakerActive = matchDetail.marketBookmaker ? (JSON.parse(matchDetail.marketBookmaker)).isActive : false;
   let ismarketTiedMatchActive = matchDetail.marketTiedMatch ? (JSON.parse(matchDetail.marketTiedMatch)).isActive : false;
+
+  let ismarketBookmakerActive = matchDetail.marketBookmaker ? (JSON.parse(matchDetail.marketBookmaker)).isActive : false;
+  let ismarketBookmaker2Active = matchDetail.marketBookmaker ? (JSON.parse(matchDetail.marketBookmaker2)).isActive : false;
+  
 
   let promiseRequestArray = [];
   let oddIds = [];
@@ -28,154 +28,482 @@ async function getCricketData(marketId, matchId) {
 
   let isManual = marketId?.split(/(\d+)/)[0] == 'manual';
   if (!isManual) {
-    //  do not change the sequence of if conditions
+    let data = await ThirdPartyController.getAllRateCricket(matchDetail.eventId);
+
+    let mainData = data.data;
+    let customObject;
+
+    mainData.forEach(da => {
+      const mname = da.mname.toLowerCase();
+      switch (mname) {
+        case "match_odds":
+          customObject.matchOdd = da;
+          break;
+        case "tie":
+          customObject.apiTiedMatch = da;
+          break;
+        case "bookmaker":
+          customObject.bookmaker ? customObject.bookmaker2 = da : customObject.bookmaker = da;
+          break;
+        case "complete":
+          customObject.marketCompleteMatch = da;
+          break;
+        case "normal":
+          customObject.session = da;
+          break;
+        case "over by over":
+          customObject.overByover = da;
+          break;
+        case "ball by ball":
+          customObject.ballByBall = da;
+          break;
+        case "oddeven":
+          customObject.oddEven = da;
+          break;
+        case "fancy1":
+          customObject.fancy1 = da;
+          break;
+        default:
+          if(da.gtype = "cricketcasino"){
+            customObject.cricketCasino = da;
+          } else {
+            customObject.other = da;
+          }
+          break;
+      }
+    })
+
     if (ismatchOddActive) {
-      oddIds.push(marketId);
-      // promiseRequestArray.push(ThirdPartyController.getMatchOdds_old(marketId));
+      let parseData = JSON.parse(matchDetail.matchOdd);
+      let obj = {
+        "id": parseData.id,
+        "marketId": marketId,
+        "name": parseData.name,
+        "minBet": parseData.minBet,
+        "maxBet": parseData.maxBet,
+        "type": parseData.type,
+        "isActive": parseData.activeStatus,
+        "activeStatus": parseData.activeStatus
+      };
+      returnResult.matchOdd = await formateOdds(customObject.matchOdd, obj);
+      expertResult.matchOdd = returnResult.matchOdd;
     }
     if (ismarketCompleteMatchActive) {
-      oddIds.push((JSON.parse(matchDetail.marketCompleteMatch)).marketId);
+      let parseData = JSON.parse(matchDetail.marketCompleteMatch);
+      let obj = {
+        "id": parseData.id,
+        "marketId": marketId,
+        "name": parseData.name,
+        "minBet": parseData.minBet,
+        "maxBet": parseData.maxBet,
+        "type": parseData.type,
+        "isActive": parseData.activeStatus,
+        "activeStatus": parseData.activeStatus
+      };
+      returnResult.marketCompleteMatch = await formateOdds(customObject.marketCompleteMatch, obj);
+      expertResult.marketCompleteMatch = returnResult.marketCompleteMatch;
     }
     if (ismarketTiedMatchActive) {
-      oddIds.push((JSON.parse(matchDetail.marketTiedMatch)).marketId);
+      let parseData = JSON.parse(matchDetail.marketTiedMatch);
+      let obj = {
+        "id": parseData.id,
+        "marketId": marketId,
+        "name": parseData.name,
+        "minBet": parseData.minBet,
+        "maxBet": parseData.maxBet,
+        "type": parseData.type,
+        "isActive": parseData.activeStatus,
+        "activeStatus": parseData.activeStatus
+      };
+      returnResult.apiTiedMatch = await formateOdds(customObject.apiTiedMatch, obj);
+      expertResult.apiTiedMatch = returnResult.apiTiedMatch;
     }
-    if (oddIds.length) {
-      let matchOddDetails = JSON.parse(matchDetail.matchOdd);
-      promiseRequestArray.push(ThirdPartyController.getMatchOdds(oddIds.join(','), matchOddDetails?.apiType));
-    }
-
     if (ismarketBookmakerActive) {
-      promiseRequestArray.push(ThirdPartyController.getBookmakerMarket(marketId));
+      let parseData = JSON.parse(matchDetail.marketBookmaker);
+      let obj = {
+        "id": parseData.id,
+        "marketId": marketId,
+        "name": parseData.name,
+        "minBet": parseData.minBet,
+        "maxBet": parseData.maxBet,
+        "type": parseData.type,
+        "isActive": parseData.activeStatus,
+        "activeStatus": parseData.activeStatus
+      };
+      returnResult.bookmaker = await formateOdds(customObject.bookmaker, obj);
+      expertResult.bookmaker = returnResult.bookmaker;
     }
-    if (isAPISessionActive) {
-      promiseRequestArray.push(ThirdPartyController.getSessions(marketId));
-    }
-    // Wait for all requests to complete using Promise.all
-    let respo = await Promise.allSettled(promiseRequestArray);
-
-    if (oddIds.length) {
-      let ind = 0;
-      let result = respo[index]?.value;
-      if (ismatchOddActive) {
-        let matchOddDetails = JSON.parse(matchDetail.matchOdd);
-        let obj = result?.length && result[ind] ? result[ind] : {};
-        obj.id = matchOddDetails.id;
-        obj.name = matchOddDetails.name;
-        obj.minBet = matchOddDetails.minBet;
-        obj.maxBet = matchOddDetails.maxBet;
-        obj.type = matchOddDetails.type;
-        obj.isActive = matchOddDetails.isActive;
-        obj.activeStatus = matchOddDetails.activeStatus;
-        returnResult.matchOdd = obj;
-        expertResult.matchOdd = obj;
-        ind++;
-      }
-      if (ismarketCompleteMatchActive) {
-        let marketCompleteMatch = JSON.parse(matchDetail.marketCompleteMatch);
-        let obj = result?.length && result[ind] ? result[ind] : {};
-        obj.id = marketCompleteMatch.id;
-        obj.name = marketCompleteMatch.name;
-        obj.minBet = marketCompleteMatch.minBet;
-        obj.maxBet = marketCompleteMatch.maxBet;
-        obj.type = marketCompleteMatch.type;
-        obj.isActive = marketCompleteMatch.isActive;
-        obj.activeStatus = marketCompleteMatch.activeStatus;
-        returnResult.marketCompleteMatch = obj;
-        expertResult.marketCompleteMatch = obj;
-        ind++;
-      }
-      if (ismarketTiedMatchActive) {
-        let marketTiedMatch = JSON.parse(matchDetail.marketTiedMatch);
-        let obj = result?.length && result[ind] ? result[ind] : {};
-        obj.id = marketTiedMatch.id;
-        obj.name = marketTiedMatch.name;
-        obj.minBet = marketTiedMatch.minBet;
-        obj.maxBet = marketTiedMatch.maxBet;
-        obj.type = marketTiedMatch.type;
-        obj.isActive = marketTiedMatch.isActive;
-        obj.activeStatus = marketTiedMatch.activeStatus;
-        returnResult.apiTiedMatch = obj;
-        expertResult.apiTiedMatch = obj;
-        ind++;
-      }
-      index++;
+    if (ismarketBookmaker2Active) {
+      let parseData = JSON.parse(matchDetail.marketBookmaker2);
+      let obj = {
+        "id": parseData.id,
+        "marketId": marketId,
+        "name": parseData.name,
+        "minBet": parseData.minBet,
+        "maxBet": parseData.maxBet,
+        "type": parseData.type,
+        "isActive": parseData.activeStatus,
+        "activeStatus": parseData.activeStatus
+      };
+      returnResult.bookmaker2 = await formateOdds(customObject.bookmaker2, obj);
+      expertResult.bookmaker2 = returnResult.bookmaker2;
     }
 
-    if (ismarketBookmakerActive) {
-      let result = respo[index].value;
-      let marketBookmaker = JSON.parse(matchDetail.marketBookmaker);
-      let obj = result?.length && result[0] ? result[0] : {};
-      obj.id = marketBookmaker.id;
-      obj.name = marketBookmaker.name;
-      obj.minBet = marketBookmaker.minBet;
-      obj.maxBet = marketBookmaker.maxBet;
-      obj.type = marketBookmaker.type;
-      obj.isActive = marketBookmaker.isActive;
-      obj.activeStatus = marketBookmaker.activeStatus;
-      returnResult.bookmaker = obj;
-      expertResult.bookmaker = obj;
-      index++;
-    }
 
+
+    returnResult.apiSession = {};
+    expertResult.apiSession = {};
+    let sessionAPIObj = {}
     if (isAPISessionActive || isManualSessionActive) {
       let sessionData = await internalRedis.hgetall(matchId + "_session");
       sessionData = sessionData ? Object.values(sessionData) : [];
       sessionData.map(sessionString => {
-        if ((JSON.parse(sessionString).isManual)) {
+        let parseObj = JSON.parse(sessionString);
+        if ((parseObj.isManual)) {
           sessionManual.push(sessionString);
         } else {
-          sessionAPI.push(JSON.parse(sessionString));
+          if(sessionAPIObj.hasOwnProperty(parseObj.type)){
+            sessionAPIObj[parseObj.type].push(parseObj);
+          } else {
+            sessionAPIObj[parseObj.type] = [parseObj];
+          }
+          // sessionAPI.push(parseObj);
         }
       });
-
     }
+
     if (isAPISessionActive) {
-      let result = respo[index].value;
-      let expertSession = [];
-      let onlyLiveSession = [], selectionArray = [];
-      if (result) {
-        result?.map(session => {
-          let sessionIndex = sessionAPI.findIndex(obj => obj.selectionId == session.SelectionId);
-          if (sessionIndex > -1) {
-            session["id"] = sessionAPI[sessionIndex].id; // liveSession[session.SelectionId];
-            session["activeStatus"] = sessionAPI[sessionIndex].activeStatus;
-            session["min"] = sessionAPI[sessionIndex].minBet,
-            session["max"] = sessionAPI[sessionIndex].maxBet,
-            session["createdAt"] = sessionAPI[sessionIndex].createdAt,
-            session["updatedAt"] = sessionAPI[sessionIndex].updatedAt
-            onlyLiveSession.push(session);
-            selectionArray.push(session.SelectionId);
+      if(customObject.normal){
+        let key = 'session';
+        let result = customObject[key];
+        let expertSession = [], onlyLiveSession = [], addedSession = [];
+        let sessionAPI = sessionAPIObj[key];
+        if (result) {
+          result.section?.map(session => {
+            let sessionObj = formateSession(session);
+            let sessionIndex = sessionAPI.findIndex(obj => obj.selectionId == sessionObj.SelectionId);
+            if (sessionIndex > -1) {
+              sessionObj["id"] = sessionAPI[sessionIndex].id; // liveSession[session.SelectionId];
+              sessionObj["activeStatus"] = sessionAPI[sessionIndex].activeStatus;
+              sessionObj["min"] = sessionAPI[sessionIndex].minBet,
+              sessionObj["max"] = sessionAPI[sessionIndex].maxBet,
+              sessionObj["createdAt"] = sessionAPI[sessionIndex].createdAt,
+              sessionObj["updatedAt"] = sessionAPI[sessionIndex].updatedAt
+              onlyLiveSession.push(sessionObj);
+              addedSession.push(sessionObj.SelectionId);
+            }
+            expertSession.push(sessionObj);
+          });
+        }
+        sessionAPI.map(session => {
+          if (!addedSession.includes(session.selectionId)) {
+            let obj = {
+              "SelectionId": session.selectionId,
+              "RunnerName": session.name,
+              "min": session.minBet,
+              "max": session.maxBet,
+              "id": session.id,
+              "activeStatus": session.activeStatus,
+              "updatedAt": session.updatedAt
+            };
+            expertSession.push(obj);
+            onlyLiveSession.push(obj);
           }
-          expertSession.push(session);
         });
+  
+        returnResult.apiSession[key] = {
+          "mname": result.mname,
+          "rem": result.rem,
+          "gtype": result.gtype,
+          "status": result.status,
+          "section": onlyLiveSession
+        };
+        expertResult.apiSession[key] = {
+          "mname": result.mname,
+          "rem": result.rem,
+          "gtype": result.gtype,
+          "status": result.status,
+          "section": expertSession
+        };
       }
 
-      sessionAPI.map(session => {
-        if (!selectionArray.includes(session.selectionId)) {
-          let obj = {
-            "SelectionId": session.selectionId,
-            "RunnerName": session.name,
-            "min": session.minBet,
-            "max": session.maxBet,
-            "id": session.id,
-            "activeStatus": session.activeStatus,
-            "updatedAt": session.updatedAt
-          };
-          expertSession.push(obj);
-          onlyLiveSession.push(obj);
+      if(customObject.overByover){
+        let key = 'overByover';
+        let result = customObject[key];
+        let expertSession = [], onlyLiveSession = [], addedSession = [];
+        let sessionAPI = sessionAPIObj[key];
+        if (result) {
+          result.section?.map(session => {
+            let sessionObj = formateSession(session);
+            let sessionIndex = sessionAPI.findIndex(obj => obj.selectionId == sessionObj.SelectionId);
+            if (sessionIndex > -1) {
+              sessionObj["id"] = sessionAPI[sessionIndex].id; // liveSession[session.SelectionId];
+              sessionObj["activeStatus"] = sessionAPI[sessionIndex].activeStatus;
+              sessionObj["min"] = sessionAPI[sessionIndex].minBet,
+              sessionObj["max"] = sessionAPI[sessionIndex].maxBet,
+              sessionObj["createdAt"] = sessionAPI[sessionIndex].createdAt,
+              sessionObj["updatedAt"] = sessionAPI[sessionIndex].updatedAt
+              onlyLiveSession.push(sessionObj);
+              addedSession.push(sessionObj.SelectionId);
+            }
+            expertSession.push(sessionObj);
+          });
         }
-      });
-      returnResult.apiSession = onlyLiveSession;
-      expertResult.apiSession = expertSession;
-      index++;
+        sessionAPI.map(session => {
+          if (!addedSession.includes(session.selectionId)) {
+            let obj = {
+              "SelectionId": session.selectionId,
+              "RunnerName": session.name,
+              "min": session.minBet,
+              "max": session.maxBet,
+              "id": session.id,
+              "activeStatus": session.activeStatus,
+              "updatedAt": session.updatedAt
+            };
+            expertSession.push(obj);
+            onlyLiveSession.push(obj);
+          }
+        });
+  
+        returnResult.apiSession[key] = {
+          "mname": result.mname,
+          "rem": result.rem,
+          "gtype": result.gtype,
+          "status": result.status,
+          "section": onlyLiveSession
+        };
+        expertResult.apiSession[key] = {
+          "mname": result.mname,
+          "rem": result.rem,
+          "gtype": result.gtype,
+          "status": result.status,
+          "section": expertSession
+        };
+      }
+
+      if(customObject.ballByBall){
+        let key = 'ballByBall';
+        let result = customObject[key];
+        let expertSession = [], onlyLiveSession = [], addedSession = [];
+        let sessionAPI = sessionAPIObj[key];
+        if (result) {
+          result.section?.map(session => {
+            let sessionObj = formateSession(session);
+            let sessionIndex = sessionAPI.findIndex(obj => obj.selectionId == sessionObj.SelectionId);
+            if (sessionIndex > -1) {
+              sessionObj["id"] = sessionAPI[sessionIndex].id; // liveSession[session.SelectionId];
+              sessionObj["activeStatus"] = sessionAPI[sessionIndex].activeStatus;
+              sessionObj["min"] = sessionAPI[sessionIndex].minBet,
+              sessionObj["max"] = sessionAPI[sessionIndex].maxBet,
+              sessionObj["createdAt"] = sessionAPI[sessionIndex].createdAt,
+              sessionObj["updatedAt"] = sessionAPI[sessionIndex].updatedAt
+              onlyLiveSession.push(sessionObj);
+              addedSession.push(sessionObj.SelectionId);
+            }
+            expertSession.push(sessionObj);
+          });
+        }
+        sessionAPI.map(session => {
+          if (!addedSession.includes(session.selectionId)) {
+            let obj = {
+              "SelectionId": session.selectionId,
+              "RunnerName": session.name,
+              "min": session.minBet,
+              "max": session.maxBet,
+              "id": session.id,
+              "activeStatus": session.activeStatus,
+              "updatedAt": session.updatedAt
+            };
+            expertSession.push(obj);
+            onlyLiveSession.push(obj);
+          }
+        });
+  
+        returnResult.apiSession[key] = {
+          "mname": result.mname,
+          "rem": result.rem,
+          "gtype": result.gtype,
+          "status": result.status,
+          "section": onlyLiveSession
+        };
+        expertResult.apiSession[key] = {
+          "mname": result.mname,
+          "rem": result.rem,
+          "gtype": result.gtype,
+          "status": result.status,
+          "section": expertSession
+        };
+      }
+
+      if(customObject.oddEven){
+        let key = 'oddEven';
+        let result = customObject[key];
+        let expertSession = [], onlyLiveSession = [], addedSession = [];
+        let sessionAPI = sessionAPIObj[key];
+        if (result) {
+          result.section?.map(session => {
+            let sessionObj = formateSession(session);
+            let sessionIndex = sessionAPI.findIndex(obj => obj.selectionId == sessionObj.SelectionId);
+            if (sessionIndex > -1) {
+              sessionObj["id"] = sessionAPI[sessionIndex].id; // liveSession[session.SelectionId];
+              sessionObj["activeStatus"] = sessionAPI[sessionIndex].activeStatus;
+              sessionObj["min"] = sessionAPI[sessionIndex].minBet,
+              sessionObj["max"] = sessionAPI[sessionIndex].maxBet,
+              sessionObj["createdAt"] = sessionAPI[sessionIndex].createdAt,
+              sessionObj["updatedAt"] = sessionAPI[sessionIndex].updatedAt
+              onlyLiveSession.push(sessionObj);
+              addedSession.push(sessionObj.SelectionId);
+            }
+            expertSession.push(sessionObj);
+          });
+        }
+        sessionAPI.map(session => {
+          if (!addedSession.includes(session.selectionId)) {
+            let obj = {
+              "SelectionId": session.selectionId,
+              "RunnerName": session.name,
+              "min": session.minBet,
+              "max": session.maxBet,
+              "id": session.id,
+              "activeStatus": session.activeStatus,
+              "updatedAt": session.updatedAt
+            };
+            expertSession.push(obj);
+            onlyLiveSession.push(obj);
+          }
+        });
+  
+        returnResult.apiSession[key] = {
+          "mname": result.mname,
+          "rem": result.rem,
+          "gtype": result.gtype,
+          "status": result.status,
+          "section": onlyLiveSession
+        };
+        expertResult.apiSession[key] = {
+          "mname": result.mname,
+          "rem": result.rem,
+          "gtype": result.gtype,
+          "status": result.status,
+          "section": expertSession
+        };
+      }
+
+      if(customObject.fancy1){
+        let key = 'fancy1';
+        let result = customObject[key];
+        let expertSession = [], onlyLiveSession = [], addedSession = [];
+        let sessionAPI = sessionAPIObj[key];
+        if (result) {
+          result.section?.map(session => {
+            let sessionObj = formateSession(session);
+            let sessionIndex = sessionAPI.findIndex(obj => obj.selectionId == sessionObj.SelectionId);
+            if (sessionIndex > -1) {
+              sessionObj["id"] = sessionAPI[sessionIndex].id; // liveSession[session.SelectionId];
+              sessionObj["activeStatus"] = sessionAPI[sessionIndex].activeStatus;
+              sessionObj["min"] = sessionAPI[sessionIndex].minBet,
+              sessionObj["max"] = sessionAPI[sessionIndex].maxBet,
+              sessionObj["createdAt"] = sessionAPI[sessionIndex].createdAt,
+              sessionObj["updatedAt"] = sessionAPI[sessionIndex].updatedAt
+              onlyLiveSession.push(sessionObj);
+              addedSession.push(sessionObj.SelectionId);
+            }
+            expertSession.push(sessionObj);
+          });
+        }
+        sessionAPI.map(session => {
+          if (!addedSession.includes(session.selectionId)) {
+            let obj = {
+              "SelectionId": session.selectionId,
+              "RunnerName": session.name,
+              "min": session.minBet,
+              "max": session.maxBet,
+              "id": session.id,
+              "activeStatus": session.activeStatus,
+              "updatedAt": session.updatedAt
+            };
+            expertSession.push(obj);
+            onlyLiveSession.push(obj);
+          }
+        });
+  
+        returnResult.apiSession[key] = {
+          "mname": result.mname,
+          "rem": result.rem,
+          "gtype": result.gtype,
+          "status": result.status,
+          "section": onlyLiveSession
+        };
+        expertResult.apiSession[key] = {
+          "mname": result.mname,
+          "rem": result.rem,
+          "gtype": result.gtype,
+          "status": result.status,
+          "section": expertSession
+        };
+      }
+
+      if(customObject.cricketcasino){
+        let key = 'cricketcasino';
+        let result = customObject[key];
+        let expertSession = [], onlyLiveSession = [], addedSession = [];
+        let sessionAPI = sessionAPIObj[key];
+        if (result) {
+          result.section?.map(session => {
+            let sessionObj = formateSession(session);
+            let sessionIndex = sessionAPI.findIndex(obj => obj.selectionId == sessionObj.SelectionId);
+            if (sessionIndex > -1) {
+              sessionObj["id"] = sessionAPI[sessionIndex].id; // liveSession[session.SelectionId];
+              sessionObj["activeStatus"] = sessionAPI[sessionIndex].activeStatus;
+              sessionObj["min"] = sessionAPI[sessionIndex].minBet,
+              sessionObj["max"] = sessionAPI[sessionIndex].maxBet,
+              sessionObj["createdAt"] = sessionAPI[sessionIndex].createdAt,
+              sessionObj["updatedAt"] = sessionAPI[sessionIndex].updatedAt
+              onlyLiveSession.push(sessionObj);
+              addedSession.push(sessionObj.SelectionId);
+            }
+            expertSession.push(sessionObj);
+          });
+        }
+        sessionAPI.map(session => {
+          if (!addedSession.includes(session.selectionId)) {
+            let obj = {
+              "SelectionId": session.selectionId,
+              "RunnerName": session.name,
+              "min": session.minBet,
+              "max": session.maxBet,
+              "id": session.id,
+              "activeStatus": session.activeStatus,
+              "updatedAt": session.updatedAt
+            };
+            expertSession.push(obj);
+            onlyLiveSession.push(obj);
+          }
+        });
+  
+        returnResult.apiSession[key] = {
+          "mname": result.mname,
+          "rem": result.rem,
+          "gtype": result.gtype,
+          "status": result.status,
+          "section": onlyLiveSession
+        };
+        expertResult.apiSession[key] = {
+          "mname": result.mname,
+          "rem": result.rem,
+          "gtype": result.gtype,
+          "status": result.status,
+          "section": expertSession
+        };
+      }
+
     }
+
   }
 
   let redisPromise = [];
   redisPromise.push(internalRedis.hgetall(matchId + "_manualBetting"));
-  // if (isManualSessionActive) {
-  //   redisPromise.push(internalRedis.hgetall(matchId + "_session"));
-  // }
+
   let manuallyResponse = await Promise.allSettled(redisPromise);
   if (isManualSessionActive) {
     // let result = manuallyResponse[1].value;
@@ -659,3 +987,67 @@ async function getGreyHoundRacingData(marketId, matchId) {
   io.to(matchId + 'expert').emit("liveData" + matchId, expertResult);
 }
 exports.getGreyHoundRacingData = getGreyHoundRacingData;
+
+
+function formateOdds(data, additionDetails) {
+  return {
+    marketId: additionDetails.marketId,
+    status: data.status,
+    inplay: true,
+    gtype: data.gtype,
+    rem: data.rem,
+    runners: data.section.map(item => ({
+      selectionId: item.sid,
+      status: item.gstatus,
+      nat: item.nat,
+      ex: {
+        availableToBack: item.odds.filter(odd => odd.otype === 'back').map(odd => ({
+          price: odd.odds,
+          size: odd.size,
+          otype: odd.otype,
+          oname: odd.oname,
+          tno: odd.tno
+        })),
+        availableToLay: item.odds.filter(odd => odd.otype !== 'back').map(odd => ({
+          price: odd.odds,
+          size: odd.size,
+          otype: odd.otype,
+          oname: odd.oname,
+          tno: odd.tno
+        }))
+      }
+    })),
+    id: additionDetails.id,
+    name: additionDetails.name,
+    minBet: additionDetails.minBet,
+    maxBet: additionDetails.maxBet,
+    type: additionDetails.type,
+    isActive: additionDetails.activeStatus,
+    activeStatus: additionDetails.activeStatus
+  };
+}
+
+function formateSession(session) {
+  return {
+    SelectionId: session.sid,
+    RunnerName: session.nat,
+    ex: {
+      availableToBack: session.odds.filter(odd => odd.otype === 'back').map(odd => ({
+        price: odd.odds,
+        size: odd.size,
+        otype: odd.otype,
+        oname: odd.oname,
+        tno: odd.tno
+      })),
+      availableToLay: session.odds.filter(odd => odd.otype !== 'back').map(odd => ({
+        price: odd.odds,
+        size: odd.size,
+        otype: odd.otype,
+        oname: odd.oname,
+        tno: odd.tno
+      }))
+    },
+    GameStatus: session.gstatus,
+    rem: session.rem
+  };
+}
