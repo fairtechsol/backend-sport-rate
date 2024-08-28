@@ -5,6 +5,8 @@ exports.apiEndPoints = {
         2: "https://data.shamexch.xyz/getbm?eventId="
     },
     sportListEndPoint: {
-        4: "http://marketsarket.qnsports.live/getcricketmatches"
+        4: "http://marketsarket.qnsports.live/getcricketmatches",
+        1: "https://marketsarket.qnsports.live/getsoccermatches",
+        2: "https://marketsarket.qnsports.live/gettennismatches"
     }
 }
