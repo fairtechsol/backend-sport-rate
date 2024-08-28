@@ -7,8 +7,8 @@ async function getCricketData(marketId, matchId) {
   CheckAndClearInterval(matchId);
 
   let matchDetail = await internalRedis.hgetall(matchId + "_match");
-  const returnResult = { id: matchId, marketId, eventId: matchDetail.eventId };
-  const expertResult = { id: matchId, marketId, eventId: matchDetail.eventId };
+  const returnResult = { id: matchId, marketId, eventId: matchDetail.eventId, apiSession: {} };
+  const expertResult = { id: matchId, marketId, eventId: matchDetail.eventId, apiSession: {} };
 
   let isAPISessionActive = matchDetail.apiSessionActive ? JSON.parse(matchDetail.apiSessionActive) : false;
   let isManualSessionActive = matchDetail.manualSessionActive ? JSON.parse(matchDetail.manualSessionActive) : false;
@@ -179,8 +179,8 @@ async function getCricketData(marketId, matchId) {
 
 
 
-    returnResult.apiSession = {};
-    expertResult.apiSession = {};
+    // returnResult.apiSession = {};
+    // expertResult.apiSession = {};
     let sessionAPIObj = {}
     if (isAPISessionActive || isManualSessionActive) {
       let sessionData = await internalRedis.hgetall(matchId + "_session");
@@ -203,37 +203,37 @@ async function getCricketData(marketId, matchId) {
     if (isAPISessionActive) {
       if (customObject.session) {
         let key = 'session';
-        let { expertResult, returnResult } = formateSessionMarket(key, customObject, sessionAPIObj);
-        returnResult.apiSession[key] = returnResult;
-        expertResult.apiSession[key] = expertResult;
+        let { expertResult1, returnResult1 } = formateSessionMarket(key, customObject, sessionAPIObj);
+        returnResult.apiSession[key] = returnResult1;
+        expertResult.apiSession[key] = expertResult1;
       }
 
       if (customObject.overByover) {
         let key = 'overByover';
-        let { expertResult, returnResult } = formateSessionMarket(key, customObject, sessionAPIObj);
-        returnResult.apiSession[key] = returnResult;
-        expertResult.apiSession[key] = expertResult;
+        let { expertResult1, returnResult1 } = formateSessionMarket(key, customObject, sessionAPIObj);
+        returnResult.apiSession[key] = returnResult1;
+        expertResult.apiSession[key] = expertResult1;
       }
 
       if (customObject.ballByBall) {
         let key = 'ballByBall';
-        let { expertResult, returnResult } = formateSessionMarket(key, customObject, sessionAPIObj);
-        returnResult.apiSession[key] = returnResult;
-        expertResult.apiSession[key] = expertResult;
+        let { expertResult1, returnResult1 } = formateSessionMarket(key, customObject, sessionAPIObj);
+        returnResult.apiSession[key] = returnResult1;
+        expertResult.apiSession[key] = expertResult1;
       }
 
       if (customObject.oddEven) {
         let key = 'oddEven';
-        let { expertResult, returnResult } = formateSessionMarket(key, customObject, sessionAPIObj);
-        returnResult.apiSession[key] = returnResult;
-        expertResult.apiSession[key] = expertResult;
+        let { expertResult1, returnResult1 } = formateSessionMarket(key, customObject, sessionAPIObj);
+        returnResult.apiSession[key] = returnResult1;
+        expertResult.apiSession[key] = expertResult1;
       }
 
       if (customObject.fancy1) {
         let key = 'fancy1';
-        let { expertResult, returnResult } = formateSessionMarket(key, customObject, sessionAPIObj);
-        returnResult.apiSession[key] = returnResult;
-        expertResult.apiSession[key] = expertResult;
+        let { expertResult1, returnResult1 } = formateSessionMarket(key, customObject, sessionAPIObj);
+        returnResult.apiSession[key] = returnResult1;
+        expertResult.apiSession[key] = expertResult1;
       }
 
       if (customObject.cricketcasino) {
@@ -861,7 +861,7 @@ function formateSessionMarket(key, customObject, sessionAPIObj) {
   if (result) {
     result.section?.map(session => {
       let sessionObj = formateSession(session);
-      let sessionIndex = sessionAPI.findIndex(obj => obj.selectionId == sessionObj.SelectionId);
+      let sessionIndex = sessionAPI?.findIndex(obj => obj.selectionId == sessionObj.SelectionId);
       if (sessionIndex > -1) {
         sessionObj["id"] = sessionAPI[sessionIndex].id; // liveSession[session.SelectionId];
         sessionObj["activeStatus"] = sessionAPI[sessionIndex].activeStatus;
@@ -875,7 +875,7 @@ function formateSessionMarket(key, customObject, sessionAPIObj) {
       expertSession.push(sessionObj);
     });
   }
-  sessionAPI.map(session => {
+  sessionAPI?.map(session => {
     if (!addedSession.includes(session.selectionId)) {
       let obj = {
         "SelectionId": session.selectionId,
@@ -891,19 +891,19 @@ function formateSessionMarket(key, customObject, sessionAPIObj) {
     }
   });
 
-  returnResult = {
+  returnResult1 = {
     "mname": result?.mname,
     "rem": result?.rem,
     "gtype": result?.gtype,
     "status": result?.status,
     "section": onlyLiveSession
   };
-  expertResult = {
+  expertResult1 = {
     "mname": result?.mname,
     "rem": result?.rem,
     "gtype": result?.gtype,
     "status": result?.status,
     "section": expertSession
   };
-  return { expertResult, returnResult };
+  return { expertResult1, returnResult1 };
 }
