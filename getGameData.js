@@ -84,23 +84,25 @@ async function getCricketData(marketId, matchId) {
       }
     })
 
+    let parseData = JSON.parse(matchDetail.matchOdd || "{}");
+    let obj = {
+      "id": parseData.id,
+      "marketId": marketId,
+      "name": parseData.name,
+      "minBet": parseData.minBet,
+      "maxBet": parseData.maxBet,
+      "type": parseData.type,
+      "isActive": parseData.activeStatus,
+      "activeStatus": parseData.activeStatus
+    };
+    let gtype = "match";
+    expertResult.matchOdd = await formateOdds(customObject.matchOdd, obj, gtype);
     if (ismatchOddActive) {
-      let parseData = JSON.parse(matchDetail.matchOdd);
-      let obj = {
-        "id": parseData.id,
-        "marketId": marketId,
-        "name": parseData.name,
-        "minBet": parseData.minBet,
-        "maxBet": parseData.maxBet,
-        "type": parseData.type,
-        "isActive": parseData.activeStatus,
-        "activeStatus": parseData.activeStatus
-      };
-      returnResult.matchOdd = await formateOdds(customObject.matchOdd, obj);
-      expertResult.matchOdd = returnResult.matchOdd;
+      returnResult.matchOdd = expertResult.matchOdd;
     }
-    if (ismarketCompleteMatchActive) {
-      let parseData = JSON.parse(matchDetail.marketCompleteMatch);
+
+    if (matchDetail.marketCompleteMatch || customObject.marketCompleteMatch) {
+      let parseData = JSON.parse(matchDetail.marketCompleteMatch || "{}");
       let obj = {
         "id": parseData.id,
         "marketId": marketId,
@@ -111,11 +113,15 @@ async function getCricketData(marketId, matchId) {
         "isActive": parseData.activeStatus,
         "activeStatus": parseData.activeStatus
       };
-      returnResult.marketCompleteMatch = await formateOdds(customObject.marketCompleteMatch, obj);
-      expertResult.marketCompleteMatch = returnResult.marketCompleteMatch;
+      let gtype = "match";
+      expertResult.marketCompleteMatch = await formateOdds(customObject.marketCompleteMatch, obj, gtype);
+      if (ismarketCompleteMatchActive) {
+        returnResult.marketCompleteMatch = expertResult.marketCompleteMatch;
+      }
     }
-    if (ismarketTiedMatchActive) {
-      let parseData = JSON.parse(matchDetail.marketTiedMatch);
+
+    if (matchDetail.marketTiedMatch || customObject.apiTiedMatch) {
+      let parseData = JSON.parse(matchDetail.marketTiedMatch || "{}");
       let obj = {
         "id": parseData.id,
         "marketId": marketId,
@@ -126,11 +132,15 @@ async function getCricketData(marketId, matchId) {
         "isActive": parseData.activeStatus,
         "activeStatus": parseData.activeStatus
       };
-      returnResult.apiTiedMatch = await formateOdds(customObject.apiTiedMatch, obj);
-      expertResult.apiTiedMatch = returnResult.apiTiedMatch;
+      let gtype = "match";
+      expertResult.apiTiedMatch = await formateOdds(customObject.apiTiedMatch, obj, gtype);
+      if (ismarketTiedMatchActive) {
+        returnResult.apiTiedMatch = expertResult.apiTiedMatch;
+      }
     }
-    if (ismarketBookmakerActive) {
-      let parseData = JSON.parse(matchDetail.marketBookmaker);
+
+    if (matchDetail.marketBookmaker || customObject.bookmaker) {
+      let parseData = JSON.parse(matchDetail.marketBookmaker || "{}");
       let obj = {
         "id": parseData.id,
         "marketId": marketId,
@@ -141,11 +151,15 @@ async function getCricketData(marketId, matchId) {
         "isActive": parseData.activeStatus,
         "activeStatus": parseData.activeStatus
       };
-      returnResult.bookmaker = await formateOdds(customObject.bookmaker, obj);
-      expertResult.bookmaker = returnResult.bookmaker;
+      let gtype = "match";
+      expertResult.bookmaker = await formateOdds(customObject.bookmaker, obj, gtype);
+      if (ismarketTiedMatchActive) {
+        returnResult.bookmaker = expertResult.bookmaker;
+      }
     }
-    if (ismarketBookmaker2Active) {
-      let parseData = JSON.parse(matchDetail.marketBookmaker2);
+
+    if (matchDetail.marketBookmaker2 || customObject.bookmaker2) {
+      let parseData = JSON.parse(matchDetail.marketBookmaker2 || "{}");
       let obj = {
         "id": parseData.id,
         "marketId": marketId,
@@ -156,8 +170,11 @@ async function getCricketData(marketId, matchId) {
         "isActive": parseData.activeStatus,
         "activeStatus": parseData.activeStatus
       };
-      returnResult.bookmaker2 = await formateOdds(customObject.bookmaker2, obj);
-      expertResult.bookmaker2 = returnResult.bookmaker2;
+      let gtype = "match";
+      expertResult.bookmaker2 = await formateOdds(customObject.bookmaker2, obj, gtype);
+      if (ismarketTiedMatchActive) {
+        returnResult.bookmaker2 = expertResult.bookmaker2;
+      }
     }
 
 
@@ -772,12 +789,13 @@ async function getGreyHoundRacingData(marketId, matchId) {
 exports.getGreyHoundRacingData = getGreyHoundRacingData;
 
 
-function formateOdds(data, additionDetails) {
+function formateOdds(data, additionDetails, gtype) {
   return {
     marketId: additionDetails.marketId,
+    mid: data?.mid,
     status: data?.status,
-    inplay: true,
-    gtype: data?.gtype,
+    inplay: data?.inplay,
+    gtype: gtype || data?.gtype,
     rem: data?.rem,
     runners: data?.section.map(item => ({
       selectionId: item.sid,
@@ -802,8 +820,8 @@ function formateOdds(data, additionDetails) {
     })),
     id: additionDetails.id,
     name: additionDetails.name || data.mname,
-    minBet: additionDetails.minBet,
-    maxBet: additionDetails.maxBet,
+    minBet: additionDetails.minBet || data.min,
+    maxBet: additionDetails.maxBet || data.max,
     type: additionDetails.type,
     isActive: additionDetails.activeStatus,
     activeStatus: additionDetails.activeStatus
