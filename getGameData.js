@@ -50,7 +50,7 @@ async function getCricketData(marketId, matchId) {
           customObject.apiTiedMatch = da;
           break;
         case "bookmaker":
-          customObject.bookmaker ? customObject.bookmaker2 = da : customObject.bookmaker = da;
+          da.section[0].odds.length > 2 ? customObject.bookmaker = da : customObject.bookmaker2 = da;
           break;
         case "complete":
           customObject.marketCompleteMatch = da;
@@ -91,7 +91,7 @@ async function getCricketData(marketId, matchId) {
       "name": parseData.name,
       "minBet": parseData.minBet,
       "maxBet": parseData.maxBet,
-      "type": parseData.type,
+      "type": parseData.type || "matchOdd",
       "isActive": parseData.activeStatus,
       "activeStatus": parseData.activeStatus
     };
@@ -109,7 +109,7 @@ async function getCricketData(marketId, matchId) {
         "name": parseData.name,
         "minBet": parseData.minBet,
         "maxBet": parseData.maxBet,
-        "type": parseData.type,
+        "type": parseData.type || "completeMatch",
         "isActive": parseData.activeStatus,
         "activeStatus": parseData.activeStatus
       };
@@ -128,7 +128,7 @@ async function getCricketData(marketId, matchId) {
         "name": parseData.name,
         "minBet": parseData.minBet,
         "maxBet": parseData.maxBet,
-        "type": parseData.type,
+        "type": parseData.type || "tiedMatch1",
         "isActive": parseData.activeStatus,
         "activeStatus": parseData.activeStatus
       };
@@ -147,7 +147,7 @@ async function getCricketData(marketId, matchId) {
         "name": parseData.name,
         "minBet": parseData.minBet,
         "maxBet": parseData.maxBet,
-        "type": parseData.type,
+        "type": parseData.type || "bookmaker",
         "isActive": parseData.activeStatus,
         "activeStatus": parseData.activeStatus
       };
@@ -166,7 +166,7 @@ async function getCricketData(marketId, matchId) {
         "name": parseData.name,
         "minBet": parseData.minBet,
         "maxBet": parseData.maxBet,
-        "type": parseData.type,
+        "type": parseData.type || "bookmaker2",
         "isActive": parseData.activeStatus,
         "activeStatus": parseData.activeStatus
       };
