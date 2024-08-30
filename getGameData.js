@@ -819,10 +819,10 @@ function formateOdds(data, additionDetails, gtype) {
       }
     })),
     id: additionDetails.id,
-    name: additionDetails.name || data.mname,
-    minBet: additionDetails.minBet || data.min,
-    maxBet: additionDetails.maxBet || data.max,
-    type: additionDetails.type,
+    name: additionDetails.name || data?.mname,
+    minBet: additionDetails.minBet || data?.min,
+    maxBet: additionDetails.maxBet || data?.max,
+    type: additionDetails?.type,
     isActive: additionDetails.activeStatus,
     activeStatus: additionDetails.activeStatus
   };
@@ -830,7 +830,7 @@ function formateOdds(data, additionDetails, gtype) {
 
 function formateSession(session) {
   return {
-    SelectionId: session.sid,
+    SelectionId: session.sid?.toString(),
     RunnerName: session.nat,
     ex: {
       availableToBack: session.odds?.filter(odd => odd.otype === 'back').map(odd => ({
