@@ -866,9 +866,10 @@ function formateSessionMarket(key, customObject, sessionAPIObj) {
         sessionObj["id"] = sessionAPI[sessionIndex].id; // liveSession[session.SelectionId];
         sessionObj["activeStatus"] = sessionAPI[sessionIndex].activeStatus;
         sessionObj["min"] = sessionAPI[sessionIndex].minBet,
-          sessionObj["max"] = sessionAPI[sessionIndex].maxBet,
-          sessionObj["createdAt"] = sessionAPI[sessionIndex].createdAt,
-          sessionObj["updatedAt"] = sessionAPI[sessionIndex].updatedAt
+        sessionObj["max"] = sessionAPI[sessionIndex].maxBet,
+        sessionObj["createdAt"] = sessionAPI[sessionIndex].createdAt,
+        sessionObj["updatedAt"] = sessionAPI[sessionIndex].updatedAt,
+        sessionObj["isActive"] = sessionAPI[sessionIndex].isActive,
         onlyLiveSession.push(sessionObj);
         addedSession.push(sessionObj.SelectionId);
       }
