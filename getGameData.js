@@ -72,7 +72,7 @@ async function getCricketData(marketId, matchId) {
           break;
         default:
           if (da.gtype = "cricketcasino") {
-            if (customObject.hasOwnProperty("cricketcasino")) {
+            if (customObject.hasOwnProperty("cricketCasino")) {
               customObject.cricketCasino.push(da);
             } else {
               customObject.cricketCasino = [da];
@@ -236,8 +236,8 @@ async function getCricketData(marketId, matchId) {
         expertResult.apiSession[key] = expertResult1;
       }
 
-      if (customObject.cricketcasino) {
-        let key = 'cricketcasino';
+      if (customObject.cricketCasino) {
+        let key = 'cricketCasino';
         let result = customObject[key];
         let expertSession = [], onlyLiveSession = [], addedSession = [];
         let sessionAPI = sessionAPIObj[key];
@@ -249,9 +249,9 @@ async function getCricketData(marketId, matchId) {
               gtype: casinoItem.gtype,
               section: casinoItem.section,
               GameStatus: casinoItem.status,
-              rem: session.rem
+              rem: casinoItem.rem
             }
-            let sessionIndex = sessionAPI.findIndex(obj => obj.selectionId == casinoSession.SelectionId);
+            let sessionIndex = sessionAPI?.findIndex(obj => obj.selectionId == casinoSession.SelectionId);
             if (sessionIndex > -1) {
               casinoSession["id"] = sessionAPI[sessionIndex].id;
               casinoSession["activeStatus"] = sessionAPI[sessionIndex].activeStatus;
@@ -265,7 +265,7 @@ async function getCricketData(marketId, matchId) {
             expertSession.push(casinoSession);
           }
         }
-        sessionAPI.map(session => {
+        sessionAPI?.map(session => {
           if (!addedSession.includes(session.selectionId)) {
             let obj = {
               "SelectionId": session.selectionId,
