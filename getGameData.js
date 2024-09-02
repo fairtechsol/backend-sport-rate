@@ -71,7 +71,7 @@ async function getCricketData(marketId, matchId) {
           customObject.fancy1 = da;
           break;
         default:
-          if (da.gtype = "cricketcasino") {
+          if (da.gtype == "cricketcasino") {
             if (customObject.hasOwnProperty("cricketCasino")) {
               customObject.cricketCasino.push(da);
             } else {
