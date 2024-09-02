@@ -84,21 +84,23 @@ async function getCricketData(marketId, matchId) {
       }
     })
 
-    let parseData = JSON.parse(matchDetail.matchOdd || "{}");
-    let obj = {
-      "id": parseData.id,
-      "marketId": marketId,
-      "name": parseData.name,
-      "minBet": parseData.minBet,
-      "maxBet": parseData.maxBet,
-      "type": parseData.type || "matchOdd",
-      "isActive": parseData.isActive,
-      "activeStatus": parseData.activeStatus
-    };
-    let gtype = "match";
-    expertResult.matchOdd = await formateOdds(customObject.matchOdd, obj, gtype);
-    if (ismatchOddActive) {
-      returnResult.matchOdd = expertResult.matchOdd;
+    if (matchDetail.matchOdd || customObject.matchOdd) {
+      let parseData = JSON.parse(matchDetail.matchOdd || "{}");
+      let obj = {
+        "id": parseData.id,
+        "marketId": marketId,
+        "name": parseData.name,
+        "minBet": parseData.minBet,
+        "maxBet": parseData.maxBet,
+        "type": parseData.type || "matchOdd",
+        "isActive": parseData.isActive,
+        "activeStatus": parseData.activeStatus
+      };
+      let gtype = "match";
+      expertResult.matchOdd = await formateOdds(customObject.matchOdd, obj, gtype);
+      if (ismatchOddActive) {
+        returnResult.matchOdd = expertResult.matchOdd;
+      }
     }
 
     if (matchDetail.marketCompleteMatch || customObject.marketCompleteMatch) {
