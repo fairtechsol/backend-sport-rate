@@ -317,14 +317,17 @@ async function getCricketData(marketId, matchId) {
           "rem": result.rem,
           "gtype": result.gtype,
           "status": result.status,
-          "section": onlyLiveSession
+          "section": onlyLiveSession,
+          mid: result?.mid,
         };
         expertResult.apiSession[key] = {
           "mname": result.mname,
           "rem": result.rem,
           "gtype": result.gtype,
           "status": result.status,
-          "section": expertSession
+          "section": expertSession,
+          mid: result?.mid,
+
         };
       }
 
@@ -880,7 +883,7 @@ function formateSession(session) {
       }))
     },
     GameStatus: session.gstatus,
-    rem: session.rem
+    rem: session.rem,
   };
 }
 
@@ -926,6 +929,7 @@ function formateSessionMarket(key, customObject, sessionAPIObj) {
   returnResult1 = {
     "mname": result?.mname,
     "rem": result?.rem,
+    "mid": result?.mid,
     "gtype": result?.gtype,
     "status": result?.status,
     "section": onlyLiveSession
@@ -933,6 +937,7 @@ function formateSessionMarket(key, customObject, sessionAPIObj) {
   expertResult1 = {
     "mname": result?.mname,
     "rem": result?.rem,
+    "mid": result?.mid,
     "gtype": result?.gtype,
     "status": result?.status,
     "section": expertSession
