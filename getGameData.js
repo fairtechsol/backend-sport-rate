@@ -244,7 +244,7 @@ async function getCricketData(marketId, matchId) {
         if (result) {
           for (let casinoItem of result) {
             let casinoSession = {
-              SelectionId: casinoItem.mid,
+              SelectionId: casinoItem.mid?.toString(),
               RunnerName: casinoItem.mname,
               gtype: casinoItem.gtype,
               section: casinoItem.section,
