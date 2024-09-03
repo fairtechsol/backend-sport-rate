@@ -831,7 +831,7 @@ function formateOdds(data, additionDetails, gtype) {
     inplay: data?.inplay,
     gtype: gtype || data?.gtype,
     rem: data?.rem,
-    runners: data?.section.map(item => ({
+    runners: data?.section?.map(item => ({
       selectionId: item.sid,
       status: item.gstatus,
       nat: item.nat,
