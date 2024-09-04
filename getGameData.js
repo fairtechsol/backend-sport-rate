@@ -46,7 +46,7 @@ async function getCricketData(marketId, matchId) {
         case "match_odds":
           customObject.matchOdd = da;
           break;
-        case "tie":
+        case "tied_match":
           customObject.apiTiedMatch = da;
           break;
         case "bookmaker":
