@@ -19,25 +19,24 @@ async function getCricketData(marketId, matchId) {
 
   let ismarketBookmakerActive = matchDetail.marketBookmaker ? (JSON.parse(matchDetail.marketBookmaker)).isActive : false;
   let ismarketBookmaker2Active = matchDetail.marketBookmaker2 ? (JSON.parse(matchDetail.marketBookmaker2)).isActive : false;
+  
+  // let tournanents = matchDetail.tournanent ? JSON.parse(matchDetail.tournanent) : null;
 
 
-  let promiseRequestArray = [];
-  let oddIds = [];
-  let index = 0;
-  let sessionAPI = [], sessionManual = [];
+  let sessionManual = [];
 
   let isManual = marketId?.split(/(\d+)/)[0] == 'manual';
   if (!isManual) {
     let data = await ThirdPartyController.getAllRateCricket(matchDetail.eventId);
 
-    let mainData = data?.data;
-    if (!mainData) {
-      returnResult.status = 400;
-      expertResult.status = 400;
-      io.to(matchId).emit("liveData" + matchId, returnResult);
-      io.to(matchId + 'expert').emit("liveData" + matchId, expertResult);
-      return;
-    }
+    let mainData = data?.data || [];
+    // if (!mainData) {
+    //   returnResult.status = 400;
+    //   expertResult.status = 400;
+    //   io.to(matchId).emit("liveData" + matchId, returnResult);
+    //   io.to(matchId + 'expert').emit("liveData" + matchId, expertResult);
+    //   return;
+    // }
     let customObject = { other: [] };
 
     mainData.forEach(da => {
@@ -50,7 +49,17 @@ async function getCricketData(marketId, matchId) {
           customObject.apiTiedMatch = da;
           break;
         case "bookmaker":
-          da.section[0].odds.length > 2 ? customObject.bookmaker = da : customObject.bookmaker2 = da;
+          // if(da?.section?.length>3){
+          //   if(customObject?.tournament){
+          //     customObject?.tournament?.push(da);
+          //   }
+          //   else{
+          //     customObject.tournament=[da];
+          //   }
+          // }
+          // else {
+            da.section[0].odds.length > 2 ? customObject.bookmaker = da : customObject.bookmaker2 = da;
+          // }
           break;
         case "complete":
           customObject.marketCompleteMatch = da;
@@ -232,43 +241,43 @@ async function getCricketData(marketId, matchId) {
     }
 
     if (isAPISessionActive) {
-      if (customObject.session) {
-        let key = 'session';
+      let key = 'session';
+      if (customObject.session || sessionAPIObj[key]) {
         let { expertResult1, returnResult1 } = formateSessionMarket(key, customObject, sessionAPIObj);
         returnResult.apiSession[key] = returnResult1;
         expertResult.apiSession[key] = expertResult1;
       }
 
-      if (customObject.overByover) {
-        let key = 'overByover';
+      key = 'overByover';
+      if (customObject.overByover || sessionAPIObj[key]) {
         let { expertResult1, returnResult1 } = formateSessionMarket(key, customObject, sessionAPIObj);
         returnResult.apiSession[key] = returnResult1;
         expertResult.apiSession[key] = expertResult1;
       }
 
-      if (customObject.ballByBall) {
-        let key = 'ballByBall';
+      key = 'ballByBall';
+      if (customObject.ballByBall || sessionAPIObj[key]) {
         let { expertResult1, returnResult1 } = formateSessionMarket(key, customObject, sessionAPIObj);
         returnResult.apiSession[key] = returnResult1;
         expertResult.apiSession[key] = expertResult1;
       }
 
-      if (customObject.oddEven) {
-        let key = 'oddEven';
+      key = 'oddEven';
+      if (customObject.oddEven || sessionAPIObj[key]) {
         let { expertResult1, returnResult1 } = formateSessionMarket(key, customObject, sessionAPIObj);
         returnResult.apiSession[key] = returnResult1;
         expertResult.apiSession[key] = expertResult1;
       }
 
-      if (customObject.fancy1) {
-        let key = 'fancy1';
+      key = 'fancy1';
+      if (customObject.fancy1 || sessionAPIObj[key]) {
         let { expertResult1, returnResult1 } = formateSessionMarket(key, customObject, sessionAPIObj);
         returnResult.apiSession[key] = returnResult1;
         expertResult.apiSession[key] = expertResult1;
       }
 
-      if (customObject.cricketCasino) {
-        let key = 'cricketCasino';
+      key = 'cricketCasino';
+      if (customObject.cricketCasino || sessionAPIObj[key]) {
         let result = customObject[key];
         let expertSession = [], onlyLiveSession = [], addedSession = [];
         let sessionAPI = sessionAPIObj[key];
@@ -821,7 +830,6 @@ async function getGreyHoundRacingData(marketId, matchId) {
   io.to(matchId + 'expert').emit("liveData" + matchId, expertResult);
 }
 exports.getGreyHoundRacingData = getGreyHoundRacingData;
-
 
 function formateOdds(data, additionDetails, gtype) {
   return {
