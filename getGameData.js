@@ -41,7 +41,7 @@ async function getCricketData(marketId, matchId) {
       const mname = da.mname.toLowerCase();
       switch (mname) {
         case "match_odds":
-          if( da?.section?.length > 3 || matchDetail.title.includes(' v ') ){
+          if( da?.section?.length > 3 || !matchDetail.title.includes(' v ') ){
             if(customObject?.tournament){
               customObject?.tournament?.push(da);
             }
@@ -57,7 +57,7 @@ async function getCricketData(marketId, matchId) {
           customObject.apiTiedMatch = da;
           break;
         case "bookmaker":
-          if( da?.section?.length > 3 || matchDetail.title.includes(' v ') ){
+          if( da?.section?.length > 3 || !matchDetail.title.includes(' v ') ){
             if(customObject?.tournament){
               customObject?.tournament?.push(da);
             }
@@ -200,7 +200,7 @@ async function getCricketData(marketId, matchId) {
       expertResult.other = [];
       returnResult.other = [];
       let otherData = JSON.parse(matchDetail.other || "[]");
-      for(let item in customObject.other){
+      for(let item of customObject.other){
         let isRedisExist = otherData.findIndex(it => it.name == item.mname);
         let obj = {};
         if(isRedisExist > -1){
@@ -229,7 +229,7 @@ async function getCricketData(marketId, matchId) {
       expertResult.tournament = [];
       returnResult.tournament = [];
       let otherData = JSON.parse(matchDetail.tournament || "[]");
-      for(let item in customObject.tournament){
+      for(let item of customObject.tournament){
         let isRedisExist = otherData.findIndex(it => it.mid.toString() == item.marketId.toString());
         let obj = {};
         if(isRedisExist > -1){
