@@ -322,18 +322,18 @@ async function getCricketData(marketId, matchId) {
         });
 
         returnResult.apiSession[key] = {
-          "mname": result.mname,
-          "rem": result.rem,
-          "gtype": result.gtype,
-          "status": result.status,
+          "mname": result?.mname,
+          "rem": result?.rem,
+          "gtype": result?.gtype,
+          "status": result?.status,
           "section": onlyLiveSession,
           mid: result?.mid,
         };
         expertResult.apiSession[key] = {
-          "mname": result.mname,
-          "rem": result.rem,
-          "gtype": result.gtype,
-          "status": result.status,
+          "mname": result?.mname,
+          "rem": result?.rem,
+          "gtype": result?.gtype,
+          "status": result?.status,
           "section": expertSession,
           mid: result?.mid,
 
