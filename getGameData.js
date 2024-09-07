@@ -161,6 +161,9 @@ async function getCricketData(marketId, matchId) {
           break;
         case "tied_match":
           customObject.apiTiedMatch = da;
+          if (!customObject.apiTiedMatch2) {
+            customObject.apiTiedMatch2 = da;
+          }
           break;
         case "tied match":
           customObject.apiTiedMatch2 = da;
