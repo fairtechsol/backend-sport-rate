@@ -35,6 +35,120 @@ async function getCricketData(marketId, matchId) {
     //   io.to(matchId + 'expert').emit("liveData" + matchId, expertResult);
     //   return;
     // }
+    mainData.push({
+      "gmid": 864840022,
+      "mid": 9006658885710,
+      "pmid": null,
+      "mname": "6 over Bookmaker(SCO vs AUS)",
+      "rem": "",
+      "gtype": "match1",
+      "status": "SUSPENDED",
+      "rc": 2,
+      "visible": false,
+      "pid": 0,
+      "gscode": 1,
+      "maxb": 0,
+      "sno": 2.1,
+      "dtype": 2,
+      "ocnt": 2,
+      "m": 0,
+      "max": 500000,
+      "min": 100,
+      "biplay": true,
+      "umaxbof": 0,
+      "boplay": true,
+      "iplay": false,
+      "btcnt": 0,
+      "company": null,
+      "section": [
+          {
+              "mid": 9006658885710,
+              "sid": 1,
+              "psid": 0,
+              "sno": 1,
+              "psrno": 1,
+              "gstatus": "SUSPENDED",
+              "nat": "SCO 1 to 6 over run",
+              "gscode": 0,
+              "max": 0,
+              "min": 0,
+              "rem": "",
+              "br": false,
+              "rname": null,
+              "jname": null,
+              "tname": null,
+              "hage": 0,
+              "himg": null,
+              "adfa": 0,
+              "rdt": null,
+              "cno": null,
+              "sdraw": null,
+              "odds": [
+                  {
+                      "sid": 1,
+                      "psid": 0,
+                      "odds": 0,
+                      "otype": "back",
+                      "oname": "back1",
+                      "tno": 0,
+                      "size": 0
+                  },
+                  {
+                      "sid": 1,
+                      "psid": 0,
+                      "odds": 0,
+                      "otype": "lay",
+                      "oname": "lay1",
+                      "tno": 0,
+                      "size": 0
+                  }
+              ]
+          },
+          {
+              "mid": 9006658885710,
+              "sid": 2,
+              "psid": 0,
+              "sno": 2,
+              "psrno": 2,
+              "gstatus": "SUSPENDED",
+              "nat": "AUS 1 to 6 over run",
+              "gscode": 0,
+              "max": 0,
+              "min": 0,
+              "rem": "",
+              "br": false,
+              "rname": null,
+              "jname": null,
+              "tname": null,
+              "hage": 0,
+              "himg": null,
+              "adfa": 0,
+              "rdt": null,
+              "cno": null,
+              "sdraw": null,
+              "odds": [
+                  {
+                      "sid": 2,
+                      "psid": 0,
+                      "odds": 0,
+                      "otype": "back",
+                      "oname": "back1",
+                      "tno": 0,
+                      "size": 0
+                  },
+                  {
+                      "sid": 2,
+                      "psid": 0,
+                      "odds": 0,
+                      "otype": "lay",
+                      "oname": "lay1",
+                      "tno": 0,
+                      "size": 0
+                  }
+              ]
+          }
+      ]
+  })
     let customObject = { other: [] };
 
     mainData.forEach(da => {
@@ -86,6 +200,9 @@ async function getCricketData(marketId, matchId) {
           break;
         case "fancy1":
           customObject.fancy1 = da;
+          break;
+        case "khado":
+        case "meter":
           break;
         default:
           if (da.gtype == "cricketcasino") {
@@ -229,8 +346,8 @@ async function getCricketData(marketId, matchId) {
       expertResult.tournament = [];
       returnResult.tournament = [];
       let otherData = JSON.parse(matchDetail.tournament || "[]");
-      for(let item of customObject.tournament){
-        let isRedisExist = otherData.findIndex(it => it.mid.toString() == item.marketId.toString());
+      for (let item of (customObject?.tournament || [])) {
+        let isRedisExist = otherData.findIndex(it => it?.marketId?.toString() == item?.mid?.toString());
         let obj = {};
         if(isRedisExist > -1){
           let parseData = otherData[isRedisExist];
