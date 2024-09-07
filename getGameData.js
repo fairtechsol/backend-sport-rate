@@ -13,14 +13,6 @@ async function getCricketData(marketId, matchId) {
   let isAPISessionActive = matchDetail.apiSessionActive ? JSON.parse(matchDetail.apiSessionActive) : false;
   let isManualSessionActive = matchDetail.manualSessionActive ? JSON.parse(matchDetail.manualSessionActive) : false;
 
-  let ismatchOddActive = matchDetail.matchOdd ? (JSON.parse(matchDetail.matchOdd)).isActive : false;
-  let ismarketCompleteMatchActive = matchDetail.marketCompleteMatch ? (JSON.parse(matchDetail.marketCompleteMatch)).isActive : false;
-  let ismarketTiedMatchActive = matchDetail.marketTiedMatch ? (JSON.parse(matchDetail.marketTiedMatch)).isActive : false;
-
-  let ismarketBookmakerActive = matchDetail.marketBookmaker ? (JSON.parse(matchDetail.marketBookmaker)).isActive : false;
-  let ismarketBookmaker2Active = matchDetail.marketBookmaker2 ? (JSON.parse(matchDetail.marketBookmaker2)).isActive : false
-
-
   let sessionManual = [];
 
   let isManual = marketId?.split(/(\d+)/)[0] == 'manual';
@@ -61,106 +53,106 @@ async function getCricketData(marketId, matchId) {
       "btcnt": 0,
       "company": null,
       "section": [
-          {
-              "mid": 9006658885710,
+        {
+          "mid": 9006658885710,
+          "sid": 1,
+          "psid": 0,
+          "sno": 1,
+          "psrno": 1,
+          "gstatus": "SUSPENDED",
+          "nat": "SCO 1 to 6 over run",
+          "gscode": 0,
+          "max": 0,
+          "min": 0,
+          "rem": "",
+          "br": false,
+          "rname": null,
+          "jname": null,
+          "tname": null,
+          "hage": 0,
+          "himg": null,
+          "adfa": 0,
+          "rdt": null,
+          "cno": null,
+          "sdraw": null,
+          "odds": [
+            {
               "sid": 1,
               "psid": 0,
-              "sno": 1,
-              "psrno": 1,
-              "gstatus": "SUSPENDED",
-              "nat": "SCO 1 to 6 over run",
-              "gscode": 0,
-              "max": 0,
-              "min": 0,
-              "rem": "",
-              "br": false,
-              "rname": null,
-              "jname": null,
-              "tname": null,
-              "hage": 0,
-              "himg": null,
-              "adfa": 0,
-              "rdt": null,
-              "cno": null,
-              "sdraw": null,
-              "odds": [
-                  {
-                      "sid": 1,
-                      "psid": 0,
-                      "odds": 0,
-                      "otype": "back",
-                      "oname": "back1",
-                      "tno": 0,
-                      "size": 0
-                  },
-                  {
-                      "sid": 1,
-                      "psid": 0,
-                      "odds": 0,
-                      "otype": "lay",
-                      "oname": "lay1",
-                      "tno": 0,
-                      "size": 0
-                  }
-              ]
-          },
-          {
-              "mid": 9006658885710,
+              "odds": 0,
+              "otype": "back",
+              "oname": "back1",
+              "tno": 0,
+              "size": 0
+            },
+            {
+              "sid": 1,
+              "psid": 0,
+              "odds": 0,
+              "otype": "lay",
+              "oname": "lay1",
+              "tno": 0,
+              "size": 0
+            }
+          ]
+        },
+        {
+          "mid": 9006658885710,
+          "sid": 2,
+          "psid": 0,
+          "sno": 2,
+          "psrno": 2,
+          "gstatus": "SUSPENDED",
+          "nat": "AUS 1 to 6 over run",
+          "gscode": 0,
+          "max": 0,
+          "min": 0,
+          "rem": "",
+          "br": false,
+          "rname": null,
+          "jname": null,
+          "tname": null,
+          "hage": 0,
+          "himg": null,
+          "adfa": 0,
+          "rdt": null,
+          "cno": null,
+          "sdraw": null,
+          "odds": [
+            {
               "sid": 2,
               "psid": 0,
-              "sno": 2,
-              "psrno": 2,
-              "gstatus": "SUSPENDED",
-              "nat": "AUS 1 to 6 over run",
-              "gscode": 0,
-              "max": 0,
-              "min": 0,
-              "rem": "",
-              "br": false,
-              "rname": null,
-              "jname": null,
-              "tname": null,
-              "hage": 0,
-              "himg": null,
-              "adfa": 0,
-              "rdt": null,
-              "cno": null,
-              "sdraw": null,
-              "odds": [
-                  {
-                      "sid": 2,
-                      "psid": 0,
-                      "odds": 0,
-                      "otype": "back",
-                      "oname": "back1",
-                      "tno": 0,
-                      "size": 0
-                  },
-                  {
-                      "sid": 2,
-                      "psid": 0,
-                      "odds": 0,
-                      "otype": "lay",
-                      "oname": "lay1",
-                      "tno": 0,
-                      "size": 0
-                  }
-              ]
-          }
+              "odds": 0,
+              "otype": "back",
+              "oname": "back1",
+              "tno": 0,
+              "size": 0
+            },
+            {
+              "sid": 2,
+              "psid": 0,
+              "odds": 0,
+              "otype": "lay",
+              "oname": "lay1",
+              "tno": 0,
+              "size": 0
+            }
+          ]
+        }
       ]
-  })
+    })
     let customObject = { other: [] };
 
     mainData.forEach(da => {
       const mname = da.mname.toLowerCase();
       switch (mname) {
         case "match_odds":
-          if( da?.section?.length > 3 || !matchDetail.title.includes(' v ') ){
-            if(customObject?.tournament){
+          if (da?.section?.length > 3 || !matchDetail.title.includes(' v ')) {
+            if (customObject?.tournament) {
               customObject?.tournament?.push(da);
             }
-            else{
-              customObject.tournament=[da];
+            else {
+              customObject.tournament = [da];
             }
           }
           else {
@@ -170,13 +162,16 @@ async function getCricketData(marketId, matchId) {
         case "tied_match":
           customObject.apiTiedMatch = da;
           break;
+        case "tied match":
+          customObject.apiTiedMatch2 = da;
+          break;
         case "bookmaker":
-          if( da?.section?.length > 3 || !matchDetail.title.includes(' v ') ){
-            if(customObject?.tournament){
+          if (da?.section?.length > 3 || !matchDetail.title.includes(' v ')) {
+            if (customObject?.tournament) {
               customObject?.tournament?.push(da);
             }
-            else{
-              customObject.tournament=[da];
+            else {
+              customObject.tournament = [da];
             }
           }
           else {
@@ -232,7 +227,7 @@ async function getCricketData(marketId, matchId) {
       };
       let gtype = "match";
       expertResult.matchOdd = await formateOdds(customObject.matchOdd, obj, gtype);
-      if (ismatchOddActive) {
+      if (parseData.isActive) {
         returnResult.matchOdd = expertResult.matchOdd;
       }
     }
@@ -251,7 +246,7 @@ async function getCricketData(marketId, matchId) {
       };
       let gtype = "match";
       expertResult.marketCompleteMatch = await formateOdds(customObject.marketCompleteMatch, obj, gtype);
-      if (ismarketCompleteMatchActive) {
+      if (parseData.isActive) {
         returnResult.marketCompleteMatch = expertResult.marketCompleteMatch;
       }
     }
@@ -270,8 +265,27 @@ async function getCricketData(marketId, matchId) {
       };
       let gtype = "match";
       expertResult.apiTiedMatch = await formateOdds(customObject.apiTiedMatch, obj, gtype);
-      if (ismarketTiedMatchActive) {
+      if (parseData.isActive) {
         returnResult.apiTiedMatch = expertResult.apiTiedMatch;
+      }
+    }
+
+    if (matchDetail.marketTiedMatch2 || customObject.apiTiedMatch2) {
+      let parseData = JSON.parse(matchDetail.marketTiedMatch2 || "{}");
+      let obj = {
+        "id": parseData.id,
+        "marketId": marketId,
+        "name": parseData.name,
+        "minBet": parseData.minBet,
+        "maxBet": parseData.maxBet,
+        "type": parseData.type || "tiedMatch3",
+        "isActive": parseData.isActive,
+        "activeStatus": parseData.activeStatus
+      };
+      let gtype = "match";
+      expertResult.apiTiedMatch2 = await formateOdds(customObject.apiTiedMatch2, obj, gtype);
+      if (parseData.isActive) {
+        returnResult.apiTiedMatch2 = expertResult.apiTiedMatch2;
       }
     }
 
@@ -289,7 +303,7 @@ async function getCricketData(marketId, matchId) {
       };
       let gtype = "match";
       expertResult.bookmaker = await formateOdds(customObject.bookmaker, obj, gtype);
-      if (ismarketBookmakerActive) {
+      if (parseData.isActive) {
         returnResult.bookmaker = expertResult.bookmaker;
       }
     }
@@ -308,7 +322,7 @@ async function getCricketData(marketId, matchId) {
       };
       let gtype = "match";
       expertResult.bookmaker2 = await formateOdds(customObject.bookmaker2, obj, gtype);
-      if (ismarketBookmaker2Active) {
+      if (parseData.isActive) {
         returnResult.bookmaker2 = expertResult.bookmaker2;
       }
     }
@@ -317,10 +331,10 @@ async function getCricketData(marketId, matchId) {
       expertResult.other = [];
       returnResult.other = [];
       let otherData = JSON.parse(matchDetail.other || "[]");
-      for(let item of customObject.other){
+      for (let item of customObject.other) {
         let isRedisExist = otherData.findIndex(it => it.name == item.mname);
         let obj = {};
-        if(isRedisExist > -1){
+        if (isRedisExist > -1) {
           let parseData = otherData[isRedisExist];
           obj = {
             "id": parseData.id,
@@ -349,7 +363,7 @@ async function getCricketData(marketId, matchId) {
       for (let item of (customObject?.tournament || [])) {
         let isRedisExist = otherData.findIndex(it => it?.marketId?.toString() == item?.mid?.toString());
         let obj = {};
-        if(isRedisExist > -1){
+        if (isRedisExist > -1) {
           let parseData = otherData[isRedisExist];
           obj = {
             "id": parseData.id,
@@ -1061,11 +1075,11 @@ function formateSessionMarket(key, customObject, sessionAPIObj) {
         sessionObj["id"] = sessionAPI[sessionIndex].id; // liveSession[session.SelectionId];
         sessionObj["activeStatus"] = sessionAPI[sessionIndex].activeStatus;
         sessionObj["min"] = sessionAPI[sessionIndex].minBet,
-        sessionObj["max"] = sessionAPI[sessionIndex].maxBet,
-        sessionObj["createdAt"] = sessionAPI[sessionIndex].createdAt,
-        sessionObj["updatedAt"] = sessionAPI[sessionIndex].updatedAt,
-        sessionObj["isActive"] = sessionAPI[sessionIndex].isActive,
-        onlyLiveSession.push(sessionObj);
+          sessionObj["max"] = sessionAPI[sessionIndex].maxBet,
+          sessionObj["createdAt"] = sessionAPI[sessionIndex].createdAt,
+          sessionObj["updatedAt"] = sessionAPI[sessionIndex].updatedAt,
+          sessionObj["isActive"] = sessionAPI[sessionIndex].isActive,
+          onlyLiveSession.push(sessionObj);
         addedSession.push(sessionObj.SelectionId);
       }
       expertSession.push(sessionObj);
