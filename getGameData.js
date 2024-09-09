@@ -57,7 +57,6 @@ async function getCricketData(marketId, matchId) {
           else {
             da.section[0].odds.length > 2 ? customObject.bookmaker = da : customObject.bookmaker2 = da;
           }
-          customObject.other.push(da);
           break;
         case "bookmaker 2":
           customObject.bookmaker2 = da;
