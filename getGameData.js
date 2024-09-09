@@ -259,7 +259,7 @@ async function getCricketData(marketId, matchId) {
         "name": parseData.name,
         "minBet": parseData.minBet,
         "maxBet": parseData.maxBet,
-        "type": parseData.type || "completeMatch",
+        "type": parseData.type || "completeMatch1",
         "isActive": parseData.isActive,
         "activeStatus": parseData.activeStatus
       };
