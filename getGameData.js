@@ -170,11 +170,15 @@ async function getCricketData(marketId, matchId) {
           else {
             da.section[0].odds.length > 2 ? customObject.bookmaker = da : customObject.bookmaker2 = da;
           }
+          customObject.other.push(da);
           break;
-        case "COMPLETED_MATCH":
+        case "bookmaker 2":
+          customObject.bookmaker2 = da;
+          break;
+        case "completed_match":
           customObject.marketCompleteMatch = da;
           break;
-        case "Completed Match":
+        case "completed match":
           customObject.marketCompleteMatch1 = da;
           break;
         case "normal":
@@ -346,8 +350,8 @@ async function getCricketData(marketId, matchId) {
       expertResult.other = [];
       returnResult.other = [];
       let otherData = JSON.parse(matchDetail.other || "[]");
-      for (let item of customObject.other) {
-        let isRedisExist = otherData.findIndex(it => it.name == item.mname);
+      for(let item of customObject.other){
+        let isRedisExist = otherData?.findIndex(it => it?.name == item?.mname);
         let obj = {};
         if (isRedisExist > -1) {
           let parseData = otherData[isRedisExist];
