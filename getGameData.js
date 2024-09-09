@@ -20,13 +20,6 @@ async function getCricketData(marketId, matchId) {
     let data = await ThirdPartyController.getAllRateCricket(matchDetail.eventId);
 
     let mainData = data?.data || [];
-    // if (!mainData) {
-    //   returnResult.status = 400;
-    //   expertResult.status = 400;
-    //   io.to(matchId).emit("liveData" + matchId, returnResult);
-    //   io.to(matchId + 'expert').emit("liveData" + matchId, expertResult);
-    //   return;
-    // }
     mainData.push({
       "gmid": 864840022,
       "mid": 9006658885710,
@@ -178,8 +171,11 @@ async function getCricketData(marketId, matchId) {
             da.section[0].odds.length > 2 ? customObject.bookmaker = da : customObject.bookmaker2 = da;
           }
           break;
-        case "complete":
+        case "COMPLETED_MATCH":
           customObject.marketCompleteMatch = da;
+          break;
+        case "Completed Match":
+          customObject.marketCompleteMatch1 = da;
           break;
         case "normal":
           customObject.session = da;
@@ -248,6 +244,25 @@ async function getCricketData(marketId, matchId) {
       expertResult.marketCompleteMatch = await formateOdds(customObject.marketCompleteMatch, obj, gtype);
       if (parseData.isActive) {
         returnResult.marketCompleteMatch = expertResult.marketCompleteMatch;
+      }
+    }
+
+    if (matchDetail.marketCompleteMatch1 || customObject.marketCompleteMatch1) {
+      let parseData = JSON.parse(matchDetail.marketCompleteMatch1 || "{}");
+      let obj = {
+        "id": parseData.id,
+        "marketId": marketId,
+        "name": parseData.name,
+        "minBet": parseData.minBet,
+        "maxBet": parseData.maxBet,
+        "type": parseData.type || "completeMatch",
+        "isActive": parseData.isActive,
+        "activeStatus": parseData.activeStatus
+      };
+      let gtype = "match";
+      expertResult.marketCompleteMatch1 = await formateOdds(customObject.marketCompleteMatch1, obj, gtype);
+      if (parseData.isActive) {
+        returnResult.marketCompleteMatch1 = expertResult.marketCompleteMatch1;
       }
     }
 
@@ -1074,12 +1089,13 @@ function formateSessionMarket(key, customObject, sessionAPIObj) {
       if (sessionIndex > -1) {
         sessionObj["id"] = sessionAPI[sessionIndex].id; // liveSession[session.SelectionId];
         sessionObj["activeStatus"] = sessionAPI[sessionIndex].activeStatus;
-        sessionObj["min"] = sessionAPI[sessionIndex].minBet,
-          sessionObj["max"] = sessionAPI[sessionIndex].maxBet,
-          sessionObj["createdAt"] = sessionAPI[sessionIndex].createdAt,
-          sessionObj["updatedAt"] = sessionAPI[sessionIndex].updatedAt,
-          sessionObj["isActive"] = sessionAPI[sessionIndex].isActive,
+        sessionObj["min"] = sessionAPI[sessionIndex].minBet;
+        sessionObj["max"] = sessionAPI[sessionIndex].maxBet;
+        sessionObj["createdAt"] = sessionAPI[sessionIndex].createdAt;
+        sessionObj["updatedAt"] = sessionAPI[sessionIndex].updatedAt;
+        if(sessionObj["activeStatus"] == 'live'){
           onlyLiveSession.push(sessionObj);
+        }
         addedSession.push(sessionObj.SelectionId);
       }
       expertSession.push(sessionObj);
@@ -1094,10 +1110,13 @@ function formateSessionMarket(key, customObject, sessionAPIObj) {
         "max": session.maxBet,
         "id": session.id,
         "activeStatus": session.activeStatus,
+        "createdAt": session.createdAt,
         "updatedAt": session.updatedAt
       };
+      if(obj["activeStatus"] == 'live'){
+        onlyLiveSession.push(obj);
+      }
       expertSession.push(obj);
-      onlyLiveSession.push(obj);
     }
   });
 
