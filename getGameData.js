@@ -937,7 +937,7 @@ function formateOdds(data, additionDetails, gtype) {
     minBet: additionDetails.minBet || data?.min,
     maxBet: additionDetails.maxBet || data?.max,
     type: additionDetails?.type,
-    isActive: additionDetails.activeStatus,
+    isActive: additionDetails.isActive,
     activeStatus: additionDetails.activeStatus
   };
 }
