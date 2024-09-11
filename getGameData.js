@@ -252,7 +252,6 @@ async function getCricketData(marketId, matchId) {
             "type": parseData.type,
             "isActive": parseData.isActive,
             "activeStatus": parseData.activeStatus,
-            "runners": [{ "nat": parseData?.metaData?.teamA }, { "nat": parseData?.metaData?.teamB }]
           };
         }
         let gtype = "match1";
