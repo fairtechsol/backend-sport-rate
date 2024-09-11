@@ -174,6 +174,19 @@ class ThirdPartyController {
 		});
 	}
 
+	async getCricketScore(eventid) {
+		return new Promise((resolve, reject) => {
+			let options = {
+				method: 'GET',
+				// url: 'http://3.89.232.255:3200/extraMarketList/' + eventId,
+				url: 'http://172.105.54.97:8085/api/new/GetCricketScoreDiamoand?eventid=' + eventid,
+				headers: { 'cache-control': 'no-cache' }
+			};
+			let errorConst = `at reject get  Cricket Score `;
+			this.callAxios(options, resolve, errorConst);
+		});
+	}
+
 	
 	async getAllRateCricket(eventId, apiType = 2) {
 		return new Promise((resolve, reject) => {

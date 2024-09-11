@@ -194,6 +194,13 @@ app.get("/getDirectMatchList", (req, res) => {
   });
 });
 
+app.get("/cricketScore", (req, res) => {
+  let { eventId } = req.query;
+  ThirdPartyController.getCricketScore(eventId).then(function (data) {
+    return res.send(data);
+  });
+});
+
 io.on('connection', (socket) => {
 
   socket.on('initCricketData', async function (event) {
