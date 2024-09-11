@@ -251,7 +251,8 @@ async function getCricketData(marketId, matchId) {
             "maxBet": parseData.maxBet,
             "type": parseData.type,
             "isActive": parseData.isActive,
-            "activeStatus": parseData.activeStatus
+            "activeStatus": parseData.activeStatus,
+            "runners": [{ "nat": parseData?.metaData?.teamA }, { "nat": parseData?.metaData?.teamB }]
           };
         }
         let gtype = "match1";
@@ -274,7 +275,8 @@ async function getCricketData(marketId, matchId) {
             "maxBet": parseData.maxBet,
             "type": parseData.type,
             "isActive": parseData.isActive,
-            "activeStatus": parseData.activeStatus
+            "activeStatus": parseData.activeStatus,
+            "runners": [{ "nat": parseData?.metaData?.teamA }, { "nat": parseData?.metaData?.teamB }]
           };
           let gtype = "match1";
           let formateData = await formateOdds(null, obj, gtype);
@@ -956,7 +958,7 @@ function formateOdds(data, additionDetails, gtype) {
           tno: odd.tno
         }))
       }
-    })),
+    })) || additionDetails?.runners,
     id: additionDetails.id,
     name: additionDetails.name || data?.mname,
     minBet: additionDetails.minBet || data?.min,
