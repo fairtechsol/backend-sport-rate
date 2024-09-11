@@ -93,7 +93,7 @@ async function getCricketData(marketId, matchId) {
               customObject.cricketCasino = [da];
             }
           } else {
-            if(da.gtype == 'match1')  customObject.other.push(da);
+            if (da.gtype == 'match1') customObject.other.push(da);
           }
           break;
       }
@@ -235,11 +235,13 @@ async function getCricketData(marketId, matchId) {
     if (matchDetail.other || customObject.other) {
       expertResult.other = [];
       returnResult.other = [];
+      let iterated = [];
       let otherData = JSON.parse(matchDetail.other || "[]");
-      for(let item of customObject.other){
+      for (let item of customObject.other) {
         let isRedisExist = otherData?.findIndex(it => it?.name == item?.mname);
         let obj = {};
         if (isRedisExist > -1) {
+          iterated.push(item?.mname);
           let parseData = otherData[isRedisExist];
           obj = {
             "id": parseData.id,
@@ -257,6 +259,29 @@ async function getCricketData(marketId, matchId) {
         expertResult.other.push(formateData);
         if (obj.isActive) {
           returnResult.other.push(formateData);
+        }
+      }
+      for (let item of otherData) {
+        let isRedisExist = iterated?.findIndex(it => it == item?.mname);
+        let obj = {};
+        if (isRedisExist < 0) {
+          let parseData = item;
+          obj = {
+            "id": parseData.id,
+            "marketId": marketId,
+            "name": parseData.name,
+            "minBet": parseData.minBet,
+            "maxBet": parseData.maxBet,
+            "type": parseData.type,
+            "isActive": parseData.isActive,
+            "activeStatus": parseData.activeStatus
+          };
+          let gtype = "match1";
+          let formateData = await formateOdds(null, obj, gtype);
+          expertResult.other.push(formateData);
+          if (obj.isActive) {
+            returnResult.other.push(formateData);
+          }
         }
       }
     }
@@ -983,7 +1008,7 @@ function formateSessionMarket(key, customObject, sessionAPIObj) {
         sessionObj["max"] = sessionAPI[sessionIndex].maxBet;
         sessionObj["createdAt"] = sessionAPI[sessionIndex].createdAt;
         sessionObj["updatedAt"] = sessionAPI[sessionIndex].updatedAt;
-        if(sessionObj["activeStatus"] == 'live'){
+        if (sessionObj["activeStatus"] == 'live') {
           onlyLiveSession.push(sessionObj);
         }
         addedSession.push(sessionObj.SelectionId);
@@ -1003,7 +1028,7 @@ function formateSessionMarket(key, customObject, sessionAPIObj) {
         "createdAt": session.createdAt,
         "updatedAt": session.updatedAt
       };
-      if(obj["activeStatus"] == 'live'){
+      if (obj["activeStatus"] == 'live') {
         onlyLiveSession.push(obj);
       }
       expertSession.push(obj);
