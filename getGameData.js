@@ -262,7 +262,7 @@ async function getCricketData(marketId, matchId) {
         }
       }
       for (let item of otherData) {
-        let isRedisExist = iterated?.findIndex(it => it == item?.mname);
+        let isRedisExist = iterated?.findIndex(it => it == item?.name);
         let obj = {};
         if (isRedisExist < 0) {
           let parseData = item;
