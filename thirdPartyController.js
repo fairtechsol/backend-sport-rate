@@ -178,8 +178,7 @@ class ThirdPartyController {
 		return new Promise((resolve, reject) => {
 			let options = {
 				method: 'GET',
-				// url: 'http://3.89.232.255:3200/extraMarketList/' + eventId,
-				url: 'http://172.105.54.97:8085/api/new/GetCricketScoreDiamoand?eventid=' + eventid,
+				url: 'http://172.104.206.227:3000/t10score?marketId=' + eventid,
 				headers: { 'cache-control': 'no-cache' }
 			};
 			let errorConst = `at reject get  Cricket Score `;
