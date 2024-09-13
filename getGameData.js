@@ -23,82 +23,84 @@ async function getCricketData(marketId, matchId) {
 
     let customObject = { other: [] };
 
-    mainData.forEach(da => {
-      const mname = da.mname.toLowerCase();
-      switch (mname) {
-        case "match_odds":
-          if (da?.section?.length > 3 || !matchDetail.title.includes(' v ')) {
-            if (customObject?.tournament) {
-              customObject?.tournament?.push(da);
-            }
-            else {
-              customObject.tournament = [da];
-            }
-          }
-          else {
+    if (!matchDetail.title.includes(' v ')) {
+      customObject.tournament = [];
+      mainData.forEach(da => {
+        switch (da.gtype) {
+          case "match":
+          case "match1":
+            customObject?.tournament?.push(da);
+            break;
+          case "fancy":
+            customObject.session = da;
+            break;
+          case "oddeven":
+            customObject.oddEven = da;
+            break;
+          case "fancy1":
+            customObject.fancy1 = da;
+            break;
+          default:
+            break;
+        }
+      });
+    } else {
+      mainData.forEach(da => {
+        const mname = da.mname.toLowerCase();
+        switch (mname) {
+          case "match_odds":
             customObject.matchOdd = da;
-          }
-          break;
-        case "tied_match":
-          customObject.apiTiedMatch = da;
-          break;
-        case "tied match":
-          customObject.apiTiedMatch2 = da;
-          break;
-        case "bookmaker":
-          if (da?.section?.length > 3 || !matchDetail.title.includes(' v ')) {
-            if (customObject?.tournament) {
-              customObject?.tournament?.push(da);
-            }
-            else {
-              customObject.tournament = [da];
-            }
-          }
-          else {
-            da.section[0].odds.length > 2 ? customObject.bookmaker = da : customObject.bookmaker2 = da;
-          }
-          break;
-        case "bookmaker 2":
-          customObject.bookmaker2 = da;
-          break;
-        case "completed_match":
-          customObject.marketCompleteMatch = da;
-          break;
-        case "completed match":
-          customObject.marketCompleteMatch1 = da;
-          break;
-        case "normal":
-          customObject.session = da;
-          break;
-        case "over by over":
-          customObject.overByover = da;
-          break;
-        case "ball by ball":
-          customObject.ballByBall = da;
-          break;
-        case "oddeven":
-          customObject.oddEven = da;
-          break;
-        case "fancy1":
-          customObject.fancy1 = da;
-          break;
-        case "khado":
-        case "meter":
-          break;
-        default:
-          if (da.gtype == "cricketcasino") {
-            if (customObject.hasOwnProperty("cricketCasino")) {
-              customObject.cricketCasino.push(da);
+            break;
+          case "tied_match":
+            customObject.apiTiedMatch = da;
+            break;
+          case "tied match":
+            customObject.apiTiedMatch2 = da;
+            break;
+          case "bookmaker":
+             customObject.bookmaker = da;
+            break;
+          case "bookmaker 2":
+            customObject.bookmaker2 = da;
+            break;
+          case "completed_match":
+            customObject.marketCompleteMatch = da;
+            break;
+          case "completed match":
+            customObject.marketCompleteMatch1 = da;
+            break;
+          case "normal":
+            customObject.session = da;
+            break;
+          case "over by over":
+            customObject.overByover = da;
+            break;
+          case "ball by ball":
+            customObject.ballByBall = da;
+            break;
+          case "oddeven":
+            customObject.oddEven = da;
+            break;
+          case "fancy1":
+            customObject.fancy1 = da;
+            break;
+          case "khado":
+          case "meter":
+            break;
+          default:
+            if (da.gtype == "cricketcasino") {
+              if (customObject.hasOwnProperty("cricketCasino")) {
+                customObject.cricketCasino.push(da);
+              } else {
+                customObject.cricketCasino = [da];
+              }
             } else {
-              customObject.cricketCasino = [da];
+              if (da.gtype == 'match1') customObject.other.push(da);
             }
-          } else {
-            if (da.gtype == 'match1') customObject.other.push(da);
-          }
-          break;
-      }
-    })
-
+            break;
+        }
+      });
+    }
     if (matchDetail.matchOdd || customObject.matchOdd) {
       let parseData = JSON.parse(matchDetail.matchOdd || "{}");
       let obj = {
@@ -290,11 +292,13 @@ async function getCricketData(marketId, matchId) {
     if (matchDetail.tournament || customObject.tournament) {
       expertResult.tournament = [];
       returnResult.tournament = [];
+      let iterated = [];
       let otherData = JSON.parse(matchDetail.tournament || "[]");
       for (let item of (customObject?.tournament || [])) {
-        let isRedisExist = otherData.findIndex(it => it?.marketId?.toString() == item?.mid?.toString());
+        let isRedisExist = otherData.findIndex(it => it?.name == item?.mname);
         let obj = {};
         if (isRedisExist > -1) {
+          iterated.push(item?.mname);
           let parseData = otherData[isRedisExist];
           obj = {
             "id": parseData.id,
@@ -307,18 +311,41 @@ async function getCricketData(marketId, matchId) {
             "activeStatus": parseData.activeStatus
           };
         }
-        let gtype = "match1";
+        let gtype = item.gtype;
         let formateData = await formateOdds(item, obj, gtype);
         expertResult.tournament.push(formateData);
         if (obj.isActive) {
           returnResult.tournament.push(formateData);
         }
       }
+      for (let item of otherData) {
+        let isRedisExist = iterated?.findIndex(it => it == item?.name);
+        let obj = {};
+        if (isRedisExist < 0) {
+          let parseData = item;
+          obj = {
+            "id": parseData.id,
+            "marketId": marketId,
+            "name": parseData.name,
+            "minBet": parseData.minBet,
+            "maxBet": parseData.maxBet,
+            "type": parseData.type,
+            "isActive": parseData.isActive,
+            "activeStatus": parseData.activeStatus,
+            "runners": parseData.runners?.map(run => {
+              return { "nat": run?.runnerName }
+            })
+          };
+          let gtype = parseData.gtype;
+          let formateData = await formateOdds(null, obj, gtype);
+          expertResult.tournament.push(formateData);
+          if (obj.isActive) {
+            returnResult.tournament.push(formateData);
+          }
+        }
+      }
     }
 
-
-    // returnResult.apiSession = {};
-    // expertResult.apiSession = {};
     let sessionAPIObj = {}
     if (isAPISessionActive || isManualSessionActive) {
       let sessionData = await internalRedis.hgetall(matchId + "_session");
