@@ -308,7 +308,8 @@ async function getCricketData(marketId, matchId) {
             "maxBet": parseData.maxBet,
             "type": parseData.type,
             "isActive": parseData.isActive,
-            "activeStatus": parseData.activeStatus
+            "activeStatus": parseData.activeStatus,
+            dbRunner: parseData?.runners
           };
         }
         let gtype = item.gtype;
@@ -333,7 +334,7 @@ async function getCricketData(marketId, matchId) {
             "isActive": parseData.isActive,
             "activeStatus": parseData.activeStatus,
             "runners": parseData.runners?.map(run => {
-              return { "nat": run?.runnerName }
+              return { "nat": run?.runnerName, id:run?.id }
             })
           };
           let gtype = parseData.gtype;
@@ -968,6 +969,7 @@ function formateOdds(data, additionDetails, gtype) {
       selectionId: item.sid,
       status: item.gstatus,
       nat: item.nat,
+      id: additionDetails?.dbRunner?.find((items) => items?.selectionId?.toString() == item?.sid?.toString())?.id,
       ex: {
         availableToBack: item.odds?.filter(odd => odd.otype === 'back').map(odd => ({
           price: odd.odds,
