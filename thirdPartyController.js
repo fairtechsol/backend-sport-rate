@@ -186,8 +186,19 @@ class ThirdPartyController {
 		});
 	}
 
-	
 	async getAllRateCricket(eventId, apiType = 2) {
+		return new Promise((resolve, reject) => {
+			let options = {
+				method: 'GET',
+				url: apiEndPoints.matchOdd[apiType] + eventId,
+				headers: { 'cache-control': 'no-cache' }
+			};
+			let errorConst = "at reject get All Rate Cricket " + eventId;
+			this.callAxios(options, resolve, errorConst);
+		});
+	}
+	
+	async getAllRateFootBallTennis(eventId, apiType = 3) {
 		return new Promise((resolve, reject) => {
 			let options = {
 				method: 'GET',

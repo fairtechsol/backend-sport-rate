@@ -184,7 +184,7 @@ app.get("/getAllRateFootBallTennis/:eventId", (req, res) => {
   let { apiType } = req.query;
   apiType = apiType || 3;
 
-  ThirdPartyController.getAllRateCricket(eventId, apiType).then(function (data) {
+  ThirdPartyController.getAllRateFootBallTennis(eventId, apiType).then(function (data) {
     return res.send(data);
   });
 });
