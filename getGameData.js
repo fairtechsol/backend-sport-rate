@@ -23,7 +23,7 @@ async function getCricketData(marketId, matchId) {
 
     let customObject = { other: [] };
 
-    if (!matchDetail.title.includes(' v ')) {
+    if (!matchDetail?.title?.includes(' v ')) {
       customObject.tournament = [];
       mainData.forEach(da => {
         switch (da.gtype) {
