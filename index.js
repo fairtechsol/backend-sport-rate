@@ -179,6 +179,17 @@ app.get("/getAllRateCricket/:eventId", (req, res) => {
   });
 });
 
+app.get("/getAllRateFootBallTennis/:eventId", (req, res) => {
+  let eventId = req.params.eventId;
+  let { apiType } = req.query;
+  apiType = apiType || 3;
+
+  ThirdPartyController.getAllRateCricket(eventId, apiType).then(function (data) {
+    return res.send(data);
+  });
+});
+
+
 app.get("/bookmakerNew/:marketId", (req, res) => {
   let markertId = req.params.marketId;
   ThirdPartyController.getBookmakerMarket(markertId).then(function (data) {
