@@ -1,13 +1,35 @@
 const express = require('express'); // using express
 const socketIO = require('socket.io');
 const Redis = require('ioredis');
-const http = require('http')
+const http2 = require("http2"); // Use http2 instead of http
+const http = require("http");
+const fs = require("fs");
 var cors = require('cors');
 var LocalStorage = require('node-localstorage').LocalStorage;
 const path = require('path');
 
 let app = express();
-let server = http.createServer(app)
+// Check environment to determine SSL setup
+let server;
+
+if (process.env.NODE_ENV == "production" || process.env.NODE_ENV == "dev") {
+  // Production SSL configuration with Let's Encrypt certificates
+  const sslOptions = {
+    key: fs.readFileSync(`/etc/letsencrypt/live/${process.env.SSL_PATH}/privkey.pem`),
+    cert: fs.readFileSync(`/etc/letsencrypt/live/${process.env.SSL_PATH}/fullchain.pem`),
+    allowHTTP1: true, // Allows HTTP/1.1 fallback
+  };
+
+  // Create an HTTP/2 server with SSL options
+  server = http2.createSecureServer(sslOptions, app);
+
+  console.log("Running with HTTPS in production mode");
+} else {
+  // Create an HTTP server for local development
+  server = http.createServer(app);
+
+  console.log("Running with HTTP in development mode");
+}
 app.use(cors());
 
 require("dotenv").config();
