@@ -7,6 +7,7 @@ const fs = require("fs");
 var cors = require('cors');
 var LocalStorage = require('node-localstorage').LocalStorage;
 const path = require('path');
+require("dotenv").config();
 
 let app = express();
 // Check environment to determine SSL setup
@@ -32,7 +33,6 @@ if (process.env.NODE_ENV == "production" || process.env.NODE_ENV == "dev") {
 }
 app.use(cors());
 
-require("dotenv").config();
 const ThirdPartyController = require('./thirdPartyController');
 let io = socketIO(server, {
   cors: {
