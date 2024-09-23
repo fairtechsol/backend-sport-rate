@@ -3,12 +3,12 @@ exports.apiEndPoints = {
         0: "http://3.11.199.42:3200/matchOddsNew/",
         1: "https://betfair.openapi.live/api/v2/listMarketBookOdds?market_id=",
         2: "https://data.shamexch.xyz/getbm?eventId=",
-        3: "https://pro.shamexch.xyz/getdatasports?eventId=",
+        3: "https://pro.shamexch.xyz/getdatasports?eventId="
     },
     sportListEndPoint: {
         4: "http://marketsarket.qnsports.live/getcricketmatches",
-        1: "https://marketsarket.qnsports.live/getsoccermatches",
-        2: "https://marketsarket.qnsports.live/gettennismatches",
+        1: "https://marketsarket.qnsports.live/getsoccerallmatches2",
+        2: "https://marketsarket.qnsports.live/gettennisallmatches2",
     }
 }
 
