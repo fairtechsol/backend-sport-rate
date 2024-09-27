@@ -105,7 +105,8 @@ const gameType = {
   cricket: 4,
   boxing: 6,
   horseRacing: 7,
-  greyhoundRacing: 4339
+  greyhoundRacing: 4339,
+  politics: 5
 }
 const eventUrl = {
   football: "under_over_goal_market_list",
@@ -328,6 +329,7 @@ server.listen(port, () => {
             matchIntervalIds[matchId] = setInterval(getFootBallData, liveGameTypeTime, marketId, matchId);
             break;
           case 'cricket':
+          case 'politics':
             matchIntervalIds[matchId] = setInterval(getCricketData, liveGameTypeTime, marketId, matchId);
             break;
           case 'tennis':
