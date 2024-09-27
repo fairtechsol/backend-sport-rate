@@ -421,11 +421,14 @@ async function getCricketData(marketId, matchId) {
             if (sessionIndex > -1) {
               casinoSession["id"] = sessionAPI[sessionIndex].id;
               casinoSession["activeStatus"] = sessionAPI[sessionIndex].activeStatus;
-              casinoSession["min"] = sessionAPI[sessionIndex].minBet,
-                casinoSession["max"] = sessionAPI[sessionIndex].maxBet,
-                casinoSession["createdAt"] = sessionAPI[sessionIndex].createdAt,
-                casinoSession["updatedAt"] = sessionAPI[sessionIndex].updatedAt
-              onlyLiveSession.push(casinoSession);
+              casinoSession["min"] = sessionAPI[sessionIndex].minBet;
+              casinoSession["max"] = sessionAPI[sessionIndex].maxBet;
+              casinoSession["createdAt"] = sessionAPI[sessionIndex].createdAt;
+              casinoSession["updatedAt"] = sessionAPI[sessionIndex].updatedAt;
+              
+              if (casinoSession["activeStatus"] == 'live') {
+                onlyLiveSession.push(casinoSession);
+              }
               addedSession.push(casinoSession.SelectionId);
             }
             expertSession.push(casinoSession);
@@ -442,8 +445,10 @@ async function getCricketData(marketId, matchId) {
               "activeStatus": session.activeStatus,
               "updatedAt": session.updatedAt
             };
+            if (obj["activeStatus"] == 'live') {
+              onlyLiveSession.push(obj);
+            }
             expertSession.push(obj);
-            onlyLiveSession.push(obj);
           }
         });
 
