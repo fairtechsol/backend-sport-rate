@@ -334,7 +334,7 @@ async function getCricketData(marketId, matchId) {
             "isActive": parseData.isActive,
             "activeStatus": parseData.activeStatus,
             "runners": parseData.runners?.map(run => {
-              return { "nat": run?.runnerName, id:run?.id }
+              return { "nat": run?.runnerName, id:run?.id, selectionId: run.selectionId }
             }),
             gtype: parseData.gtype,
           };
@@ -683,7 +683,7 @@ async function getFootBallData(marketId, matchId) {
             "isActive": parseData.isActive,
             "activeStatus": parseData.activeStatus,
             "runners": parseData.runners?.map(run => {
-              return { "nat": run?.runnerName, id:run?.id }
+              return { "nat": run?.runnerName, id:run?.id, selectionId: run.selectionId }
             }),
             gtype: parseData.gtype,
           };
