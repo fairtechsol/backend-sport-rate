@@ -113,6 +113,7 @@ async function getCricketData(marketId, matchId) {
         "isActive": parseData.isActive,
         "activeStatus": parseData.activeStatus,
         gtype: parseData.gtype,
+        betLimit: parseData.betLimit
       };
       expertResult.matchOdd = await formateOdds(customObject.matchOdd, obj);
       if (parseData.isActive) {
@@ -132,6 +133,7 @@ async function getCricketData(marketId, matchId) {
         "isActive": parseData.isActive,
         "activeStatus": parseData.activeStatus,
         gtype: parseData.gtype,
+        betLimit: parseData.betLimit
       };
       expertResult.marketCompleteMatch = await formateOdds(customObject.marketCompleteMatch, obj);
       if (parseData.isActive) {
@@ -151,6 +153,7 @@ async function getCricketData(marketId, matchId) {
         "isActive": parseData.isActive,
         "activeStatus": parseData.activeStatus,
         gtype: parseData.gtype,
+        betLimit: parseData.betLimit
       };
       expertResult.marketCompleteMatch1 = await formateOdds(customObject.marketCompleteMatch1, obj);
       if (parseData.isActive) {
@@ -170,6 +173,7 @@ async function getCricketData(marketId, matchId) {
         "isActive": parseData.isActive,
         "activeStatus": parseData.activeStatus,
         gtype: parseData.gtype,
+        betLimit: parseData.betLimit
       };
       expertResult.apiTiedMatch = await formateOdds(customObject.apiTiedMatch, obj);
       if (parseData.isActive) {
@@ -189,6 +193,7 @@ async function getCricketData(marketId, matchId) {
         "isActive": parseData.isActive,
         "activeStatus": parseData.activeStatus,
         gtype: parseData.gtype,
+        betLimit: parseData.betLimit
       };
       expertResult.apiTiedMatch2 = await formateOdds(customObject.apiTiedMatch2, obj);
       if (parseData.isActive) {
@@ -208,6 +213,7 @@ async function getCricketData(marketId, matchId) {
         "isActive": parseData.isActive,
         "activeStatus": parseData.activeStatus,
         gtype: parseData.gtype,
+        betLimit: parseData.betLimit
       };
       expertResult.bookmaker = await formateOdds(customObject.bookmaker, obj);
       if (parseData.isActive) {
@@ -227,6 +233,7 @@ async function getCricketData(marketId, matchId) {
         "isActive": parseData.isActive,
         "activeStatus": parseData.activeStatus,
         gtype: parseData.gtype,
+        betLimit: parseData.betLimit
       };
       expertResult.bookmaker2 = await formateOdds(customObject.bookmaker2, obj);
       if (parseData.isActive) {
@@ -255,6 +262,7 @@ async function getCricketData(marketId, matchId) {
             "isActive": parseData.isActive,
             "activeStatus": parseData.activeStatus,
             gtype: parseData.gtype,
+            betLimit: parseData.betLimit
           };
         }
         let formateData = await formateOdds(item, obj);
@@ -279,6 +287,7 @@ async function getCricketData(marketId, matchId) {
             "activeStatus": parseData.activeStatus,
             "runners": [{ "nat": parseData?.metaData?.teamA }, { "nat": parseData?.metaData?.teamB }],
             gtype: parseData.gtype,
+            betLimit: parseData.betLimit
           };
           let formateData = await formateOdds(null, obj);
           expertResult.other.push(formateData);
@@ -311,6 +320,7 @@ async function getCricketData(marketId, matchId) {
             "activeStatus": parseData.activeStatus,
             dbRunner: parseData?.runners,
             gtype: parseData.gtype,
+            betLimit: parseData.betLimit
           };
         }
         let formateData = await formateOdds(item, obj);
@@ -337,7 +347,8 @@ async function getCricketData(marketId, matchId) {
               return { "nat": run?.runnerName, id:run?.id }
             }),
             gtype: parseData.gtype,
-          };
+            betLimit: parseData.betLimit
+      };
           let formateData = await formateOdds(null, obj);
           expertResult.tournament.push(formateData);
           if (obj.isActive) {
@@ -594,6 +605,7 @@ async function getFootBallData(marketId, matchId) {
         "isActive": parseData.isActive,
         "activeStatus": parseData.activeStatus,
         gtype: parseData.gtype,
+        betLimit: parseData.betLimit
       };
       expertResult.matchOdd = await formateOdds(customObject.matchOdd, obj);
       if (parseData.isActive) {
@@ -612,6 +624,7 @@ async function getFootBallData(marketId, matchId) {
         "isActive": parseData.isActive,
         "activeStatus": parseData.activeStatus,
         gtype: parseData.gtype,
+        betLimit: parseData.betLimit
       };
       expertResult.bookmaker = await formateOdds(customObject.bookmaker, obj);
       if (parseData.isActive) {
@@ -631,6 +644,7 @@ async function getFootBallData(marketId, matchId) {
         "isActive": parseData.isActive,
         "activeStatus": parseData.activeStatus,
         gtype: parseData.gtype,
+        betLimit: parseData.betLimit
       };
       expertResult.bookmaker2 = await formateOdds(customObject.bookmaker2, obj);
       if (parseData.isActive) {
@@ -660,7 +674,8 @@ async function getFootBallData(marketId, matchId) {
             "activeStatus": parseData.activeStatus,
             dbRunner: parseData?.runners,
             gtype: parseData.gtype,
-          };
+            betLimit: parseData.betLimit
+      };
         }
         let formateData = await formateOdds(item, obj);
         expertResult.tournament.push(formateData);
@@ -686,6 +701,7 @@ async function getFootBallData(marketId, matchId) {
               return { "nat": run?.runnerName, id:run?.id }
             }),
             gtype: parseData.gtype,
+            betLimit: parseData.betLimit
           };
           let formateData = await formateOdds(null, obj);
           expertResult.tournament.push(formateData);
@@ -1040,7 +1056,8 @@ function formateOdds(data, additionDetails) {
     maxBet: additionDetails.maxBet || data?.max,
     type: additionDetails?.type,
     isActive: additionDetails.isActive,
-    activeStatus: additionDetails.activeStatus
+    activeStatus: additionDetails.activeStatus,
+    betLimit: additionDetails?.betLimit
   };
 }
 
