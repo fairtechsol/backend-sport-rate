@@ -1132,7 +1132,7 @@ function formateSessionMarket(key, customObject, sessionAPIObj) {
     "mname": result?.mname,
     "rem": result?.rem,
     "mid": result?.mid,
-    "gtype": result?.gtype,
+    "gtype": result?.gtype || sessionAPI?.[0]?.gtype,
     "status": result?.status,
     "section": onlyLiveSession
   };
@@ -1140,7 +1140,7 @@ function formateSessionMarket(key, customObject, sessionAPIObj) {
     "mname": result?.mname,
     "rem": result?.rem,
     "mid": result?.mid,
-    "gtype": result?.gtype,
+    "gtype": result?.gtype || sessionAPI?.[sessionIndex]?.gtype,
     "status": result?.status,
     "section": expertSession
   };
