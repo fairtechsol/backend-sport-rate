@@ -258,13 +258,12 @@ io.on('connection', (socket) => {
         }
         switch (matchDetail.matchType) {
           case 'football':
+          case 'tennis':
             matchIntervalIds[matchId] = setInterval(getFootBallData, liveGameTypeTime, marketId, matchId);
             break;
           case 'cricket':
+          case 'politics':
             matchIntervalIds[matchId] = setInterval(getCricketData, liveGameTypeTime, marketId, matchId);
-            break;
-          case 'tennis':
-            matchIntervalIds[matchId] = setInterval(getFootBallData, liveGameTypeTime, marketId, matchId);
             break;
           case 'horseRacing':
             matchIntervalIds[matchId] = setInterval(getHorseRacingData, liveGameTypeTime, marketId, matchId);
@@ -326,14 +325,12 @@ server.listen(port, () => {
       if (marketId) {
         switch (matchDetail.matchType) {
           case 'football':
+          case 'tennis':
             matchIntervalIds[matchId] = setInterval(getFootBallData, liveGameTypeTime, marketId, matchId);
             break;
           case 'cricket':
           case 'politics':
             matchIntervalIds[matchId] = setInterval(getCricketData, liveGameTypeTime, marketId, matchId);
-            break;
-          case 'tennis':
-            matchIntervalIds[matchId] = setInterval(getTennisData, liveGameTypeTime, marketId, matchId);
             break;
           case 'horseRacing':
             matchIntervalIds[matchId] = setInterval(getHorseRacingData, liveGameTypeTime, marketId, matchId);
