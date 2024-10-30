@@ -174,8 +174,31 @@ class ThirdPartyController {
 		});
 	}
 
-	
+	async getCricketScore(eventid) {
+		return new Promise((resolve, reject) => {
+			let options = {
+				method: 'GET',
+				url: 'http://172.104.206.227:3000/t10score?marketId=' + eventid,
+				headers: { 'cache-control': 'no-cache' }
+			};
+			let errorConst = `at reject get  Cricket Score `;
+			this.callAxios(options, resolve, errorConst);
+		});
+	}
+
 	async getAllRateCricket(eventId, apiType = 2) {
+		return new Promise((resolve, reject) => {
+			let options = {
+				method: 'GET',
+				url: apiEndPoints.matchOdd[apiType] + eventId,
+				headers: { 'cache-control': 'no-cache' }
+			};
+			let errorConst = "at reject get All Rate Cricket " + eventId;
+			this.callAxios(options, resolve, errorConst);
+		});
+	}
+	
+	async getAllRateFootBallTennis(eventId, apiType = 3) {
 		return new Promise((resolve, reject) => {
 			let options = {
 				method: 'GET',
@@ -189,7 +212,7 @@ class ThirdPartyController {
 		
 	async sportsList(typeId) {
 		let data = await this.sportsListCall(typeId);
-		return data.filter(match => match.vir == 1 );
+		return typeId == 4 ? data?.filter(match => match.vir == 1 ) : data;
 	}
 
 	async sportsListCall(typeId) {

@@ -1,16 +1,38 @@
 const express = require('express'); // using express
 const socketIO = require('socket.io');
 const Redis = require('ioredis');
-const http = require('http')
+const http2 = require("http2"); // Use http2 instead of http
+const http = require("http");
+const fs = require("fs");
 var cors = require('cors');
 var LocalStorage = require('node-localstorage').LocalStorage;
 const path = require('path');
+require("dotenv").config();
 
 let app = express();
-let server = http.createServer(app)
+// Check environment to determine SSL setup
+let server;
+
+if (process.env.NODE_ENV == "production" || process.env.NODE_ENV == "dev") {
+  // Production SSL configuration with Let's Encrypt certificates
+  const sslOptions = {
+    key: fs.readFileSync(`/etc/letsencrypt/live/${process.env.SSL_PATH}/privkey.pem`),
+    cert: fs.readFileSync(`/etc/letsencrypt/live/${process.env.SSL_PATH}/fullchain.pem`),
+    allowHTTP1: true, // Allows HTTP/1.1 fallback
+  };
+
+  // Create an HTTP/2 server with SSL options
+  server = http2.createSecureServer(sslOptions, app);
+
+  console.log("Running with HTTPS in production mode");
+} else {
+  // Create an HTTP server for local development
+  server = http.createServer(app);
+
+  console.log("Running with HTTP in development mode");
+}
 app.use(cors());
 
-require("dotenv").config();
 const ThirdPartyController = require('./thirdPartyController');
 let io = socketIO(server, {
   cors: {
@@ -83,7 +105,8 @@ const gameType = {
   cricket: 4,
   boxing: 6,
   horseRacing: 7,
-  greyhoundRacing: 4339
+  greyhoundRacing: 4339,
+  politics: 5
 }
 const eventUrl = {
   football: "under_over_goal_market_list",
@@ -179,6 +202,17 @@ app.get("/getAllRateCricket/:eventId", (req, res) => {
   });
 });
 
+app.get("/getAllRateFootBallTennis/:eventId", (req, res) => {
+  let eventId = req.params.eventId;
+  let { apiType } = req.query;
+  apiType = apiType || 3;
+
+  ThirdPartyController.getAllRateFootBallTennis(eventId, apiType).then(function (data) {
+    return res.send(data);
+  });
+});
+
+
 app.get("/bookmakerNew/:marketId", (req, res) => {
   let markertId = req.params.marketId;
   ThirdPartyController.getBookmakerMarket(markertId).then(function (data) {
@@ -190,6 +224,13 @@ app.get("/getDirectMatchList", (req, res) => {
   let type = req.query.type;
   let typeId = gameType[type];
   ThirdPartyController.getDirectMatchList(typeId).then(function (data) {
+    return res.send(data);
+  });
+});
+
+app.get("/cricketScore", (req, res) => {
+  let { eventId } = req.query;
+  ThirdPartyController.getCricketScore(eventId).then(function (data) {
     return res.send(data);
   });
 });
@@ -217,13 +258,12 @@ io.on('connection', (socket) => {
         }
         switch (matchDetail.matchType) {
           case 'football':
+          case 'tennis':
             matchIntervalIds[matchId] = setInterval(getFootBallData, liveGameTypeTime, marketId, matchId);
             break;
           case 'cricket':
+          case 'politics':
             matchIntervalIds[matchId] = setInterval(getCricketData, liveGameTypeTime, marketId, matchId);
-            break;
-          case 'tennis':
-            matchIntervalIds[matchId] = setInterval(getTennisData, liveGameTypeTime, marketId, matchId);
             break;
           case 'horseRacing':
             matchIntervalIds[matchId] = setInterval(getHorseRacingData, liveGameTypeTime, marketId, matchId);
@@ -285,13 +325,12 @@ server.listen(port, () => {
       if (marketId) {
         switch (matchDetail.matchType) {
           case 'football':
+          case 'tennis':
             matchIntervalIds[matchId] = setInterval(getFootBallData, liveGameTypeTime, marketId, matchId);
             break;
           case 'cricket':
+          case 'politics':
             matchIntervalIds[matchId] = setInterval(getCricketData, liveGameTypeTime, marketId, matchId);
-            break;
-          case 'tennis':
-            matchIntervalIds[matchId] = setInterval(getTennisData, liveGameTypeTime, marketId, matchId);
             break;
           case 'horseRacing':
             matchIntervalIds[matchId] = setInterval(getHorseRacingData, liveGameTypeTime, marketId, matchId);
