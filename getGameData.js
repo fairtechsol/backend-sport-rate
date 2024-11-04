@@ -112,7 +112,7 @@ async function getCricketData(marketId, matchId) {
       let parseData = JSON.parse(matchDetail.matchOdd || "{}");
       let obj = {
         "id": parseData.id,
-        "marketId": marketId,
+        "marketId": parseData.marketId,
         "name": parseData.name,
         "minBet": parseData.minBet,
         "maxBet": parseData.maxBet,
@@ -132,7 +132,7 @@ async function getCricketData(marketId, matchId) {
       let parseData = JSON.parse(matchDetail.marketCompleteMatch || "{}");
       let obj = {
         "id": parseData.id,
-        "marketId": marketId,
+        "marketId": parseData.marketId,
         "name": parseData.name,
         "minBet": parseData.minBet,
         "maxBet": parseData.maxBet,
@@ -152,7 +152,7 @@ async function getCricketData(marketId, matchId) {
       let parseData = JSON.parse(matchDetail.marketCompleteMatch1 || "{}");
       let obj = {
         "id": parseData.id,
-        "marketId": marketId,
+        "marketId": parseData.marketId,
         "name": parseData.name,
         "minBet": parseData.minBet,
         "maxBet": parseData.maxBet,
@@ -172,7 +172,7 @@ async function getCricketData(marketId, matchId) {
       let parseData = JSON.parse(matchDetail.marketTiedMatch || "{}");
       let obj = {
         "id": parseData.id,
-        "marketId": marketId,
+        "marketId": parseData.marketId,
         "name": parseData.name,
         "minBet": parseData.minBet,
         "maxBet": parseData.maxBet,
@@ -192,7 +192,7 @@ async function getCricketData(marketId, matchId) {
       let parseData = JSON.parse(matchDetail.marketTiedMatch2 || "{}");
       let obj = {
         "id": parseData.id,
-        "marketId": marketId,
+        "marketId": parseData.marketId,
         "name": parseData.name,
         "minBet": parseData.minBet,
         "maxBet": parseData.maxBet,
@@ -212,7 +212,7 @@ async function getCricketData(marketId, matchId) {
       let parseData = JSON.parse(matchDetail.marketBookmaker || "{}");
       let obj = {
         "id": parseData.id,
-        "marketId": marketId,
+        "marketId": parseData.marketId,
         "name": parseData.name,
         "minBet": parseData.minBet,
         "maxBet": parseData.maxBet,
@@ -261,7 +261,7 @@ async function getCricketData(marketId, matchId) {
           let parseData = otherData[isRedisExist];
           obj = {
             "id": parseData.id,
-            "marketId": marketId,
+            "marketId": parseData.marketId,
             "name": parseData.name,
             "minBet": parseData.minBet,
             "maxBet": parseData.maxBet,
@@ -285,7 +285,7 @@ async function getCricketData(marketId, matchId) {
           let parseData = item;
           obj = {
             "id": parseData.id,
-            "marketId": marketId,
+            "marketId": parseData.marketId,
             "name": parseData.name,
             "minBet": parseData.minBet,
             "maxBet": parseData.maxBet,
@@ -318,7 +318,7 @@ async function getCricketData(marketId, matchId) {
           let parseData = otherData[isRedisExist];
           obj = {
             "id": parseData.id,
-            "marketId": marketId,
+            "marketId": parseData.marketId,
             "name": parseData.name,
             "minBet": parseData.minBet,
             "maxBet": parseData.maxBet,
@@ -343,7 +343,7 @@ async function getCricketData(marketId, matchId) {
           let parseData = item;
           obj = {
             "id": parseData.id,
-            "marketId": marketId,
+            "marketId": parseData.marketId,
             "name": parseData.name,
             "minBet": parseData.minBet,
             "maxBet": parseData.maxBet,
@@ -621,7 +621,7 @@ async function getFootBallData(marketId, matchId) {
       let parseData = JSON.parse(matchDetail.matchOdd || "{}");
       let obj = {
         "id": parseData.id,
-        "marketId": marketId,
+        "marketId": parseData.marketId,
         "name": parseData.name,
         "minBet": parseData.minBet,
         "maxBet": parseData.maxBet,
@@ -640,7 +640,7 @@ async function getFootBallData(marketId, matchId) {
       let parseData = JSON.parse(matchDetail.marketBookmaker || "{}");
       let obj = {
         "id": parseData.id,
-        "marketId": marketId,
+        "marketId": parseData.marketId,
         "name": parseData.name,
         "minBet": parseData.minBet,
         "maxBet": parseData.maxBet,
@@ -660,7 +660,7 @@ async function getFootBallData(marketId, matchId) {
       let parseData = JSON.parse(matchDetail.marketBookmaker2 || "{}");
       let obj = {
         "id": parseData.id,
-        "marketId": marketId,
+        "marketId": parseData.marketId,
         "name": parseData.name,
         "minBet": parseData.minBet,
         "maxBet": parseData.maxBet,
@@ -689,7 +689,7 @@ async function getFootBallData(marketId, matchId) {
           let parseData = otherData[isRedisExist];
           obj = {
             "id": parseData.id,
-            "marketId": marketId,
+            "marketId": parseData.marketId,
             "name": parseData.name,
             "minBet": parseData.minBet,
             "maxBet": parseData.maxBet,
@@ -714,7 +714,7 @@ async function getFootBallData(marketId, matchId) {
           let parseData = item;
           obj = {
             "id": parseData.id,
-            "marketId": marketId,
+            "marketId": parseData.marketId,
             "name": parseData.name,
             "minBet": parseData.minBet,
             "maxBet": parseData.maxBet,
@@ -1047,7 +1047,7 @@ exports.getGreyHoundRacingData = getGreyHoundRacingData;
 function formateOdds(data, additionDetails) {
   return {
     marketId: additionDetails.marketId,
-    mid: data?.mid,
+    mid: data?.mid || additionDetails?.marketId,
     status: data?.status,
     inplay: data?.inplay,
     gtype: additionDetails.gtype || data?.gtype,
