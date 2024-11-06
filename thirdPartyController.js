@@ -169,7 +169,7 @@ class ThirdPartyController {
 				url: 'http://13.42.165.216/betfair/get_latest_event_list/' + typeId,
 				headers: { 'cache-control': 'no-cache' }
 			};
-			let errorConst = `at reject get extra event list `;
+			let errorConst = `at reject get direct match list `;
 			this.callAxios(options, resolve, errorConst);
 		});
 	}
@@ -205,7 +205,7 @@ class ThirdPartyController {
 				url: apiEndPoints.matchOdd[apiType] + eventId,
 				headers: { 'cache-control': 'no-cache' }
 			};
-			let errorConst = "at reject get All Rate Cricket " + eventId;
+			let errorConst = "at reject get All Rate FootBall/Tennis " + eventId;
 			this.callAxios(options, resolve, errorConst);
 		});
 	}

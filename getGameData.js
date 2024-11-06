@@ -67,6 +67,13 @@ async function getCricketData(marketId, matchId) {
           case "bookmaker 2":
             customObject.bookmaker2 = da;
             break;
+          case "bookmaker match":
+            if (customObject.bookmaker) {
+              customObject.bookmaker2 = da;
+            } else {
+              customObject.bookmaker = da;
+            }
+            break;
           case "completed_match":
             customObject.marketCompleteMatch = da;
             break;
@@ -425,7 +432,7 @@ async function getCricketData(marketId, matchId) {
         returnResult.apiSession[key] = returnResult1;
         expertResult.apiSession[key] = expertResult1;
       }
-      
+
       key = 'meter';
       if (customObject.meter || sessionAPIObj[key]) {
         let { expertResult1, returnResult1 } = formateSessionMarket(key, customObject, sessionAPIObj);
@@ -608,6 +615,13 @@ async function getFootBallData(marketId, matchId) {
             break;
           case "bookmaker 2":
             customObject.bookmaker2 = da;
+            break;
+          case "bookmaker match":
+            if (customObject.bookmaker) {
+              customObject.bookmaker2 = da;
+            } else {
+              customObject.bookmaker = da;
+            }
             break;
           default:
             customObject.tournament.push(da);
