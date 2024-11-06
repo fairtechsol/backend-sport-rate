@@ -1,10 +1,11 @@
 const ThirdPartyController = require('./thirdPartyController.js');
-const { internalRedis, io, CheckAndClearInterval } = require('./index.js');
+const Index = require('./index.js');
+const { internalRedis } = require('./config/internalRedis.js');
 
 
 async function getCricketData(marketId, matchId) {
 
-  CheckAndClearInterval(matchId);
+  Index.CheckAndClearInterval(matchId);
 
   let matchDetail = await internalRedis.hgetall(matchId + "_match");
   const returnResult = { id: matchId, marketId, eventId: matchDetail.eventId, apiSession: {} };
@@ -556,14 +557,14 @@ async function getCricketData(marketId, matchId) {
     }
   }
 
-  io.to(matchId).emit("liveData" + matchId, returnResult);
-  io.to(matchId + 'expert').emit("liveData" + matchId, expertResult);
+  Index.broadcastToRoom(matchId, { data: returnResult, event: `liveData${matchId}` });
+  Index.broadcastToRoom(matchId + 'expert', { data: expertResult, event: `liveData${matchId}` });
 }
 exports.getCricketData = getCricketData;
 
 async function getFootBallData(marketId, matchId) {
 
-  CheckAndClearInterval(matchId);
+  Index.CheckAndClearInterval(matchId);
 
   let matchDetail = await internalRedis.hgetall(matchId + "_match");
   let returnResult = { id: matchId, marketId, eventId: matchDetail.eventId };
@@ -770,15 +771,14 @@ async function getFootBallData(marketId, matchId) {
       }
     }
   }
-
-  io.to(matchId).emit("liveData" + matchId, returnResult);
-  io.to(matchId + 'expert').emit("liveData" + matchId, expertResult);
+  Index.broadcastToRoom(matchId, { data: returnResult, event: `liveData${matchId}` });
+  Index.broadcastToRoom(matchId + 'expert', { data: expertResult, event: `liveData${matchId}` });
 }
 exports.getFootBallData = getFootBallData;
 
 async function getTennisData(marketId, matchId) {
 
-  CheckAndClearInterval(matchId);
+  Index.CheckAndClearInterval(matchId);
 
   let matchDetail = await internalRedis.hgetall(matchId + "_match");
   let returnResult = {};
@@ -898,17 +898,14 @@ async function getTennisData(marketId, matchId) {
       }
     }
   }
-
-  io.to(matchId).emit("liveData" + matchId, returnResult);
-  io.to(matchId + 'expert').emit("liveData" + matchId, expertResult);
-  return;
-
+  Index.broadcastToRoom(matchId, { data: returnResult, event: `liveData${matchId}` });
+  Index.broadcastToRoom(matchId + 'expert', { data: expertResult, event: `liveData${matchId}` });
 }
 exports.getTennisData = getTennisData;
 
 async function getHorseRacingData(marketId, matchId) {
 
-  CheckAndClearInterval(matchId);
+  Index.CheckAndClearInterval(matchId);
 
   let matchDetail = await internalRedis.hgetall(matchId + "_match");
   let returnResult = {};
@@ -969,15 +966,14 @@ async function getHorseRacingData(marketId, matchId) {
 
     });
   }
-
-  io.to(matchId).emit("liveData" + matchId, returnResult);
-  io.to(matchId + 'expert').emit("liveData" + matchId, expertResult);
+  Index.broadcastToRoom(matchId, { data: returnResult, event: `liveData${matchId}` });
+  Index.broadcastToRoom(matchId + 'expert', { data: expertResult, event: `liveData${matchId}` });
 }
 exports.getHorseRacingData = getHorseRacingData;
 
 async function getGreyHoundRacingData(marketId, matchId) {
 
-  CheckAndClearInterval(matchId);
+  Index.CheckAndClearInterval(matchId);
 
   let matchDetail = await internalRedis.hgetall(matchId + "_match");
   let returnResult = {};
@@ -1038,9 +1034,8 @@ async function getGreyHoundRacingData(marketId, matchId) {
 
     });
   }
-
-  io.to(matchId).emit("liveData" + matchId, returnResult);
-  io.to(matchId + 'expert').emit("liveData" + matchId, expertResult);
+Index.broadcastToRoom(matchId, { data: returnResult, event: `liveData${matchId}` });
+  Index.broadcastToRoom(matchId + 'expert', { data: expertResult, event: `liveData${matchId}` });
 }
 exports.getGreyHoundRacingData = getGreyHoundRacingData;
 

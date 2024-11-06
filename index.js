@@ -1,78 +1,100 @@
 const express = require('express'); // using express
-const socketIO = require('socket.io');
-const Redis = require('ioredis');
+const uWS = require('uWebsockets.js');
+const fs = require("fs");
 const http2 = require("http2"); // Use http2 instead of http
 const http = require("http");
-const fs = require("fs");
-var cors = require('cors');
 var LocalStorage = require('node-localstorage').LocalStorage;
 const path = require('path');
+const ThirdPartyController = require('./thirdPartyController');
+const { internalRedis } = require('./config/internalRedis');
+const { joinMatchRoom, joinMultiMatchRoom } = require('./utils/joinMatchRooms');
+const cors = require('cors');
 require("dotenv").config();
 
-let app = express();
-// Check environment to determine SSL setup
-let server;
 
+let app = express();
+let uApp,server;
+
+// SSL Configuration
 if (process.env.NODE_ENV == "production" || process.env.NODE_ENV == "dev") {
-  // Production SSL configuration with Let's Encrypt certificates
   const sslOptions = {
+    key_file_name: `/etc/letsencrypt/live/${process.env.SSL_PATH}/privkey.pem`,
+    cert_file_name: `/etc/letsencrypt/live/${process.env.SSL_PATH}/fullchain.pem`
+  };
+  uApp = uWS.SSLApp(sslOptions);
+
+  // Production SSL configuration with Let's Encrypt certificates
+  const sslOptionsServer = {
     key: fs.readFileSync(`/etc/letsencrypt/live/${process.env.SSL_PATH}/privkey.pem`),
     cert: fs.readFileSync(`/etc/letsencrypt/live/${process.env.SSL_PATH}/fullchain.pem`),
     allowHTTP1: true, // Allows HTTP/1.1 fallback
   };
 
   // Create an HTTP/2 server with SSL options
-  server = http2.createSecureServer(sslOptions, app);
+  server = http2.createSecureServer(sslOptionsServer, app);
 
   console.log("Running with HTTPS in production mode");
+  console.log("Running with HTTPS in production mode");
 } else {
-  // Create an HTTP server for local development
   server = http.createServer(app);
-
+  uApp = uWS.App();
   console.log("Running with HTTP in development mode");
 }
 app.use(cors());
-
-const ThirdPartyController = require('./thirdPartyController');
-let io = socketIO(server, {
-  cors: {
-    origin: "*",
-    methods: ["GET", "POST"]
-  }
-});
-app.set('socketio', io);
-
-localStorage = new LocalStorage('./scratch');
 
 if (process.env.NODE_ENV !== 'production') {
   __dirname = path.resolve();
   app.use(express.static(path.join(__dirname, "public")));
 }
 
-const port = process.env.port ? parseInt(process.env.port) : 3200 // setting the port
-let liveGameTypeTime = process.env.liveGameTypeTime ? parseInt(process.env.liveGameTypeTime) : 1000;
+localStorage = new LocalStorage('./scratch');
 
-const internalRedis = new Redis({
-  host: process.env.INTERNAL_REDIS_HOST || 'localhost',
-  port: process.env.INTERNAL_REDIS_PORT || 6379,
-  password: process.env.INTERNAL_REDIS_PASSWORD || ''
-});
-// Listen for the 'connect' event
+// Redis Setup
+const port = process.env.port ? parseInt(process.env.port) : 3200;
+
 internalRedis.on('connect', async () => {
   console.log('Connected to Internal Redis server');
 });
-exports.internalRedis = internalRedis;
-exports.io = io;
 
-
+// WebSocket clients management
+const clients = new Map();
+const rooms = new Map();
 let matchIntervalIds = {};
-exports.CheckAndClearInterval = (matchId) => {
-  // to check is any user exist in the interval or not. if not then close the interval
-  const room = io.sockets.adapter.rooms.get(matchId);
-  const roomExpert = io.sockets.adapter.rooms.get(`${matchId}expert`);
 
+// Helper function to broadcast to room
+function broadcastToRoom(roomName, message) {
+  if (rooms.has(roomName)) {
+    rooms.get(roomName).forEach(client => {
+      client.send(JSON.stringify(message));
+    });
+  }
+}
+
+// Join room helper
+function joinRoom(ws, roomName) {
+  if (!rooms.has(roomName)) {
+    rooms.set(roomName, new Set());
+  }
+  rooms.get(roomName).add(ws);
+}
+
+// Leave room helper
+function leaveRoom(ws, roomName) {
+  if (rooms.has(roomName)) {
+    rooms.get(roomName).delete(ws);
+    if (rooms.get(roomName).size === 0) {
+      rooms.delete(roomName);
+    }
+  }
+}
+
+// Check and clear interval
+function CheckAndClearInterval(matchId) {
   try {
-    if (!(room && room.size != 0) && !(roomExpert && roomExpert.size != 0)) {
+    const room = rooms.get(matchId);
+    const roomExpert = rooms.get(`${matchId}expert`);
+
+    if ((!room || room.size === 0) && (!roomExpert || roomExpert.size === 0)) {
       clearInterval(matchIntervalIds[matchId]);
       delete matchIntervalIds[matchId];
       let matchIds = localStorage.getItem("matchDBds") ? JSON.parse(localStorage.getItem("matchDBds")) : null;
@@ -86,18 +108,7 @@ exports.CheckAndClearInterval = (matchId) => {
   }
 }
 
-const { getFootBallData, getCricketData, getTennisData, getHorseRacingData, getGreyHoundRacingData } = require('./getGameData');
-
-// Handle other Redis events if needed
-internalRedis.on('error', (error) => {
-  console.error('Error:', error);
-});
-
-app.get("/", (req, res) => {
-  return res.send("call the api");
-});
-
-
+// Game type constants
 const gameType = {
   football: 1,
   tennis: 2,
@@ -107,12 +118,8 @@ const gameType = {
   horseRacing: 7,
   greyhoundRacing: 4339,
   politics: 5
-}
-const eventUrl = {
-  football: "under_over_goal_market_list",
-  cricket: "cricket_extra_market_list",
-  tennis: "set_winner"
-}
+};
+
 
 app.get("/matchList", (req, res) => {
   let type = req.query.type;
@@ -235,111 +242,94 @@ app.get("/cricketScore", (req, res) => {
   });
 });
 
-io.on('connection', (socket) => {
-
-  socket.on('initCricketData', async function (event) {
-    let matchId = event.matchId;
-
-    let roleName = event.roleName;
-    if (roleName == 'expert') {
-      socket.join(matchId + 'expert');
-    } else {
-      socket.join(matchId);
-    }
-    let matchDetail = await internalRedis.hgetall(matchId + "_match");
-    let matchIds = localStorage.getItem("matchDBds") ? JSON.parse(localStorage.getItem("matchDBds")) : null;
-
-    if (!matchIntervalIds[matchId]) {
-      let marketId = matchDetail?.marketId;
-
-      if (marketId) {
-        if (matchIds == null) {
-          matchIds = [];
-        }
-        switch (matchDetail.matchType) {
-          case 'football':
-          case 'tennis':
-            matchIntervalIds[matchId] = setInterval(getFootBallData, liveGameTypeTime, marketId, matchId);
-            break;
-          case 'cricket':
-          case 'politics':
-            matchIntervalIds[matchId] = setInterval(getCricketData, liveGameTypeTime, marketId, matchId);
-            break;
-          case 'horseRacing':
-            matchIntervalIds[matchId] = setInterval(getHorseRacingData, liveGameTypeTime, marketId, matchId);
-            break;
-          case 'greyHound':
-            matchIntervalIds[matchId] = setInterval(getGreyHoundRacingData, liveGameTypeTime, marketId, matchId);
-            break;
-        }
-        matchIds.push(matchId);
-        localStorage.setItem("matchDBds", JSON.stringify(matchIds));
-      }
-    }
-  });
-
-  socket.on('disconnectCricketData', async function (event) {
-    let matchId = event.matchId;
-    let roleName = event.roleName;
-    let roomName = '';
-    if (roleName == 'expert') {
-      roomName = matchId + 'expert';
-    } else {
-      roomName = matchId;
-    }
-    socket.leave(roomName);
-    const room = io.sockets.adapter.rooms.get(matchId);
-    try {
-      if (!(room && room.size != 0)) {
-        clearInterval(matchIntervalIds[matchId]);
-        delete matchIntervalIds[matchId];
-        let matchIds = localStorage.getItem("matchDBds") ? JSON.parse(localStorage.getItem("matchDBds")) : null;
-        if (matchIds) {
-          matchIds.splice(matchIds.indexOf(matchId), 1);
-          localStorage.setItem("matchDBds", JSON.stringify(matchIds));
-        }
-      }
-    } catch (error) {
-      console.log("error at disconnectCricketData ", error);
-    }
-  });
-
-  socket.on('disconnect', async () => {
-    socket.leaveAll();
-  });
-
-  socket.on("leaveAllRoom", () => {
-    socket.leaveAll();
-  });
-
-});
-
 
 server.listen(port, () => {
-  console.log(`Betting app listening at Port:${port}`)
-  let matchDBds = localStorage.getItem("matchDBds") ? JSON.parse(localStorage.getItem("matchDBds")) : null;
-  if (matchDBds && matchDBds.length) {
-    matchDBds.map(async matchId => {
-      let matchDetail = await internalRedis.hgetall(matchId + "_match");
-      let marketId = matchDetail?.marketId;
-      if (marketId) {
-        switch (matchDetail.matchType) {
-          case 'football':
-          case 'tennis':
-            matchIntervalIds[matchId] = setInterval(getFootBallData, liveGameTypeTime, marketId, matchId);
-            break;
-          case 'cricket':
-          case 'politics':
-            matchIntervalIds[matchId] = setInterval(getCricketData, liveGameTypeTime, marketId, matchId);
-            break;
-          case 'horseRacing':
-            matchIntervalIds[matchId] = setInterval(getHorseRacingData, liveGameTypeTime, marketId, matchId);
-            break;
-          case 'greyHound':
-            matchIntervalIds[matchId] = setInterval(getGreyHoundRacingData, liveGameTypeTime, marketId, matchId);
-            break;
-        }
-      }
-    })
-  }
+  console.log(`Betting app listening at Port:${port}`);
+  // if (token) {
+    joinMultiMatchRoom(matchIntervalIds)
+  // }
 });
+
+// WebSocket handling
+uApp.ws('/*', {
+  open: (ws) => {
+    clients.set(ws, {
+      id: Math.random().toString(36).substr(2, 9)
+    });
+  },
+
+  message: async (ws, message) => {
+    if (message) {
+      try {
+        const msg = JSON.parse(Buffer.from(message).toString());
+  
+        switch (msg.event) {
+          case 'initCricketData':
+            const matchId = msg.matchId;
+            const roleName = msg.roleName;
+  
+            if (roleName == 'expert') {
+              joinRoom(ws, matchId + 'expert');
+            } else {
+              joinRoom(ws, matchId);
+            }
+            await joinMatchRoom(matchIntervalIds, matchId)
+            break;
+  
+          case 'disconnectCricketData':
+            const dcMatchId = msg.matchId;
+            const dcRoleName = msg.roleName;
+            const roomName = dcRoleName == 'expert' ? dcMatchId + 'expert' : dcMatchId;
+  
+            leaveRoom(ws, roomName);
+            CheckAndClearInterval(dcMatchId);
+            break;
+  
+          case 'leaveAllRoom':
+            // Find and leave all rooms this client is in
+            rooms.forEach((clients, roomName) => {
+              if (clients.has(ws)) {
+                leaveRoom(ws, roomName);
+              }
+            });
+            break;
+          default:
+            return;
+        }
+      } catch (error) {
+        console.log(error)
+      }
+    }
+  },
+
+  close: (ws) => {
+    // Remove from all rooms
+    rooms.forEach((clients, roomName) => {
+      if (clients.has(ws)) {
+        leaveRoom(ws, roomName);
+      }
+    });
+    clients.delete(ws);
+  }
+}).listen(port + 2, (token) => {
+  console.log(token);
+  if (token) {
+    console.log(`WebSocket server (µWebSockets.js) running on ws://localhost:${port}`);
+  } else {
+    console.log('Failed to listen to port');
+  }
+
+});
+
+
+
+// Helper function to broadcast data from game intervals
+function broadcastGameData(matchId, data) {
+  broadcastToRoom(matchId, data);
+  broadcastToRoom(matchId + 'expert', data);
+}
+
+// Export needed functions
+exports.broadcastGameData = broadcastGameData;
+exports.CheckAndClearInterval = CheckAndClearInterval;
+exports.broadcastToRoom = broadcastToRoom;
