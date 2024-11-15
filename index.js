@@ -1,5 +1,5 @@
 const express = require('express'); // using express
-const uWS = require('uWebsockets.js');
+const uWS = require('uWebSockets.js');
 const fs = require("fs");
 const http2 = require("http2"); // Use http2 instead of http
 const http = require("http");
