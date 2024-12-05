@@ -140,7 +140,8 @@ async function getCricketData(marketId, matchId) {
         "isActive": parseData.isActive,
         "activeStatus": parseData.activeStatus,
         gtype: parseData.gtype,
-        betLimit: parseData.betLimit
+        betLimit: parseData.betLimit,
+        exposureLimit: parseData.exposureLimit
       };
       expertResult.marketCompleteMatch = await formateOdds(customObject.marketCompleteMatch, obj);
       if (parseData.isActive) {
@@ -160,7 +161,8 @@ async function getCricketData(marketId, matchId) {
         "isActive": parseData.isActive,
         "activeStatus": parseData.activeStatus,
         gtype: parseData.gtype,
-        betLimit: parseData.betLimit
+        betLimit: parseData.betLimit,
+        exposureLimit: parseData.exposureLimit
       };
       expertResult.marketCompleteMatch1 = await formateOdds(customObject.marketCompleteMatch1, obj);
       if (parseData.isActive) {
@@ -180,6 +182,7 @@ async function getCricketData(marketId, matchId) {
         "isActive": parseData.isActive,
         "activeStatus": parseData.activeStatus,
         gtype: parseData.gtype,
+        exposureLimit: parseData.exposureLimit,
         betLimit: parseData.betLimit
       };
       expertResult.apiTiedMatch = await formateOdds(customObject.apiTiedMatch, obj);
@@ -200,6 +203,7 @@ async function getCricketData(marketId, matchId) {
         "isActive": parseData.isActive,
         "activeStatus": parseData.activeStatus,
         gtype: parseData.gtype,
+        exposureLimit: parseData.exposureLimit,
         betLimit: parseData.betLimit
       };
       expertResult.apiTiedMatch2 = await formateOdds(customObject.apiTiedMatch2, obj);
@@ -220,6 +224,7 @@ async function getCricketData(marketId, matchId) {
         "isActive": parseData.isActive,
         "activeStatus": parseData.activeStatus,
         gtype: parseData.gtype,
+        exposureLimit: parseData.exposureLimit,
         betLimit: parseData.betLimit
       };
       expertResult.bookmaker = await formateOdds(customObject.bookmaker, obj);
@@ -240,6 +245,7 @@ async function getCricketData(marketId, matchId) {
         "isActive": parseData.isActive,
         "activeStatus": parseData.activeStatus,
         gtype: parseData.gtype,
+        exposureLimit: parseData.exposureLimit,
         betLimit: parseData.betLimit
       };
       expertResult.bookmaker2 = await formateOdds(customObject.bookmaker2, obj);
@@ -269,6 +275,7 @@ async function getCricketData(marketId, matchId) {
             "isActive": parseData.isActive,
             "activeStatus": parseData.activeStatus,
             gtype: parseData.gtype,
+            exposureLimit: parseData.exposureLimit,
             betLimit: parseData.betLimit
           };
         }
@@ -294,6 +301,7 @@ async function getCricketData(marketId, matchId) {
             "activeStatus": parseData.activeStatus,
             "runners": [{ "nat": parseData?.metaData?.teamA }, { "nat": parseData?.metaData?.teamB }],
             gtype: parseData.gtype,
+            exposureLimit: parseData.exposureLimit,
             betLimit: parseData.betLimit
           };
           let formateData = await formateOdds(null, obj);
@@ -327,6 +335,7 @@ async function getCricketData(marketId, matchId) {
             "activeStatus": parseData.activeStatus,
             dbRunner: parseData?.runners,
             gtype: parseData.gtype,
+            exposureLimit: parseData.exposureLimit,
             betLimit: parseData.betLimit
           };
         }
@@ -354,6 +363,7 @@ async function getCricketData(marketId, matchId) {
               return { "nat": run?.runnerName, id: run?.id, selectionId: run.selectionId }
             }),
             gtype: parseData.gtype,
+            exposureLimit: parseData.exposureLimit,
             betLimit: parseData.betLimit
           };
           let formateData = await formateOdds(null, obj);
@@ -425,7 +435,7 @@ async function getCricketData(marketId, matchId) {
         returnResult.apiSession[key] = returnResult1;
         expertResult.apiSession[key] = expertResult1;
       }
-      
+
       key = 'meter';
       if (customObject.meter || sessionAPIObj[key]) {
         let { expertResult1, returnResult1 } = formateSessionMarket(key, customObject, sessionAPIObj);
@@ -629,6 +639,7 @@ async function getFootBallData(marketId, matchId) {
         "isActive": parseData.isActive,
         "activeStatus": parseData.activeStatus,
         gtype: parseData.gtype,
+        exposureLimit: parseData.exposureLimit,
         betLimit: parseData.betLimit
       };
       expertResult.matchOdd = await formateOdds(customObject.matchOdd, obj);
@@ -648,6 +659,7 @@ async function getFootBallData(marketId, matchId) {
         "isActive": parseData.isActive,
         "activeStatus": parseData.activeStatus,
         gtype: parseData.gtype,
+        exposureLimit: parseData.exposureLimit,
         betLimit: parseData.betLimit
       };
       expertResult.bookmaker = await formateOdds(customObject.bookmaker, obj);
@@ -668,6 +680,7 @@ async function getFootBallData(marketId, matchId) {
         "isActive": parseData.isActive,
         "activeStatus": parseData.activeStatus,
         gtype: parseData.gtype,
+        exposureLimit: parseData.exposureLimit,
         betLimit: parseData.betLimit
       };
       expertResult.bookmaker2 = await formateOdds(customObject.bookmaker2, obj);
@@ -698,6 +711,7 @@ async function getFootBallData(marketId, matchId) {
             "activeStatus": parseData.activeStatus,
             dbRunner: parseData?.runners,
             gtype: parseData.gtype,
+            exposureLimit: parseData.exposureLimit,
             betLimit: parseData.betLimit
           };
         }
@@ -725,6 +739,7 @@ async function getFootBallData(marketId, matchId) {
               return { "nat": run?.runnerName, id: run?.id, selectionId: run.selectionId }
             }),
             gtype: parseData.gtype,
+            exposureLimit: parseData.exposureLimit,
             betLimit: parseData.betLimit
           };
           let formateData = await formateOdds(null, obj);
@@ -1052,6 +1067,7 @@ function formateOdds(data, additionDetails) {
     inplay: data?.inplay,
     gtype: additionDetails.gtype || data?.gtype,
     rem: data?.rem,
+    exposureLimit: additionDetails.exposureLimit,
     runners: data?.section?.map(item => ({
       selectionId: item.sid,
       status: item.gstatus,
@@ -1125,6 +1141,7 @@ function formateSessionMarket(key, customObject, sessionAPIObj) {
         sessionObj["max"] = sessionAPI[sessionIndex].maxBet;
         sessionObj["createdAt"] = sessionAPI[sessionIndex].createdAt;
         sessionObj["updatedAt"] = sessionAPI[sessionIndex].updatedAt;
+        sessionObj["exposureLimit"] = sessionAPI[sessionIndex].exposureLimit;
         if (sessionObj["activeStatus"] == 'live') {
           onlyLiveSession.push(sessionObj);
         }
@@ -1143,7 +1160,8 @@ function formateSessionMarket(key, customObject, sessionAPIObj) {
         "id": session.id,
         "activeStatus": session.activeStatus,
         "createdAt": session.createdAt,
-        "updatedAt": session.updatedAt
+        "updatedAt": session.updatedAt,
+        exposureLimit: session.exposureLimit
       };
       if (obj["activeStatus"] == 'live') {
         onlyLiveSession.push(obj);
