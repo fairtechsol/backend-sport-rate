@@ -196,6 +196,9 @@ app.get("/getAllRateCricket/:eventId", (req, res) => {
   let eventId = req.params.eventId;
   let { apiType } = req.query;
   apiType = apiType || 2;
+  if(!eventId){
+    return res.send([]);
+  }
 
   ThirdPartyController.getAllRateCricket(eventId, apiType).then(function (data) {
     return res.send(data);
@@ -206,6 +209,9 @@ app.get("/getAllRateFootBallTennis/:eventId", (req, res) => {
   let eventId = req.params.eventId;
   let { apiType } = req.query;
   apiType = apiType || 3;
+  if(!eventId){
+    return res.send([]);
+  }
 
   ThirdPartyController.getAllRateFootBallTennis(eventId, apiType).then(function (data) {
     return res.send(data);
@@ -230,6 +236,9 @@ app.get("/getDirectMatchList", (req, res) => {
 
 app.get("/cricketScore", (req, res) => {
   let { eventId } = req.query;
+  if(!eventId){
+    return res.send([]);
+  }
   ThirdPartyController.getCricketScore(eventId).then(function (data) {
     return res.send(data);
   });

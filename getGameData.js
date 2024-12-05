@@ -67,6 +67,13 @@ async function getCricketData(marketId, matchId) {
           case "bookmaker 2":
             customObject.bookmaker2 = da;
             break;
+          case "bookmaker match":
+            if (customObject.bookmaker) {
+              customObject.bookmaker2 = da;
+            } else {
+              customObject.bookmaker = da;
+            }
+            break;
           case "completed_match":
             customObject.marketCompleteMatch = da;
             break;
@@ -618,6 +625,13 @@ async function getFootBallData(marketId, matchId) {
             break;
           case "bookmaker 2":
             customObject.bookmaker2 = da;
+            break;
+          case "bookmaker match":
+            if (customObject.bookmaker) {
+              customObject.bookmaker2 = da;
+            } else {
+              customObject.bookmaker = da;
+            }
             break;
           default:
             customObject.tournament.push(da);
