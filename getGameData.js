@@ -471,6 +471,7 @@ async function getCricketData(marketId, matchId) {
               casinoSession["activeStatus"] = sessionAPI[sessionIndex].activeStatus;
               casinoSession["min"] = sessionAPI[sessionIndex].minBet;
               casinoSession["max"] = sessionAPI[sessionIndex].maxBet;
+              casinoSession["isCommissionActive"] = sessionAPI[sessionIndex].isCommissionActive;
               casinoSession["createdAt"] = sessionAPI[sessionIndex].createdAt;
               casinoSession["updatedAt"] = sessionAPI[sessionIndex].updatedAt;
 
@@ -1156,6 +1157,7 @@ function formateSessionMarket(key, customObject, sessionAPIObj) {
         sessionObj["createdAt"] = sessionAPI[sessionIndex].createdAt;
         sessionObj["updatedAt"] = sessionAPI[sessionIndex].updatedAt;
         sessionObj["exposureLimit"] = sessionAPI[sessionIndex].exposureLimit;
+        sessionObj["isCommissionActive"] = sessionAPI[sessionIndex].isCommissionActive;
         if (sessionObj["activeStatus"] == 'live') {
           onlyLiveSession.push(sessionObj);
         }
@@ -1175,7 +1177,8 @@ function formateSessionMarket(key, customObject, sessionAPIObj) {
         "activeStatus": session.activeStatus,
         "createdAt": session.createdAt,
         "updatedAt": session.updatedAt,
-        exposureLimit: session.exposureLimit
+        exposureLimit: session.exposureLimit,
+        isCommissionActive: session.isCommissionActive
       };
       if (obj["activeStatus"] == 'live') {
         onlyLiveSession.push(obj);
