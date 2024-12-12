@@ -127,7 +127,8 @@ async function getCricketData(marketId, matchId) {
         "isActive": parseData.isActive,
         "activeStatus": parseData.activeStatus,
         gtype: parseData.gtype,
-        betLimit: parseData.betLimit
+        betLimit: parseData.betLimit,
+        exposureLimit: parseData.exposureLimit
       };
       expertResult.matchOdd = await formateOdds(customObject.matchOdd, obj);
       if (parseData.isActive) {
