@@ -128,7 +128,8 @@ async function getCricketData(marketId, matchId) {
         "activeStatus": parseData.activeStatus,
         gtype: parseData.gtype,
         betLimit: parseData.betLimit,
-        exposureLimit: parseData.exposureLimit
+        exposureLimit: parseData.exposureLimit,
+        isCommissionActive: parseData.isCommissionActive
       };
       expertResult.matchOdd = await formateOdds(customObject.matchOdd, obj);
       if (parseData.isActive) {
@@ -149,6 +150,7 @@ async function getCricketData(marketId, matchId) {
         "activeStatus": parseData.activeStatus,
         gtype: parseData.gtype,
         betLimit: parseData.betLimit,
+        isCommissionActive: parseData.isCommissionActive,
         exposureLimit: parseData.exposureLimit
       };
       expertResult.marketCompleteMatch = await formateOdds(customObject.marketCompleteMatch, obj);
@@ -170,6 +172,7 @@ async function getCricketData(marketId, matchId) {
         "activeStatus": parseData.activeStatus,
         gtype: parseData.gtype,
         betLimit: parseData.betLimit,
+        isCommissionActive: parseData.isCommissionActive,
         exposureLimit: parseData.exposureLimit
       };
       expertResult.marketCompleteMatch1 = await formateOdds(customObject.marketCompleteMatch1, obj);
@@ -190,6 +193,7 @@ async function getCricketData(marketId, matchId) {
         "isActive": parseData.isActive,
         "activeStatus": parseData.activeStatus,
         gtype: parseData.gtype,
+        isCommissionActive: parseData.isCommissionActive,
         exposureLimit: parseData.exposureLimit,
         betLimit: parseData.betLimit
       };
@@ -211,6 +215,7 @@ async function getCricketData(marketId, matchId) {
         "isActive": parseData.isActive,
         "activeStatus": parseData.activeStatus,
         gtype: parseData.gtype,
+        isCommissionActive: parseData.isCommissionActive,
         exposureLimit: parseData.exposureLimit,
         betLimit: parseData.betLimit
       };
@@ -232,6 +237,7 @@ async function getCricketData(marketId, matchId) {
         "isActive": parseData.isActive,
         "activeStatus": parseData.activeStatus,
         gtype: parseData.gtype,
+        isCommissionActive: parseData.isCommissionActive,
         exposureLimit: parseData.exposureLimit,
         betLimit: parseData.betLimit
       };
@@ -253,6 +259,7 @@ async function getCricketData(marketId, matchId) {
         "isActive": parseData.isActive,
         "activeStatus": parseData.activeStatus,
         gtype: parseData.gtype,
+        isCommissionActive: parseData.isCommissionActive,
         exposureLimit: parseData.exposureLimit,
         betLimit: parseData.betLimit
       };
@@ -1084,6 +1091,7 @@ function formateOdds(data, additionDetails) {
     gtype: additionDetails.gtype || data?.gtype,
     rem: data?.rem,
     exposureLimit: additionDetails.exposureLimit,
+    isCommissionActive: additionDetails.isCommissionActive,
     runners: data?.section?.map(item => ({
       selectionId: item.sid,
       status: item.gstatus,
