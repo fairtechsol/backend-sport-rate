@@ -118,8 +118,8 @@ async function getCricketData(marketId, matchId) {
       }
       for (let item of otherData) {
         let isRedisExist = iterated?.findIndex(it => it == item?.name);
-        let obj = {};
         if (isRedisExist < 0) {
+          let obj = {};
           let parseData = item;
           obj = {
             "id": parseData.id,
@@ -130,7 +130,26 @@ async function getCricketData(marketId, matchId) {
             "type": parseData.type,
             "isActive": parseData.isActive,
             "activeStatus": parseData.activeStatus,
-            "runners": parseData.runners?.map(run => {
+            "runners": parseData.isManual ? parseData.runners?.map(item => ({
+              selectionId: item.selectionId,
+              status: item.status?.toUpperCase(),
+              nat: item.runnerName,
+              id: item.id,
+              ex: {
+                availableToBack: [{
+                  price: item.backRate,
+                  otype: "back",
+                  oname: "back1",
+                  tno: 0
+                }],
+                availableToLay: [{
+                  price: item.layRate,
+                  otype: "lay",
+                  oname: "lay1",
+                  tno: 0
+                }]
+              }
+            })) : parseData.runners?.map(run => {
               return { "nat": run?.runnerName, id: run?.id, selectionId: run.selectionId }
             }),
             gtype: parseData.gtype,
@@ -337,7 +356,7 @@ async function getCricketData(marketId, matchId) {
       }
     }
   }
-
+  
   io.to(matchId).emit("liveData" + matchId, returnResult);
   io.to(matchId + 'expert').emit("liveData" + matchId, expertResult);
 }
