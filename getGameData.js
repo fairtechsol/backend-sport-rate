@@ -130,6 +130,7 @@ async function getCricketData(marketId, matchId) {
             "type": parseData.type,
             "isActive": parseData.isActive,
             "activeStatus": parseData.activeStatus,
+            "isManual": parseData.isManual,
             "runners": parseData.isManual ? parseData.runners?.map(item => ({
               selectionId: item.selectionId,
               status: item.status?.toUpperCase(),
