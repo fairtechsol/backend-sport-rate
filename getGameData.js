@@ -104,10 +104,12 @@ async function getCricketData(marketId, matchId) {
             "type": parseData.type,
             "isActive": parseData.isActive,
             "activeStatus": parseData.activeStatus,
+            isManual:parseData.isManual,
             dbRunner: parseData?.runners,
             gtype: parseData.gtype,
             exposureLimit: parseData.exposureLimit,
-            betLimit: parseData.betLimit
+            betLimit: parseData.betLimit,
+            isCommissionActive:parseData.isCommissionActive
           };
         }
         let formateData = await formateOdds(item, obj);
@@ -130,6 +132,7 @@ async function getCricketData(marketId, matchId) {
             "type": parseData.type,
             "isActive": parseData.isActive,
             "activeStatus": parseData.activeStatus,
+            isCommissionActive:parseData.isCommissionActive,
             "isManual": parseData.isManual,
             "runners": parseData.isManual ? parseData.runners?.map(item => ({
               selectionId: item.selectionId,
@@ -138,36 +141,36 @@ async function getCricketData(marketId, matchId) {
               id: item.id,
               ex: {
                 availableToBack: [{
-                  price: item.backRate < 2.99 ? Math.floor(item.backRate) - 2 : 0,
+                  price: item.backRate > 2 ? Math.floor(item.backRate) - 2 : 0,
                   otype: "back",
                   oname: "back3",
                   tno: 2
                 },{
-                  price: item.backRate < 1.99 ? Math.floor(item.backRate) - 1 : 0,
+                  price: item.backRate > 1 ? Math.floor(item.backRate) - 1 : 0,
                   otype: "back",
                   oname: "back2",
                   tno: 1
                 },{
-                  price: item.backRate,
+                  price: item.backRate < 0 ? 0 : item.backRate,
                   otype: "back",
                   oname: "back1",
                   tno: 0
                 }],
                 availableToLay: [{
-                  price: item.layRate,
+                  price: item.layRate < 0 ? 0 : item.layRate,
                   otype: "lay",
                   oname: "lay1",
                   tno: 0
-                },{
-                  price: !matchDetail.rateThan100 &&  item.layRate > 99.99 ? 0 : Math.floor(item.layRate) + 1,
-                  otype: "lay",
-                  oname: "lay2",
-                  tno: 1
-                },{
-                  price: !matchDetail.rateThan100 &&  item.layRate > 98.99 ? 0 : Math.floor(item.layRate) + 2,
-                  otype: "lay",
-                  oname: "lay3",
-                  tno: 2
+                }, {
+                    price: ((!matchDetail.rateThan100 && item.layRate > 99.99) || (item.layRate <= 0)) ? 0 : Math.floor(item.layRate) + 1,
+                    otype: "lay",
+                    oname: "lay2",
+                    tno: 1
+                  }, {
+                    price: ((!matchDetail.rateThan100 && item.layRate > 98.99) || ((item.layRate <= 0))) ? 0 : Math.floor(item.layRate) + 2,
+                    otype: "lay",
+                    oname: "lay3",
+                    tno: 2
                 }]
               }
             })) : parseData.runners?.map(run => {
@@ -662,6 +665,7 @@ function formateOdds(data, additionDetails) {
     inplay: data?.inplay,
     gtype: additionDetails.gtype || data?.gtype,
     rem: data?.rem,
+    isManual: additionDetails?.isManual || data?.isManual,
     exposureLimit: additionDetails.exposureLimit,
     isCommissionActive: additionDetails.isCommissionActive,
     runners: data?.section?.map(item => ({
