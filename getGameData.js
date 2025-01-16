@@ -138,6 +138,16 @@ async function getCricketData(marketId, matchId) {
               id: item.id,
               ex: {
                 availableToBack: [{
+                  price: Math.floor(item.backRate) - 2,
+                  otype: "back",
+                  oname: "back3",
+                  tno: 2
+                },{
+                  price: Math.floor(item.backRate) - 1,
+                  otype: "back",
+                  oname: "back2",
+                  tno: 1
+                },{
                   price: item.backRate,
                   otype: "back",
                   oname: "back1",
@@ -148,6 +158,16 @@ async function getCricketData(marketId, matchId) {
                   otype: "lay",
                   oname: "lay1",
                   tno: 0
+                },{
+                  price: Math.floor(item.layRate) - 1,
+                  otype: "lay",
+                  oname: "lay2",
+                  tno: 1
+                },{
+                  price: Math.floor(item.layRate) - 2,
+                  otype: "lay",
+                  oname: "lay3",
+                  tno: 2
                 }]
               }
             })) : parseData.runners?.map(run => {
