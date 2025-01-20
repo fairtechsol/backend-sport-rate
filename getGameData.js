@@ -20,7 +20,8 @@ async function getCricketData(marketId, matchId) {
     let data = await ThirdPartyController.getAllRateCricket(matchDetail.eventId, 2);
 
     let mainData = data?.data || [];
-
+    returnResult.mid = mainData[0]?.mid;
+    expertResult.mid = mainData[0]?.mid;
     let customObject = { other: [] };
 
     if (!matchDetail?.teamB) {
