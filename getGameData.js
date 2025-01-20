@@ -604,6 +604,8 @@ async function getFootBallData(marketId, matchId) {
   if (!isManual) {
     let data = await ThirdPartyController.getAllRateFootBallTennis(matchDetail.eventId, 3);
     let mainData = data?.data || [];
+    returnResult.mid = mainData[0]?.mid;
+    expertResult.mid = mainData[0]?.mid;
     let customObject = { other: [] };
 
     if (!matchDetail?.teamB) {
@@ -1087,7 +1089,7 @@ function formateOdds(data, additionDetails) {
   return {
     marketId: additionDetails.marketId,
     mid: data?.mid || additionDetails?.marketId,
-    gmid: data.gmid,
+    gmid: data?.gmid,
     status: data?.status,
     inplay: data?.inplay,
     gtype: additionDetails.gtype || data?.gtype,
