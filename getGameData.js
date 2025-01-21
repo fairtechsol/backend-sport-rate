@@ -48,72 +48,77 @@ async function getCricketData(marketId, matchId) {
     } else {
       mainData.forEach(da => {
         const mname = da.mname.toLowerCase();
-        switch (mname) {
-          case "match_odds":
-            customObject.matchOdd = da;
-            break;
-          case "tied_match":
-            customObject.apiTiedMatch = da;
-            break;
-          case "tied match":
-            customObject.apiTiedMatch2 = da;
-            break;
-          case "bookmaker":
-            if (customObject.bookmaker) {
-              customObject.bookmaker2 = da;
-            } else {
-              customObject.bookmaker = da;
-            }
-            break;
-          case "bookmaker 2":
-            customObject.bookmaker2 = da;
-            break;
-          case "bookmaker match":
-            if (customObject.bookmaker) {
-              customObject.bookmaker2 = da;
-            } else {
-              customObject.bookmaker = da;
-            }
-            break;
-          case "completed_match":
-            customObject.marketCompleteMatch = da;
-            break;
-          case "completed match":
-            customObject.marketCompleteMatch1 = da;
-            break;
-          case "normal":
-            customObject.session = da;
-            break;
-          case "over by over":
-            customObject.overByover = da;
-            break;
-          case "ball by ball":
-            customObject.ballByBall = da;
-            break;
-          case "oddeven":
-            customObject.oddEven = da;
-            break;
-          case "fancy1":
-            customObject.fancy1 = da;
-            break;
-          case "khado":
-            customObject.khado = da;
-            break;
-          case "meter":
-            customObject.meter = da;
-            break;
-          default:
-            if (da.gtype == "cricketcasino") {
-              if (customObject.hasOwnProperty("cricketCasino")) {
-                customObject.cricketCasino.push(da);
+        if(da.mid = 7320090995720){
+          customObject.tiedMatch2 = da;
+        } else {
+          switch (mname) {
+            case "match_odds":
+              customObject.matchOdd = da;
+              break;
+            case "tied_match":
+              customObject.apiTiedMatch = da;
+              break;
+            case "tied match":
+              customObject.apiTiedMatch2 = da;
+              break;
+            case "bookmaker":
+              if (customObject.bookmaker) {
+                customObject.bookmaker2 = da;
               } else {
-                customObject.cricketCasino = [da];
+                customObject.bookmaker = da;
               }
-            } else {
-              if (da.gtype == 'match1') customObject.other.push(da);
-            }
-            break;
+              break;
+            case "bookmaker 2":
+              customObject.bookmaker2 = da;
+              break;
+            case "bookmaker match":
+              if (customObject.bookmaker) {
+                customObject.bookmaker2 = da;
+              } else {
+                customObject.bookmaker = da;
+              }
+              break;
+            case "completed_match":
+              customObject.marketCompleteMatch = da;
+              break;
+            case "completed match":
+              customObject.marketCompleteMatch1 = da;
+              break;
+            case "normal":
+              customObject.session = da;
+              break;
+            case "over by over":
+              customObject.overByover = da;
+              break;
+            case "ball by ball":
+              customObject.ballByBall = da;
+              break;
+            case "oddeven":
+              customObject.oddEven = da;
+              break;
+            case "fancy1":
+              customObject.fancy1 = da;
+              break;
+            case "khado":
+              customObject.khado = da;
+              break;
+            case "meter":
+              customObject.meter = da;
+              break;
+            default:
+              if (da.gtype == "cricketcasino") {
+                if (customObject.hasOwnProperty("cricketCasino")) {
+                  customObject.cricketCasino.push(da);
+                } else {
+                  customObject.cricketCasino = [da];
+                }
+              } else {
+                if (da.gtype == 'match1') customObject.other.push(da);
+              }
+              break;
+          }
         }
+
       });
     }
     if (matchDetail.matchOdd || customObject.matchOdd) {
