@@ -109,7 +109,8 @@ async function getCricketData(marketId, matchId) {
             gtype: parseData.gtype,
             exposureLimit: parseData.exposureLimit,
             betLimit: parseData.betLimit,
-            isCommissionActive:parseData.isCommissionActive
+            isCommissionActive:parseData.isCommissionActive,
+            sno: parseData.sno,
           };
         }
         let formateData = await formateOdds(item, obj);
@@ -133,6 +134,7 @@ async function getCricketData(marketId, matchId) {
             "isActive": parseData.isActive,
             "activeStatus": parseData.activeStatus,
             isCommissionActive:parseData.isCommissionActive,
+            sno: parseData.sno,
             "isManual": parseData.isManual,
             "runners": parseData.isManual ? parseData.runners?.map(item => ({
               selectionId: item.selectionId,
@@ -669,6 +671,7 @@ function formateOdds(data, additionDetails) {
     isManual: additionDetails?.isManual || data?.isManual,
     exposureLimit: additionDetails.exposureLimit,
     isCommissionActive: additionDetails.isCommissionActive,
+    sno: data.sno || additionDetails.sno,
     runners: data?.section?.map(item => ({
       selectionId: item.sid,
       status: item.gstatus,
