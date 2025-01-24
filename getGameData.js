@@ -139,6 +139,7 @@ async function getCricketData(marketId, matchId) {
               status: item.status?.toUpperCase(),
               nat: item.runnerName,
               id: item.id,
+              sortPriority: item.sortPriority,
               ex: {
                 availableToBack: [{
                   price: item.backRate > 2 ? Math.floor(item.backRate) - 2 : 0,
@@ -672,6 +673,7 @@ function formateOdds(data, additionDetails) {
       selectionId: item.sid,
       status: item.gstatus,
       nat: item.nat,
+      sortPriority: item.sno,
       id: additionDetails?.dbRunner?.find((items) => items?.selectionId?.toString() == item?.sid?.toString())?.id,
       ex: {
         availableToBack: item.odds?.filter(odd => odd.otype === 'back').map(odd => ({
