@@ -673,7 +673,7 @@ function formateOdds(data, additionDetails) {
     isManual: additionDetails?.isManual || data?.isManual,
     exposureLimit: additionDetails.exposureLimit,
     isCommissionActive: additionDetails.isCommissionActive,
-    sno: data.sno || additionDetails.sno,
+    sno: data?.sno || additionDetails?.sno,
     runners: data?.section?.map(item => ({
       selectionId: item.sid,
       status: item.gstatus,
