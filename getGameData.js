@@ -177,7 +177,7 @@ async function getCricketData(marketId, matchId) {
                 }]
               }
             })) : parseData.runners?.map(run => {
-              return { "nat": run?.runnerName, id: run?.id, selectionId: run.selectionId }
+              return { "nat": run?.runnerName, id: run?.id, selectionId: run.selectionId, sortPriority: run.sortPriority, }
             }),
             gtype: parseData.gtype,
             exposureLimit: parseData.exposureLimit,
@@ -445,7 +445,8 @@ async function getFootBallData(marketId, matchId) {
             dbRunner: parseData?.runners,
             gtype: parseData.gtype,
             exposureLimit: parseData.exposureLimit,
-            betLimit: parseData.betLimit
+            betLimit: parseData.betLimit,
+            sno: data.sno || additionDetails.sno,
           };
         }
         let formateData = await formateOdds(item, obj);
@@ -468,8 +469,9 @@ async function getFootBallData(marketId, matchId) {
             "type": parseData.type,
             "isActive": parseData.isActive,
             "activeStatus": parseData.activeStatus,
+            sno: data.sno || additionDetails.sno,
             "runners": parseData.runners?.map(run => {
-              return { "nat": run?.runnerName, id: run?.id, selectionId: run.selectionId }
+              return { "nat": run?.runnerName, id: run?.id, selectionId: run.selectionId, sortPriority: run.sortPriority, }
             }),
             gtype: parseData.gtype,
             exposureLimit: parseData.exposureLimit,
