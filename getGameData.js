@@ -446,7 +446,7 @@ async function getFootBallData(marketId, matchId) {
             gtype: parseData.gtype,
             exposureLimit: parseData.exposureLimit,
             betLimit: parseData.betLimit,
-            sno: data.sno || additionDetails.sno,
+            sno: parseData.sno,
           };
         }
         let formateData = await formateOdds(item, obj);
@@ -469,7 +469,7 @@ async function getFootBallData(marketId, matchId) {
             "type": parseData.type,
             "isActive": parseData.isActive,
             "activeStatus": parseData.activeStatus,
-            sno: data.sno || additionDetails.sno,
+            sno: parseData.sno,
             "runners": parseData.runners?.map(run => {
               return { "nat": run?.runnerName, id: run?.id, selectionId: run.selectionId, sortPriority: run.sortPriority, }
             }),
