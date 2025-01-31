@@ -446,6 +446,7 @@ async function getFootBallData(marketId, matchId) {
             gtype: parseData.gtype,
             exposureLimit: parseData.exposureLimit,
             betLimit: parseData.betLimit,
+            isCommissionActive: parseData.isCommissionActive,
             sno: parseData.sno,
           };
         }
@@ -475,7 +476,8 @@ async function getFootBallData(marketId, matchId) {
             }),
             gtype: parseData.gtype,
             exposureLimit: parseData.exposureLimit,
-            betLimit: parseData.betLimit
+            betLimit: parseData.betLimit,
+            isCommissionActive: parseData.isCommissionActive,
           };
           let formateData = await formateOdds(null, obj);
           expertResult.tournament.push(formateData);
