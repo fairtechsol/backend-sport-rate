@@ -442,11 +442,12 @@ async function getFootBallData(marketId, matchId) {
             "type": parseData.type,
             "isActive": parseData.isActive,
             "activeStatus": parseData.activeStatus,
+            isManual:parseData.isManual,
             dbRunner: parseData?.runners,
             gtype: parseData.gtype,
             exposureLimit: parseData.exposureLimit,
             betLimit: parseData.betLimit,
-            isCommissionActive: parseData.isCommissionActive,
+            isCommissionActive:parseData.isCommissionActive,
             sno: parseData.sno,
           };
         }
@@ -458,8 +459,8 @@ async function getFootBallData(marketId, matchId) {
       }
       for (let item of otherData) {
         let isRedisExist = iterated?.findIndex(it => it == item?.name);
-        let obj = {};
         if (isRedisExist < 0) {
+          let obj = {};
           let parseData = item;
           obj = {
             "id": parseData.id,
@@ -470,14 +471,55 @@ async function getFootBallData(marketId, matchId) {
             "type": parseData.type,
             "isActive": parseData.isActive,
             "activeStatus": parseData.activeStatus,
+            isCommissionActive:parseData.isCommissionActive,
             sno: parseData.sno,
-            "runners": parseData.runners?.map(run => {
+            "isManual": parseData.isManual,
+            "runners": parseData.isManual ? parseData.runners?.map(item => ({
+              selectionId: item.selectionId,
+              status: item.status?.toUpperCase(),
+              nat: item.runnerName,
+              id: item.id,
+              sortPriority: item.sortPriority,
+              ex: {
+                availableToBack: [{
+                  price: item.backRate > 2 ? Math.floor(item.backRate) - 2 : 0,
+                  otype: "back",
+                  oname: "back3",
+                  tno: 2
+                },{
+                  price: item.backRate > 1 ? Math.floor(item.backRate) - 1 : 0,
+                  otype: "back",
+                  oname: "back2",
+                  tno: 1
+                },{
+                  price: item.backRate < 0 ? 0 : item.backRate,
+                  otype: "back",
+                  oname: "back1",
+                  tno: 0
+                }],
+                availableToLay: [{
+                  price: item.layRate < 0 ? 0 : item.layRate,
+                  otype: "lay",
+                  oname: "lay1",
+                  tno: 0
+                }, {
+                    price: ((!matchDetail.rateThan100 && item.layRate > 99.99) || (item.layRate <= 0)) ? 0 : Math.floor(item.layRate) + 1,
+                    otype: "lay",
+                    oname: "lay2",
+                    tno: 1
+                  }, {
+                    price: ((!matchDetail.rateThan100 && item.layRate > 98.99) || ((item.layRate <= 0))) ? 0 : Math.floor(item.layRate) + 2,
+                    otype: "lay",
+                    oname: "lay3",
+                    tno: 2
+                }]
+              }
+            })) : parseData.runners?.map(run => {
               return { "nat": run?.runnerName, id: run?.id, selectionId: run.selectionId, sortPriority: run.sortPriority, }
             }),
             gtype: parseData.gtype,
             exposureLimit: parseData.exposureLimit,
-            betLimit: parseData.betLimit,
-            isCommissionActive: parseData.isCommissionActive,
+            betLimit: parseData.betLimit
           };
           let formateData = await formateOdds(null, obj);
           expertResult.tournament.push(formateData);
