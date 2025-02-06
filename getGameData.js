@@ -115,9 +115,9 @@ async function getCricketData(marketId, matchId) {
         }
         let formateData = await formateOdds(item, obj);
         expertResult.tournament.push(formateData);
-        if (obj.isActive) {
+        // if (obj.isActive) {
           returnResult.tournament.push(formateData);
-        }
+        // }
       }
       for (let item of otherData) {
         let isRedisExist = iterated?.findIndex(it => it == item?.name);
@@ -185,9 +185,9 @@ async function getCricketData(marketId, matchId) {
           };
           let formateData = await formateOdds(null, obj);
           expertResult.tournament.push(formateData);
-          if (obj.isActive) {
+          // if (obj.isActive) {
             returnResult.tournament.push(formateData);
-          }
+          // }
         }
       }
     }
@@ -453,9 +453,9 @@ async function getFootBallData(marketId, matchId) {
         }
         let formateData = await formateOdds(item, obj);
         expertResult.tournament.push(formateData);
-        if (obj.isActive) {
+        // if (obj.isActive) {
           returnResult.tournament.push(formateData);
-        }
+        // }
       }
       for (let item of otherData) {
         let isRedisExist = iterated?.findIndex(it => it == item?.name);
@@ -523,9 +523,9 @@ async function getFootBallData(marketId, matchId) {
           };
           let formateData = await formateOdds(null, obj);
           expertResult.tournament.push(formateData);
-          if (obj.isActive) {
+          // if (obj.isActive) {
             returnResult.tournament.push(formateData);
-          }
+          // }
         }
       }
     }
