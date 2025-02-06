@@ -1,5 +1,39 @@
+const winston = require('winston');
+const fs = require('fs');
+const path = require('path');
+const moment = require('moment-timezone');
+
 const ThirdPartyController = require('./thirdPartyController.js');
 const { internalRedis, io, CheckAndClearInterval } = require('./index.js');
+
+// Create logs directory if it doesn't exist
+const logsDir = path.join(__dirname, 'logs');
+if (!fs.existsSync(logsDir)) {
+    fs.mkdirSync(logsDir);
+}
+// Create logger factory function
+const createEventLogger = (matchId) => {
+  const logFile = path.join(logsDir, `event-${matchId}.log`);
+  
+  return winston.createLogger({
+      format: winston.format.combine(
+          winston.format.timestamp(),
+          winston.format.json()
+      ),
+      transports: [
+          new winston.transports.File({ filename: logFile }),
+          new winston.transports.Console()
+      ]
+  });
+};
+
+const addLogs = async (matchId, data) => {
+  const logger = createEventLogger(matchId);
+  data = data.filter(item => { if(item.gtype == 'match' || item.gtype == 'match1') return item; });
+  const indiaTime = moment().tz('Asia/Kolkata').format();
+  // Log request
+  logger.info({data, dateTime: indiaTime });
+}
 
 
 async function getCricketData(marketId, matchId) {
@@ -20,6 +54,7 @@ async function getCricketData(marketId, matchId) {
     let data = await ThirdPartyController.getAllRateCricket(matchDetail.eventId, 2);
 
     let mainData = data?.data || [];
+    addLogs(matchId, mainData);
 
     let customObject = { tournament: [] };
 
