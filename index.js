@@ -87,8 +87,13 @@ const CheckAndClearInterval = (matchId) => {
         let intervalId = matchIntervalIds[matchId];
         setTimeout(() => {
           clearInterval(intervalId);
-          externalRedis.del(matchId + "_expertRate");
-          externalRedis.del(matchId + "_userRate");
+          
+          const roomCheck = io.sockets.adapter.rooms.get(matchId);
+          const roomExpertCheck = io.sockets.adapter.rooms.get(`${matchId}expert`);
+          if (!(roomCheck && roomCheck.size != 0) && !(roomExpertCheck && roomExpertCheck.size != 0)) {
+            externalRedis.del(matchId + "_expertRate");
+            externalRedis.del(matchId + "_userRate");
+          }
         }, 10000);
       }
       delete matchIntervalIds[matchId];
