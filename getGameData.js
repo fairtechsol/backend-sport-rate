@@ -753,6 +753,7 @@ function formateOdds(data, additionDetails) {
   return {
     marketId: additionDetails.marketId,
     mid: data?.mid || additionDetails?.marketId,
+    gmid: data?.gmid,
     status: data?.status,
     inplay: data?.inplay,
     gtype: additionDetails.gtype || data?.gtype,
