@@ -22,7 +22,6 @@ const createEventLogger = (matchId) => {
       ),
       transports: [
           new winston.transports.File({ filename: logFile }),
-          new winston.transports.Console()
       ]
   });
 };
