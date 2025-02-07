@@ -28,11 +28,13 @@ const createEventLogger = (matchId) => {
 };
 
 const addLogs = async (matchId, data) => {
-  const logger = createEventLogger(matchId);
-  data = data.filter(item => { if(item.gtype == 'match' || item.gtype == 'match1') return item; });
-  const indiaTime = moment().tz('Asia/Kolkata').format();
-  // Log request
-  // logger.info({data, dateTime: indiaTime });
+  if(process.env.NODE_ENV == 'production') {
+    const logger = createEventLogger(matchId);
+    data = data.filter(item => { if(item.gtype == 'match' || item.gtype == 'match1') return item; });
+    const indiaTime = moment().tz('Asia/Kolkata').format();
+    // Log request
+    logger.info({data, dateTime: indiaTime });
+  }
 }
 
 
