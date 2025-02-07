@@ -4,7 +4,7 @@ const path = require('path');
 const moment = require('moment-timezone');
 
 const ThirdPartyController = require('./thirdPartyController.js');
-const { internalRedis, io, CheckAndClearInterval } = require('./index.js');
+const { internalRedis, io, CheckAndClearInterval, externalRedis } = require('./index.js');
 
 // Create logs directory if it doesn't exist
 const logsDir = path.join(__dirname, 'logs');
@@ -32,7 +32,7 @@ const addLogs = async (matchId, data) => {
   data = data.filter(item => { if(item.gtype == 'match' || item.gtype == 'match1') return item; });
   const indiaTime = moment().tz('Asia/Kolkata').format();
   // Log request
-  logger.info({data, dateTime: indiaTime });
+  // logger.info({data, dateTime: indiaTime });
 }
 
 
@@ -150,9 +150,9 @@ async function getCricketData(marketId, matchId) {
         }
         let formateData = await formateOdds(item, obj);
         expertResult.tournament.push(formateData);
-        // if (obj.isActive) {
+        if (obj.activeStatus == 'live') {
           returnResult.tournament.push(formateData);
-        // }
+        }
       }
       for (let item of otherData) {
         let isRedisExist = iterated?.findIndex(it => it == item?.name);
@@ -418,9 +418,12 @@ async function getCricketData(marketId, matchId) {
       }
     }
   }
+
+  externalRedis.set(matchId + "_expertRate", JSON.stringify(expertResult));
+  externalRedis.set(matchId + "_userRate", JSON.stringify(returnResult));
   
-  io.to(matchId).emit("liveData" + matchId, returnResult);
-  io.to(matchId + 'expert').emit("liveData" + matchId, expertResult);
+  // io.to(matchId).emit("liveData" + matchId, returnResult);
+  // io.to(matchId + 'expert').emit("liveData" + matchId, expertResult);
 }
 exports.getCricketData = getCricketData;
 
@@ -488,9 +491,9 @@ async function getFootBallData(marketId, matchId) {
         }
         let formateData = await formateOdds(item, obj);
         expertResult.tournament.push(formateData);
-        // if (obj.isActive) {
+        if (obj.activeStatus == 'live') {
           returnResult.tournament.push(formateData);
-        // }
+        }
       }
       for (let item of otherData) {
         let isRedisExist = iterated?.findIndex(it => it == item?.name);
@@ -598,8 +601,12 @@ async function getFootBallData(marketId, matchId) {
     }
   }
 
-  io.to(matchId).emit("liveData" + matchId, returnResult);
-  io.to(matchId + 'expert').emit("liveData" + matchId, expertResult);
+  
+  await externalRedis.set(matchId + "_expertRate", JSON.stringify(expertResult));
+  await externalRedis.set(matchId + "_userRate", JSON.stringify(returnResult));
+
+  // io.to(matchId).emit("liveData" + matchId, returnResult);
+  // io.to(matchId + 'expert').emit("liveData" + matchId, expertResult);
 }
 exports.getFootBallData = getFootBallData;
 

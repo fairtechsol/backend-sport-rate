@@ -64,16 +64,33 @@ internalRedis.on('connect', async () => {
 exports.internalRedis = internalRedis;
 exports.io = io;
 
+const externalRedis = new Redis({
+  host: process.env.EXTERNAL_REDIS_HOST || 'localhost',
+  port: process.env.EXTERNAL_REDIS_PORT || 6379,
+  password: process.env.EXTERNAL_REDIS_PASSWORD || ''
+});
+// Listen for the 'connect' event
+externalRedis.on('connect', async () => {
+  console.log('Connected to EXTERNAL Redis server');
+});
+exports.externalRedis = externalRedis;
 
 let matchIntervalIds = {};
-exports.CheckAndClearInterval = (matchId) => {
+const CheckAndClearInterval = (matchId) => {
   // to check is any user exist in the interval or not. if not then close the interval
   const room = io.sockets.adapter.rooms.get(matchId);
   const roomExpert = io.sockets.adapter.rooms.get(`${matchId}expert`);
 
   try {
     if (!(room && room.size != 0) && !(roomExpert && roomExpert.size != 0)) {
-      clearInterval(matchIntervalIds[matchId]);
+      if(matchIntervalIds[matchId]){
+        let intervalId = matchIntervalIds[matchId];
+        setTimeout(() => {
+          clearInterval(intervalId);
+          externalRedis.del(matchId + "_expertRate");
+          externalRedis.del(matchId + "_userRate");
+        }, 10000);
+      }
       delete matchIntervalIds[matchId];
       let matchIds = localStorage.getItem("matchDBds") ? JSON.parse(localStorage.getItem("matchDBds")) : null;
       if (matchIds) {
@@ -85,6 +102,7 @@ exports.CheckAndClearInterval = (matchId) => {
     console.log("error at disconnectCricketData ", error);
   }
 }
+exports.CheckAndClearInterval = CheckAndClearInterval;
 
 const { getFootBallData, getCricketData, getTennisData, getHorseRacingData, getGreyHoundRacingData } = require('./getGameData');
 
@@ -244,6 +262,18 @@ app.get("/cricketScore", (req, res) => {
   });
 });
 
+app.get("/getExpertRateDetails/:matchId", async (req, res) => {
+  let matchId = req.params.matchId;
+  let data = await externalRedis.get(matchId + "_expertRate") || `{}`;
+  return res.send(JSON.parse(data));
+});
+
+app.get("/getUserRateDetails/:matchId", async (req, res) => {
+  let matchId = req.params.matchId;
+  let data = await externalRedis.get(matchId + "_userRate") || `{}`;
+  return res.send(JSON.parse(data));
+});
+
 io.on('connection', (socket) => {
 
   socket.on('initCricketData', async function (event) {
@@ -297,20 +327,7 @@ io.on('connection', (socket) => {
       roomName = matchId;
     }
     socket.leave(roomName);
-    const room = io.sockets.adapter.rooms.get(matchId);
-    try {
-      if (!(room && room.size != 0)) {
-        clearInterval(matchIntervalIds[matchId]);
-        delete matchIntervalIds[matchId];
-        let matchIds = localStorage.getItem("matchDBds") ? JSON.parse(localStorage.getItem("matchDBds")) : null;
-        if (matchIds) {
-          matchIds.splice(matchIds.indexOf(matchId), 1);
-          localStorage.setItem("matchDBds", JSON.stringify(matchIds));
-        }
-      }
-    } catch (error) {
-      console.log("error at disconnectCricketData ", error);
-    }
+    CheckAndClearInterval(matchId);
   });
 
   socket.on('disconnect', async () => {
