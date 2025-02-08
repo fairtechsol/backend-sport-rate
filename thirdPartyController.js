@@ -174,11 +174,11 @@ class ThirdPartyController {
 		});
 	}
 
-	async getCricketScore(eventid) {
+	async getCricketScore(eventid, apiType = 0) {
 		return new Promise((resolve, reject) => {
 			let options = {
 				method: 'GET',
-				url: 'http://172.104.206.227:3000/t10score?marketId=' + eventid,
+				url: apiEndPoints.scoreCardEndPoint[apiType] + eventid,
 				headers: { 'cache-control': 'no-cache' }
 			};
 			let errorConst = `at reject get  Cricket Score `;

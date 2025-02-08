@@ -9,7 +9,10 @@ exports.apiEndPoints = {
         4: "http://marketsarket.qnsports.live/getcricketmatches",
         1: "https://marketsarket.qnsports.live/getsoccerallmatches2",
         2: "https://marketsarket.qnsports.live/gettennisallmatches2",
-    }
+    },
+    scoreCardEndPoint: {
+        0: "http://172.104.206.227:3000/t10score?marketId=", // cricket
+    },
 }
 
 
