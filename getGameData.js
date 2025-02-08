@@ -423,8 +423,8 @@ async function getCricketData(marketId, matchId) {
   externalRedis.set(matchId + "_expertRate", JSON.stringify(expertResult));
   externalRedis.set(matchId + "_userRate", JSON.stringify(returnResult));
   
-  // io.to(matchId).emit("liveData" + matchId, returnResult);
-  // io.to(matchId + 'expert').emit("liveData" + matchId, expertResult);
+  io.to(matchId).emit("liveData" + matchId, returnResult);
+  io.to(matchId + 'expert').emit("liveData" + matchId, expertResult);
 }
 exports.getCricketData = getCricketData;
 
@@ -606,8 +606,8 @@ async function getFootBallData(marketId, matchId) {
   await externalRedis.set(matchId + "_expertRate", JSON.stringify(expertResult));
   await externalRedis.set(matchId + "_userRate", JSON.stringify(returnResult));
 
-  // io.to(matchId).emit("liveData" + matchId, returnResult);
-  // io.to(matchId + 'expert').emit("liveData" + matchId, expertResult);
+  io.to(matchId).emit("liveData" + matchId, returnResult);
+  io.to(matchId + 'expert').emit("liveData" + matchId, expertResult);
 }
 exports.getFootBallData = getFootBallData;
 
