@@ -38,7 +38,9 @@ let io = socketIO(server, {
   cors: {
     origin: "*",
     methods: ["GET", "POST"]
-  }
+  },
+  transports: ["websocket", "polling"], // Enable both WebSocket and polling
+
 });
 app.set('socketio', io);
 
@@ -109,7 +111,7 @@ const CheckAndClearInterval = (matchId) => {
 }
 exports.CheckAndClearInterval = CheckAndClearInterval;
 
-const { getFootBallData, getCricketData, getTennisData, getHorseRacingData, getGreyHoundRacingData } = require('./getGameData');
+const { getFootBallData, getCricketData, getHorseRacingData, getGreyHoundRacingData } = require('./getGameData');
 
 // Handle other Redis events if needed
 internalRedis.on('error', (error) => {
@@ -280,7 +282,6 @@ app.get("/getUserRateDetails/:matchId", async (req, res) => {
 });
 
 io.on('connection', (socket) => {
-
   socket.on('initCricketData', async function (event) {
     let matchId = event.matchId;
 
