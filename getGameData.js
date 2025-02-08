@@ -49,12 +49,17 @@ async function getCricketData(marketId, matchId) {
   let isManualSessionActive = matchDetail.manualSessionActive ? JSON.parse(matchDetail.manualSessionActive) : false;
 
   let sessionManual = [];
-  let scoreBoard = '';
 
   let isManual = marketId?.split(/(\d+)/)[0] == 'manual';
   if (!isManual) {
-    let data = await ThirdPartyController.getAllRateCricket(matchDetail.eventId, 2);
-    scoreBoard = await ThirdPartyController.getCricketScore(matchDetail.eventId, 0);
+      // Run API calls in parallel
+    const [data, scoreBoard] = await Promise.all([
+      ThirdPartyController.getAllRateCricket(matchDetail.eventId, 2),
+      ThirdPartyController.getCricketScore(matchDetail.eventId, 0)
+    ]);
+
+    // let data = await ThirdPartyController.getAllRateCricket(matchDetail.eventId, 2);
+    // scoreBoard = await ThirdPartyController.getCricketScore(matchDetail.eventId, 0);
     returnResult.scoreBoard = scoreBoard;
     
     let mainData = data?.data || [];
