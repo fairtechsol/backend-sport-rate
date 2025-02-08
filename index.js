@@ -270,13 +270,13 @@ app.get("/cricketScore", (req, res) => {
 app.get("/getExpertRateDetails/:matchId", async (req, res) => {
   let matchId = req.params.matchId;
   let data = await externalRedis.get(matchId + "_expertRate") || `{}`;
-  return res.send(JSON.parse(data));
+  return res.send({});
 });
 
 app.get("/getUserRateDetails/:matchId", async (req, res) => {
   let matchId = req.params.matchId;
   let data = await externalRedis.get(matchId + "_userRate") || `{}`;
-  return res.send(JSON.parse(data));
+  return res.send({});
 });
 
 io.on('connection', (socket) => {
