@@ -77,6 +77,9 @@ externalRedis.on('connect', async () => {
 });
 exports.externalRedis = externalRedis;
 
+// Create a Map to store match IDs instead of using localStorage
+const matchDBMap = new Map();
+
 let matchIntervalIds = {};
 const CheckAndClearInterval = (matchId) => {
   // to check is any user exist in the interval or not. if not then close the interval
@@ -85,11 +88,11 @@ const CheckAndClearInterval = (matchId) => {
 
   try {
     if (!(room && room.size != 0) && !(roomExpert && roomExpert.size != 0)) {
-      if(matchIntervalIds[matchId]){
+      if (matchIntervalIds[matchId]) {
         let intervalId = matchIntervalIds[matchId];
         setTimeout(() => {
           clearInterval(intervalId);
-          
+
           const roomCheck = io.sockets.adapter.rooms.get(matchId);
           const roomExpertCheck = io.sockets.adapter.rooms.get(`${matchId}expert`);
           if (!(roomCheck && roomCheck.size != 0) && !(roomExpertCheck && roomExpertCheck.size != 0)) {
@@ -99,10 +102,8 @@ const CheckAndClearInterval = (matchId) => {
         }, 10000);
       }
       delete matchIntervalIds[matchId];
-      let matchIds = localStorage.getItem("matchDBds") ? JSON.parse(localStorage.getItem("matchDBds")) : null;
-      if (matchIds) {
-        matchIds.splice(matchIds.indexOf(matchId), 1);
-        localStorage.setItem("matchDBds", JSON.stringify(matchIds));
+      if (matchDBMap.has(matchId)) {
+        matchDBMap.delete(matchId);
       }
     }
   } catch (error) {
@@ -221,7 +222,7 @@ app.get("/getAllRateCricket/:eventId", (req, res) => {
   let eventId = req.params.eventId;
   let { apiType } = req.query;
   apiType = apiType || 2;
-  if(!eventId){
+  if (!eventId) {
     return res.send([]);
   }
 
@@ -234,7 +235,7 @@ app.get("/getAllRateFootBallTennis/:eventId", (req, res) => {
   let eventId = req.params.eventId;
   let { apiType } = req.query;
   apiType = apiType || 3;
-  if(!eventId){
+  if (!eventId) {
     return res.send([]);
   }
 
@@ -261,7 +262,7 @@ app.get("/getDirectMatchList", (req, res) => {
 
 app.get("/cricketScore", (req, res) => {
   let { eventId } = req.query;
-  if(!eventId){
+  if (!eventId) {
     return res.send([]);
   }
   ThirdPartyController.getCricketScore(eventId).then(function (data) {
@@ -292,15 +293,11 @@ io.on('connection', (socket) => {
       socket.join(matchId);
     }
     let matchDetail = await internalRedis.hgetall(matchId + "_match");
-    let matchIds = localStorage.getItem("matchDBds") ? JSON.parse(localStorage.getItem("matchDBds")) : null;
 
     if (!matchIntervalIds[matchId]) {
       let marketId = matchDetail?.marketId;
 
       if (marketId) {
-        if (matchIds == null) {
-          matchIds = [];
-        }
         switch (matchDetail.matchType) {
           case 'football':
           case 'tennis':
@@ -317,8 +314,7 @@ io.on('connection', (socket) => {
             matchIntervalIds[matchId] = setInterval(getGreyHoundRacingData, liveGameTypeTime, marketId, matchId);
             break;
         }
-        matchIds.push(matchId);
-        localStorage.setItem("matchDBds", JSON.stringify(matchIds));
+        matchDBMap.set(matchId, true);
       }
     }
   });
@@ -349,9 +345,8 @@ io.on('connection', (socket) => {
 
 server.listen(port, () => {
   console.log(`Betting app listening at Port:${port}`)
-  let matchDBds = localStorage.getItem("matchDBds") ? JSON.parse(localStorage.getItem("matchDBds")) : null;
-  if (matchDBds && matchDBds.length) {
-    matchDBds.map(async matchId => {
+  if (matchDBMap.size > 0) {
+    matchDBMap.forEach(async (value, matchId) => {
       let matchDetail = await internalRedis.hgetall(matchId + "_match");
       let marketId = matchDetail?.marketId;
       if (marketId) {
@@ -372,6 +367,6 @@ server.listen(port, () => {
             break;
         }
       }
-    })
+    });
   }
 });
