@@ -64,6 +64,8 @@ async function getCricketData(marketId, matchId) {
     
     let mainData = data?.data || [];
     addLogs(matchId, mainData);
+    returnResult.gmid =  mainData[0]?.gmid || '';
+    expertResult.gmid =  mainData[0]?.gmid || '';
 
     let customObject = { tournament: [] };
 
@@ -451,6 +453,9 @@ async function getFootBallData(marketId, matchId) {
     let data = await ThirdPartyController.getAllRateFootBallTennis(matchDetail.eventId, 3);
     let mainData = data?.data || [];
     let customObject = { other: [] };
+    
+    returnResult.gmid =  mainData[0]?.gmid || '';
+    expertResult.gmid =  mainData[0]?.gmid || '';
 
     if (!matchDetail?.teamB) {
       customObject.tournament = [];
