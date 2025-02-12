@@ -350,7 +350,8 @@ async function getCricketData(marketId, matchId) {
               "max": session.maxBet,
               "id": session.id,
               "activeStatus": session.activeStatus,
-              "updatedAt": session.updatedAt
+              "updatedAt": session.updatedAt,
+              isCommissionActive: session.isCommissionActive
             };
             if (obj["activeStatus"] == 'live') {
               onlyLiveSession.push(obj);
