@@ -780,14 +780,13 @@ function formateOdds(data, additionDetails) {
     exposureLimit: additionDetails.exposureLimit,
     isCommissionActive: additionDetails.isCommissionActive,
     sno: data?.sno || additionDetails?.sno,
-    parentBetId: data?.parentBetId || additionDetails?.parentBetId,
+    parentBetId: additionDetails?.parentBetId,
     runners: data?.section?.map(item => ({
       selectionId: item.sid,
       status: item.gstatus,
       nat: item.nat,
       sortPriority: item.sno,
       id: additionDetails?.dbRunner?.find((items) => items?.selectionId?.toString() == item?.sid?.toString())?.id,
-      parentRunnerId: data?.parentRunnerId || additionDetails?.parentRunnerId,
       ex: {
         availableToBack: item.odds?.filter(odd => odd.otype === 'back').map(odd => ({
           price: odd.odds,
