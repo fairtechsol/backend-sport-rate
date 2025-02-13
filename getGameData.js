@@ -526,6 +526,7 @@ async function getFootBallData(marketId, matchId) {
             "type": parseData.type,
             "isActive": parseData.isActive,
             "activeStatus": parseData.activeStatus,
+            parentBetId: parseData.parentBetId,
             isCommissionActive:parseData.isCommissionActive,
             sno: parseData.sno,
             "isManual": parseData.isManual,
@@ -535,6 +536,7 @@ async function getFootBallData(marketId, matchId) {
               nat: item.runnerName,
               id: item.id,
               sortPriority: item.sortPriority,
+              parentRunnerId: item.parentRunnerId,
               ex: {
                 availableToBack: [{
                   price: item.backRate > 2 ? Math.floor(item.backRate) - 2 : 0,
