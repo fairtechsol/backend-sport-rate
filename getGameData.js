@@ -136,10 +136,10 @@ async function getCricketData(marketId, matchId) {
       let iterated = [];
       let otherData = JSON.parse(matchDetail.tournament || "[]");
       for (let item of (customObject?.tournament || [])) {
-        let isRedisExist = otherData.findIndex(it => it?.name == item?.mname);
+        let isRedisExist = otherData.findIndex(it => it?.mid == item?.mid);
         let obj = {};
         if (isRedisExist > -1) {
-          iterated.push(item?.mname);
+          iterated.push(item?.mid);
           let parseData = otherData[isRedisExist];
           obj = {
             "id": parseData.id,
@@ -166,7 +166,7 @@ async function getCricketData(marketId, matchId) {
         }
       }
       for (let item of otherData) {
-        let isRedisExist = iterated?.findIndex(it => it == item?.name);
+        let isRedisExist = iterated?.findIndex(it => it == item?.mid);
         if (isRedisExist < 0) {
           let obj = {};
           let parseData = item;
@@ -182,12 +182,14 @@ async function getCricketData(marketId, matchId) {
             isCommissionActive:parseData.isCommissionActive,
             sno: parseData.sno,
             "isManual": parseData.isManual,
+            parentBetId: parseData.parentBetId,
             "runners": parseData.isManual ? parseData.runners?.map(item => ({
               selectionId: item.selectionId,
               status: item.status?.toUpperCase(),
               nat: item.runnerName,
               id: item.id,
               sortPriority: item.sortPriority,
+              parentRunnerId: item.parentRunnerId,
               ex: {
                 availableToBack: [{
                   price: item.backRate > 2 ? Math.floor(item.backRate) - 2 : 0,
@@ -348,7 +350,8 @@ async function getCricketData(marketId, matchId) {
               "max": session.maxBet,
               "id": session.id,
               "activeStatus": session.activeStatus,
-              "updatedAt": session.updatedAt
+              "updatedAt": session.updatedAt,
+              isCommissionActive: session.isCommissionActive
             };
             if (obj["activeStatus"] == 'live') {
               onlyLiveSession.push(obj);
@@ -480,10 +483,10 @@ async function getFootBallData(marketId, matchId) {
       let iterated = [];
       let otherData = JSON.parse(matchDetail.tournament || "[]");
       for (let item of (customObject?.tournament || [])) {
-        let isRedisExist = otherData.findIndex(it => it?.name == item?.mname);
+        let isRedisExist = otherData.findIndex(it => it?.mid == item?.mid);
         let obj = {};
         if (isRedisExist > -1) {
-          iterated.push(item?.mname);
+          iterated.push(item?.mid);
           let parseData = otherData[isRedisExist];
           obj = {
             "id": parseData.id,
@@ -510,7 +513,7 @@ async function getFootBallData(marketId, matchId) {
         }
       }
       for (let item of otherData) {
-        let isRedisExist = iterated?.findIndex(it => it == item?.name);
+        let isRedisExist = iterated?.findIndex(it => it == item?.mid);
         if (isRedisExist < 0) {
           let obj = {};
           let parseData = item;
@@ -523,6 +526,7 @@ async function getFootBallData(marketId, matchId) {
             "type": parseData.type,
             "isActive": parseData.isActive,
             "activeStatus": parseData.activeStatus,
+            parentBetId: parseData.parentBetId,
             isCommissionActive:parseData.isCommissionActive,
             sno: parseData.sno,
             "isManual": parseData.isManual,
@@ -532,6 +536,7 @@ async function getFootBallData(marketId, matchId) {
               nat: item.runnerName,
               id: item.id,
               sortPriority: item.sortPriority,
+              parentRunnerId: item.parentRunnerId,
               ex: {
                 availableToBack: [{
                   price: item.backRate > 2 ? Math.floor(item.backRate) - 2 : 0,
@@ -775,6 +780,7 @@ function formateOdds(data, additionDetails) {
     exposureLimit: additionDetails.exposureLimit,
     isCommissionActive: additionDetails.isCommissionActive,
     sno: data?.sno || additionDetails?.sno,
+    parentBetId: additionDetails?.parentBetId,
     runners: data?.section?.map(item => ({
       selectionId: item.sid,
       status: item.gstatus,
