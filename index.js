@@ -93,12 +93,12 @@ const CheckAndClearInterval = (matchId) => {
         setTimeout(() => {
           clearInterval(intervalId);
 
-          const roomCheck = io.sockets.adapter.rooms.get(matchId);
-          const roomExpertCheck = io.sockets.adapter.rooms.get(`${matchId}expert`);
-          if (!(roomCheck && roomCheck.size != 0) && !(roomExpertCheck && roomExpertCheck.size != 0)) {
-            externalRedis.del(matchId + "_expertRate");
-            externalRedis.del(matchId + "_userRate");
-          }
+//          const roomCheck = io.sockets.adapter.rooms.get(matchId);
+//          const roomExpertCheck = io.sockets.adapter.rooms.get(`${matchId}expert`);
+//          if (!(roomCheck && roomCheck.size != 0) && !(roomExpertCheck && roomExpertCheck.size != 0)) {
+//            externalRedis.del(matchId + "_expertRate");
+//            externalRedis.del(matchId + "_userRate");
+//          }
         }, 10000);
       }
       delete matchIntervalIds[matchId];
@@ -340,8 +340,8 @@ io.on('connection', async (socket) => {
     } else {
       roomName = matchId;
     }
-    socket.leave(roomName);
-    CheckAndClearInterval(matchId);
+//    socket.leave(roomName);
+//    CheckAndClearInterval(matchId);
   });
 
   socket.on('disconnect', async () => {
