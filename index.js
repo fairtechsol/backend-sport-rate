@@ -288,7 +288,7 @@ io.on('connection', async (socket) => {
   const roleName = socket.handshake.query.roleName;
   try {
     // Parse the string back into an array
-    matchIdArray = JSON.parse(socket.handshake.query.matchIdArray);
+    matchIdArray = socket.handshake.query.matchIdArray.split(',');
   } catch (err) {
     console.error("Error parsing matchId array:", err);
   }
