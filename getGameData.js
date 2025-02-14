@@ -136,7 +136,7 @@ async function getCricketData(marketId, matchId) {
       let iterated = [];
       let otherData = JSON.parse(matchDetail.tournament || "[]");
       for (let item of (customObject?.tournament || [])) {
-        let isRedisExist = otherData.findIndex(it => it?.mid == item?.mid);
+        let isRedisExist = otherData.findIndex(it => it?.mid.toString() == item?.mid.toString());
         let obj = {};
         if (isRedisExist > -1) {
           iterated.push(item?.mid);
@@ -166,7 +166,7 @@ async function getCricketData(marketId, matchId) {
         }
       }
       for (let item of otherData) {
-        let isRedisExist = iterated?.findIndex(it => it == item?.mid);
+        let isRedisExist = iterated?.findIndex(it => it.toString() == item?.mid.toString());
         if (isRedisExist < 0) {
           let obj = {};
           let parseData = item;
@@ -483,7 +483,7 @@ async function getFootBallData(marketId, matchId) {
       let iterated = [];
       let otherData = JSON.parse(matchDetail.tournament || "[]");
       for (let item of (customObject?.tournament || [])) {
-        let isRedisExist = otherData.findIndex(it => it?.mid == item?.mid);
+        let isRedisExist = otherData.findIndex(it => it?.mid.toString() == item?.mid.toString());
         let obj = {};
         if (isRedisExist > -1) {
           iterated.push(item?.mid);
@@ -513,7 +513,7 @@ async function getFootBallData(marketId, matchId) {
         }
       }
       for (let item of otherData) {
-        let isRedisExist = iterated?.findIndex(it => it == item?.mid);
+        let isRedisExist = iterated?.findIndex(it => it.toString() == item?.mid.toString());
         if (isRedisExist < 0) {
           let obj = {};
           let parseData = item;
