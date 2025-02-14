@@ -283,20 +283,22 @@ app.get("/getUserRateDetails/:matchId", async (req, res) => {
 });
 
 io.on('connection', async (socket) => {
-  
+  let matchIdArray = []
   // Extract the match id from the client's handshake headers or auth object
-  const matchId = socket.handshake.query.matchId;
   const roleName = socket.handshake.query.roleName;
-
+  try {
+    // Parse the string back into an array
+    matchIdArray = JSON.parse(socket.handshake.query.matchIdArray);
+  } catch (err) {
+    console.error("Error parsing matchId array:", err);
+  }
   // If no match id is provided, disconnect the client
-  if (!matchId || !roleName) {
+  if (!matchIdArray.length || !roleName) {
     socket.disconnect();
     return;
   }
-  // socket.on('initCricketData', async function (event) {
-  //   let matchId = event.matchId;
 
-  //   let roleName = event.roleName;
+  matchIdArray.forEach(async (matchId) => {
     if (roleName == 'expert') {
       socket.join(matchId + 'expert');
     } else {
@@ -327,7 +329,7 @@ io.on('connection', async (socket) => {
         matchDBMap.set(matchId, true);
       }
     }
-  // });
+  });
 
   socket.on('disconnectCricketData', async function (event) {
     let matchId = event.matchId;
