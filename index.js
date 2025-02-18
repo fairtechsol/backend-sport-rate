@@ -5,7 +5,6 @@ const http2 = require("http2"); // Use http2 instead of http
 const http = require("http");
 const fs = require("fs");
 var cors = require('cors');
-var LocalStorage = require('node-localstorage').LocalStorage;
 const path = require('path');
 require("dotenv").config();
 
@@ -20,15 +19,12 @@ if (process.env.NODE_ENV == "production" || process.env.NODE_ENV == "dev") {
     cert: fs.readFileSync(`/etc/letsencrypt/live/${process.env.SSL_PATH}/fullchain.pem`),
     allowHTTP1: true, // Allows HTTP/1.1 fallback
   };
-
   // Create an HTTP/2 server with SSL options
   server = http2.createSecureServer(sslOptions, app);
-
   console.log("Running with HTTPS in production mode");
 } else {
   // Create an HTTP server for local development
   server = http.createServer(app);
-
   console.log("Running with HTTP in development mode");
 }
 app.use(cors());
@@ -43,8 +39,6 @@ let io = socketIO(server, {
 
 });
 app.set('socketio', io);
-
-localStorage = new LocalStorage('./scratch');
 
 if (process.env.NODE_ENV !== 'production') {
   __dirname = path.resolve();
@@ -92,13 +86,6 @@ const CheckAndClearInterval = (matchId) => {
         let intervalId = matchIntervalIds[matchId];
         setTimeout(() => {
           clearInterval(intervalId);
-
-//          const roomCheck = io.sockets.adapter.rooms.get(matchId);
-//          const roomExpertCheck = io.sockets.adapter.rooms.get(`${matchId}expert`);
-//          if (!(roomCheck && roomCheck.size != 0) && !(roomExpertCheck && roomExpertCheck.size != 0)) {
-//            externalRedis.del(matchId + "_expertRate");
-//            externalRedis.del(matchId + "_userRate");
-//          }
         }, 10000);
       }
       delete matchIntervalIds[matchId];
@@ -304,9 +291,9 @@ io.on('connection', async (socket) => {
     } else {
       socket.join(matchId);
     }
-    let matchDetail = await internalRedis.hgetall(matchId + "_match");
 
     if (!matchIntervalIds[matchId]) {
+      let matchDetail = await internalRedis.hgetall(matchId + "_match");
       let marketId = matchDetail?.marketId;
 
       if (marketId) {
@@ -352,6 +339,16 @@ io.on('connection', async (socket) => {
     socket.leaveAll();
   });
 
+});
+
+process.on('uncaughtException', (err) => {
+  console.error('Uncaught Exception:', err);
+  process.exit(1); // Exit to let PM2 restart the process
+});
+
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('Unhandled Rejection:', reason);
+  process.exit(1); // Exit to let PM2 restart the process
 });
 
 

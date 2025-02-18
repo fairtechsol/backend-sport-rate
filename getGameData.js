@@ -4,7 +4,7 @@ const path = require('path');
 const moment = require('moment-timezone');
 
 const ThirdPartyController = require('./thirdPartyController.js');
-const { internalRedis, io, CheckAndClearInterval, externalRedis } = require('./index.js');
+const { internalRedis, io, CheckAndClearInterval } = require('./index.js');
 
 // Create logs directory if it doesn't exist
 const logsDir = path.join(__dirname, 'logs');
