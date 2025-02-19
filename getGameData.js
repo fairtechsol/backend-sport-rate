@@ -156,7 +156,7 @@ async function getCricketData(marketId, matchId) {
             exposureLimit: parseData.exposureLimit,
             betLimit: parseData.betLimit,
             isCommissionActive:parseData.isCommissionActive,
-            sno: parseData.sno,
+            sno: parseData.sNo,
           };
         }
         let formateData = await formateOdds(item, obj);
@@ -180,7 +180,7 @@ async function getCricketData(marketId, matchId) {
             "isActive": parseData.isActive,
             "activeStatus": parseData.activeStatus,
             isCommissionActive:parseData.isCommissionActive,
-            sno: parseData.sno,
+            sno: parseData.sNo,
             "isManual": parseData.isManual,
             parentBetId: parseData.parentBetId,
             "runners": parseData.isManual ? parseData.runners?.map(item => ({
@@ -503,7 +503,7 @@ async function getFootBallData(marketId, matchId) {
             exposureLimit: parseData.exposureLimit,
             betLimit: parseData.betLimit,
             isCommissionActive:parseData.isCommissionActive,
-            sno: parseData.sno,
+            sno: parseData.sNo,
           };
         }
         let formateData = await formateOdds(item, obj);
@@ -528,7 +528,7 @@ async function getFootBallData(marketId, matchId) {
             "activeStatus": parseData.activeStatus,
             parentBetId: parseData.parentBetId,
             isCommissionActive:parseData.isCommissionActive,
-            sno: parseData.sno,
+            sno: parseData.sNo,
             "isManual": parseData.isManual,
             "runners": parseData.isManual ? parseData.runners?.map(item => ({
               selectionId: item.selectionId,
