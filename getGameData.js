@@ -166,6 +166,9 @@ async function getCricketData(marketId, matchId) {
         }
       }
       for (let item of otherData) {
+        if (item.activeStatus == "close") {
+          continue;
+        }
         let isRedisExist = iterated?.findIndex(it => it == item?.mid);
         if (isRedisExist < 0) {
           let obj = {};
@@ -232,12 +235,12 @@ async function getCricketData(marketId, matchId) {
             betLimit: parseData.betLimit
           };
           let formateData = await formateOdds(null, obj);
-          if (obj.activeStatus != "close") {
+          
             expertResult.tournament.push(formateData);
             returnResult.tournament.push(formateData);
           }
         }
-      }
+      
     }
 
     let sessionAPIObj = {}
@@ -513,6 +516,9 @@ async function getFootBallData(marketId, matchId) {
         }
       }
       for (let item of otherData) {
+        if (item.activeStatus == "close") {
+          continue;
+        }
         let isRedisExist = iterated?.findIndex(it => it == item?.mid);
         if (isRedisExist < 0) {
           let obj = {};
@@ -579,10 +585,10 @@ async function getFootBallData(marketId, matchId) {
             betLimit: parseData.betLimit
           };
           let formateData = await formateOdds(null, obj);
-          if (obj.activeStatus != "close") {
+         
             expertResult.tournament.push(formateData);
             returnResult.tournament.push(formateData);
-          }
+          
         }
       }
     }
