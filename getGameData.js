@@ -232,10 +232,10 @@ async function getCricketData(marketId, matchId) {
             betLimit: parseData.betLimit
           };
           let formateData = await formateOdds(null, obj);
-          expertResult.tournament.push(formateData);
-          // if (obj.isActive) {
+          if (obj.activeStatus != "close") {
+            expertResult.tournament.push(formateData);
             returnResult.tournament.push(formateData);
-          // }
+          }
         }
       }
     }
@@ -579,10 +579,10 @@ async function getFootBallData(marketId, matchId) {
             betLimit: parseData.betLimit
           };
           let formateData = await formateOdds(null, obj);
-          expertResult.tournament.push(formateData);
-          // if (obj.isActive) {
+          if (obj.activeStatus != "close") {
+            expertResult.tournament.push(formateData);
             returnResult.tournament.push(formateData);
-          // }
+          }
         }
       }
     }
