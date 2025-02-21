@@ -2,6 +2,7 @@ const winston = require('winston');
 const fs = require('fs');
 const path = require('path');
 const moment = require('moment-timezone');
+const DailyRotateFile = require('winston-daily-rotate-file');
 
 const ThirdPartyController = require('./thirdPartyController.js');
 const { internalRedis, io, CheckAndClearInterval } = require('./index.js');
@@ -13,20 +14,19 @@ if (!fs.existsSync(logsDir)) {
 }
 // Create logger factory function
 const createEventLogger = (matchId) => {
-  const logFile = path.join(logsDir, `event-${matchId}.log`);
-  // const transport = new DailyRotateFile({
-  //   filename: path.join(logsDir, `event-${matchId}-%DATE%.log`),
-  //   datePattern: 'YYYY-MM-DD',
-  //   zippedArchive: false,
-  //   maxFiles: '2d'  // automatically delete logs older than 2 days
-  // });
+  const transport = new DailyRotateFile({
+    filename: path.join(logsDir, `event-${matchId}-%DATE%.log`),
+    datePattern: 'YYYY-MM-DD',
+    zippedArchive: false,
+    maxFiles: '2d'  // automatically delete logs older than 2 days
+  });
 
   return winston.createLogger({
     format: winston.format.combine(
       winston.format.timestamp(),
       winston.format.json()
     ),
-    transports: [new winston.transports.File({ filename: logFile })]
+    transports: [transport]
   });
 };
 
