@@ -226,7 +226,30 @@ class ThirdPartyController {
 			this.callAxios(options, resolve, errorConst);
 		});
 	}
+	
+	async getScoreIframeUrl(eventid, apiType = 1) {
+		return new Promise((resolve, reject) => {
+			let options = {
+				method: 'GET',
+				url: apiEndPoints.ScoreIframeUrl + apiType + "&eventid=" + eventid,
+				headers: { 'cache-control': 'no-cache' }
+			};
+			let errorConst = `at reject get ScoreCad IframeUrl ${eventid}`;
+			this.callAxios(options, resolve, errorConst);
+		});
+	}
 
+	async gettvIframeUrl(eventid, apiType = 1) {
+		return new Promise((resolve, reject) => {
+			let options = {
+				method: 'GET',
+				url: apiEndPoints.tvIframeUrl + apiType + "&eventid=" + eventid,
+				headers: { 'cache-control': 'no-cache' }
+			};
+			let errorConst = `at reject get TV IframeUrl ${eventid}`;
+			this.callAxios(options, resolve, errorConst);
+		});
+	}
 }
 
 

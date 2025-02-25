@@ -60,17 +60,6 @@ internalRedis.on('connect', async () => {
 exports.internalRedis = internalRedis;
 exports.io = io;
 
-const externalRedis = new Redis({
-  host: process.env.EXTERNAL_REDIS_HOST || 'localhost',
-  port: process.env.EXTERNAL_REDIS_PORT || 6379,
-  password: process.env.EXTERNAL_REDIS_PASSWORD || ''
-});
-// Listen for the 'connect' event
-externalRedis.on('connect', async () => {
-  console.log('Connected to EXTERNAL Redis server');
-});
-exports.externalRedis = externalRedis;
-
 // Create a Map to store match IDs instead of using localStorage
 const matchDBMap = new Map();
 
@@ -231,7 +220,6 @@ app.get("/getAllRateFootBallTennis/:eventId", (req, res) => {
   });
 });
 
-
 app.get("/bookmakerNew/:marketId", (req, res) => {
   let markertId = req.params.marketId;
   ThirdPartyController.getBookmakerMarket(markertId).then(function (data) {
@@ -257,16 +245,15 @@ app.get("/cricketScore", (req, res) => {
   });
 });
 
-app.get("/getExpertRateDetails/:matchId", async (req, res) => {
-  let matchId = req.params.matchId;
-  let data = await externalRedis.get(matchId + "_expertRate") || `{}`;
-  return res.send({});
-});
+app.get("/getIframeUrl/:eventid", async (req, res) => {
+  const [scoreResult, tvResult] = await Promise.allSettled([
+    ThirdPartyController.getScoreIframeUrl(req.params.eventid, gameType[req.query.sportType]),
+    ThirdPartyController.gettvIframeUrl(req.params.eventid, gameType[req.query.sportType])
+  ]);
+  const scoreData = scoreResult.status === 'fulfilled' ? scoreResult.value : [];
+  const tvData = tvResult.status === 'fulfilled' ? tvResult.value : [];
 
-app.get("/getUserRateDetails/:matchId", async (req, res) => {
-  let matchId = req.params.matchId;
-  let data = await externalRedis.get(matchId + "_userRate") || `{}`;
-  return res.send({});
+  res.send({ scoreData, tvData });
 });
 
 io.on('connection', async (socket) => {

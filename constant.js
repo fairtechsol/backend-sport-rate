@@ -13,6 +13,8 @@ exports.apiEndPoints = {
     scoreCardEndPoint: {
         0: "http://172.104.206.227:3000/t10score?marketId=", // cricket
     },
+    ScoreIframeUrl: "http://172.105.54.97:8085/api/v2/graphanim?sportid=",
+    tvIframeUrl: "http://172.105.54.97:8085/api/v2/GetDtvurl?sportid="
 }
 
 
