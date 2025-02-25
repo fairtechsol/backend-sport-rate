@@ -247,8 +247,8 @@ app.get("/cricketScore", (req, res) => {
 
 app.get("/getIframeUrl/:eventid", async (req, res) => {
   const [scoreResult, tvResult] = await Promise.allSettled([
-    req.query.isScore == 'true' ? ThirdPartyController.getScoreIframeUrl(req.params.eventid, gameType[req.query.sportType]) : '',
-    req.query.isTv == 'true' ? ThirdPartyController.gettvIframeUrl(req.params.eventid, gameType[req.query.sportType]) : ''
+    req.query.isScore == 'true' ? ThirdPartyController.getScoreIframeUrl(req.params.eventid, gameType[req.query.sportType]) : null,
+    req.query.isTv == 'true' ? ThirdPartyController.gettvIframeUrl(req.params.eventid, gameType[req.query.sportType]) : null
   ]);
   const scoreData = scoreResult.status === 'fulfilled' ? scoreResult.value : [];
   const tvData = tvResult.status === 'fulfilled' ? tvResult.value : [];
