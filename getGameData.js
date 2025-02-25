@@ -10,7 +10,7 @@ const { internalRedis, io, CheckAndClearInterval } = require('./index.js');
 // Create logs directory if it doesn't exist
 const logsDir = path.join(__dirname, 'logs');
 if (!fs.existsSync(logsDir)) {
-    fs.mkdirSync(logsDir);
+  fs.mkdirSync(logsDir);
 }
 // Create logger factory function
 const createEventLogger = (matchId) => {
@@ -21,22 +21,32 @@ const createEventLogger = (matchId) => {
     maxFiles: '2d'  // automatically delete logs older than 2 days
   });
 
-  return winston.createLogger({
+  // Add error event listener to the transport:
+  transport.on('error', (err) => {
+    console.error('Logging transport error:', err);
+    // Optionally: Implement retry logic or fallback behavior here.
+  });
+
+  const logger =  winston.createLogger({
     format: winston.format.combine(
       winston.format.timestamp(),
       winston.format.json()
     ),
     transports: [transport]
   });
+  logger.on('error', (err) => {
+    console.error('Logger error:', err);
+  });
+  return logger;
 };
 
 const addLogs = async (matchId, data) => {
-  if(process.env.NODE_ENV == 'production') {
+  if (process.env.NODE_ENV == 'production') {
     const logger = createEventLogger(matchId);
-    data = data.filter(item => { if(item.gtype == 'match' || item.gtype == 'match1') return item; });
+    data = data.filter(item => { if (item.gtype == 'match' || item.gtype == 'match1') return item; });
     const indiaTime = moment().tz('Asia/Kolkata').format();
     // Log request
-    logger.info({data, dateTime: indiaTime });
+    logger.info({ data, dateTime: indiaTime });
   }
 }
 
@@ -56,7 +66,7 @@ async function getCricketData(marketId, matchId) {
 
   let isManual = marketId?.split(/(\d+)/)[0] == 'manual';
   if (!isManual) {
-      // Run API calls in parallel
+    // Run API calls in parallel
     const [data, scoreBoard] = await Promise.all([
       ThirdPartyController.getAllRateCricket(matchDetail.eventId, 2),
       ThirdPartyController.getCricketScore(matchDetail.eventId, 0)
@@ -65,11 +75,11 @@ async function getCricketData(marketId, matchId) {
     // let data = await ThirdPartyController.getAllRateCricket(matchDetail.eventId, 2);
     // scoreBoard = await ThirdPartyController.getCricketScore(matchDetail.eventId, 0);
     returnResult.scoreBoard = scoreBoard;
-    
+
     let mainData = data?.data || [];
     addLogs(matchId, mainData);
-    returnResult.gmid =  mainData[0]?.gmid || '';
-    expertResult.gmid =  mainData[0]?.gmid || '';
+    returnResult.gmid = mainData[0]?.gmid || '';
+    expertResult.gmid = mainData[0]?.gmid || '';
 
     let customObject = { tournament: [] };
 
@@ -126,7 +136,7 @@ async function getCricketData(marketId, matchId) {
                 customObject.cricketCasino = [da];
               }
             } else {
-              if (da.gtype == 'match1'||da.gtype == 'match') customObject.tournament.push(da);
+              if (da.gtype == 'match1' || da.gtype == 'match') customObject.tournament.push(da);
             }
             break;
         }
@@ -154,12 +164,12 @@ async function getCricketData(marketId, matchId) {
             "type": parseData.type,
             "isActive": parseData.isActive,
             "activeStatus": parseData.activeStatus,
-            isManual:parseData.isManual,
+            isManual: parseData.isManual,
             dbRunner: parseData?.runners,
             gtype: parseData.gtype,
             exposureLimit: parseData.exposureLimit,
             betLimit: parseData.betLimit,
-            isCommissionActive:parseData.isCommissionActive,
+            isCommissionActive: parseData.isCommissionActive,
             sno: parseData.sNo,
           };
         }
@@ -186,7 +196,7 @@ async function getCricketData(marketId, matchId) {
             "type": parseData.type,
             "isActive": parseData.isActive,
             "activeStatus": parseData.activeStatus,
-            isCommissionActive:parseData.isCommissionActive,
+            isCommissionActive: parseData.isCommissionActive,
             sno: parseData.sNo,
             "isManual": parseData.isManual,
             parentBetId: parseData.parentBetId,
@@ -203,12 +213,12 @@ async function getCricketData(marketId, matchId) {
                   otype: "back",
                   oname: "back3",
                   tno: 2
-                },{
+                }, {
                   price: item.backRate > 1 ? Math.floor(item.backRate) - 1 : 0,
                   otype: "back",
                   oname: "back2",
                   tno: 1
-                },{
+                }, {
                   price: item.backRate < 0 ? 0 : item.backRate,
                   otype: "back",
                   oname: "back1",
@@ -220,15 +230,15 @@ async function getCricketData(marketId, matchId) {
                   oname: "lay1",
                   tno: 0
                 }, {
-                    price: ((!matchDetail.rateThan100 && item.layRate > 99.99) || (item.layRate <= 0)) ? 0 : Math.floor(item.layRate) + 1,
-                    otype: "lay",
-                    oname: "lay2",
-                    tno: 1
-                  }, {
-                    price: ((!matchDetail.rateThan100 && item.layRate > 98.99) || ((item.layRate <= 0))) ? 0 : Math.floor(item.layRate) + 2,
-                    otype: "lay",
-                    oname: "lay3",
-                    tno: 2
+                  price: ((!matchDetail.rateThan100 && item.layRate > 99.99) || (item.layRate <= 0)) ? 0 : Math.floor(item.layRate) + 1,
+                  otype: "lay",
+                  oname: "lay2",
+                  tno: 1
+                }, {
+                  price: ((!matchDetail.rateThan100 && item.layRate > 98.99) || ((item.layRate <= 0))) ? 0 : Math.floor(item.layRate) + 2,
+                  otype: "lay",
+                  oname: "lay3",
+                  tno: 2
                 }]
               }
             })) : parseData.runners?.map(run => {
@@ -239,12 +249,12 @@ async function getCricketData(marketId, matchId) {
             betLimit: parseData.betLimit
           };
           let formateData = await formateOdds(null, obj);
-          
-            expertResult.tournament.push(formateData);
-            returnResult.tournament.push(formateData);
-          }
+
+          expertResult.tournament.push(formateData);
+          returnResult.tournament.push(formateData);
         }
-      
+      }
+
     }
 
     let sessionAPIObj = {}
@@ -439,7 +449,7 @@ async function getCricketData(marketId, matchId) {
       }
     }
   }
-  
+
   io.to(matchId).emit("liveData" + matchId, returnResult);
   io.to(matchId + 'expert').emit("liveData" + matchId, expertResult);
 }
@@ -458,9 +468,9 @@ async function getFootBallData(marketId, matchId) {
     let data = await ThirdPartyController.getAllRateFootBallTennis(matchDetail.eventId, 3);
     let mainData = data?.data || [];
     let customObject = { other: [] };
-    
-    returnResult.gmid =  mainData[0]?.gmid || '';
-    expertResult.gmid =  mainData[0]?.gmid || '';
+
+    returnResult.gmid = mainData[0]?.gmid || '';
+    expertResult.gmid = mainData[0]?.gmid || '';
 
     if (!matchDetail?.teamB) {
       customObject.tournament = [];
@@ -501,12 +511,12 @@ async function getFootBallData(marketId, matchId) {
             "type": parseData.type,
             "isActive": parseData.isActive,
             "activeStatus": parseData.activeStatus,
-            isManual:parseData.isManual,
+            isManual: parseData.isManual,
             dbRunner: parseData?.runners,
             gtype: parseData.gtype,
             exposureLimit: parseData.exposureLimit,
             betLimit: parseData.betLimit,
-            isCommissionActive:parseData.isCommissionActive,
+            isCommissionActive: parseData.isCommissionActive,
             sno: parseData.sNo,
           };
         }
@@ -534,7 +544,7 @@ async function getFootBallData(marketId, matchId) {
             "isActive": parseData.isActive,
             "activeStatus": parseData.activeStatus,
             parentBetId: parseData.parentBetId,
-            isCommissionActive:parseData.isCommissionActive,
+            isCommissionActive: parseData.isCommissionActive,
             sno: parseData.sNo,
             "isManual": parseData.isManual,
             "runners": parseData.isManual ? parseData.runners?.map(item => ({
@@ -550,12 +560,12 @@ async function getFootBallData(marketId, matchId) {
                   otype: "back",
                   oname: "back3",
                   tno: 2
-                },{
+                }, {
                   price: item.backRate > 1 ? Math.floor(item.backRate) - 1 : 0,
                   otype: "back",
                   oname: "back2",
                   tno: 1
-                },{
+                }, {
                   price: item.backRate < 0 ? 0 : item.backRate,
                   otype: "back",
                   oname: "back1",
@@ -567,15 +577,15 @@ async function getFootBallData(marketId, matchId) {
                   oname: "lay1",
                   tno: 0
                 }, {
-                    price: ((!matchDetail.rateThan100 && item.layRate > 99.99) || (item.layRate <= 0)) ? 0 : Math.floor(item.layRate) + 1,
-                    otype: "lay",
-                    oname: "lay2",
-                    tno: 1
-                  }, {
-                    price: ((!matchDetail.rateThan100 && item.layRate > 98.99) || ((item.layRate <= 0))) ? 0 : Math.floor(item.layRate) + 2,
-                    otype: "lay",
-                    oname: "lay3",
-                    tno: 2
+                  price: ((!matchDetail.rateThan100 && item.layRate > 99.99) || (item.layRate <= 0)) ? 0 : Math.floor(item.layRate) + 1,
+                  otype: "lay",
+                  oname: "lay2",
+                  tno: 1
+                }, {
+                  price: ((!matchDetail.rateThan100 && item.layRate > 98.99) || ((item.layRate <= 0))) ? 0 : Math.floor(item.layRate) + 2,
+                  otype: "lay",
+                  oname: "lay3",
+                  tno: 2
                 }]
               }
             })) : parseData.runners?.map(run => {
@@ -586,10 +596,10 @@ async function getFootBallData(marketId, matchId) {
             betLimit: parseData.betLimit
           };
           let formateData = await formateOdds(null, obj);
-         
-            expertResult.tournament.push(formateData);
-            returnResult.tournament.push(formateData);
-          
+
+          expertResult.tournament.push(formateData);
+          returnResult.tournament.push(formateData);
+
         }
       }
     }
