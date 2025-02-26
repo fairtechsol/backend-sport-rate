@@ -405,7 +405,7 @@ async function getCricketData(marketId, matchId) {
   let manuallyResponse = await Promise.allSettled(redisPromise);
   if (isManualSessionActive) {
     // let result = manuallyResponse[1].value;
-    returnResult.sessionBettings = sessionManual;
+    returnResult.sessionBettings = sessionManual?.filter((item) => JSON.parse(item)?.["activeStatus"] == 'live');
     key = 'manualSession';
     let { expertResult1 } = formateSessionMarket(key, {}, { [key]: sessionManual.map(item => JSON.parse(item)) });
     expertResult.apiSession[key] = expertResult1;
