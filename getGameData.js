@@ -27,7 +27,7 @@ const createEventLogger = (matchId) => {
     // Optionally: Implement retry logic or fallback behavior here.
   });
 
-  const logger =  winston.createLogger({
+  const logger = winston.createLogger({
     format: winston.format.combine(
       winston.format.timestamp(),
       winston.format.json()
@@ -392,7 +392,6 @@ async function getCricketData(marketId, matchId) {
           "status": result?.status,
           "section": expertSession,
           mid: result?.mid,
-
         };
       }
 
@@ -407,7 +406,9 @@ async function getCricketData(marketId, matchId) {
   if (isManualSessionActive) {
     // let result = manuallyResponse[1].value;
     returnResult.sessionBettings = sessionManual;
-    // returnResult.sessionBettings = Object.values(result);
+    key = 'manualSession';
+    let { expertResult1 } = formateSessionMarket(key, {}, { [key]: sessionManual.map(item => JSON.parse(item)) });
+    expertResult.apiSession[key] = expertResult1;
   }
   let manuallyMatchDetails = manuallyResponse[0].value;
   if (manuallyMatchDetails) {
@@ -880,18 +881,35 @@ function formateSessionMarket(key, customObject, sessionAPIObj) {
   }
   sessionAPI?.map(session => {
     if (!addedSession.includes(session.selectionId)) {
-      let obj = {
-        "SelectionId": session.selectionId,
-        "RunnerName": session.name,
-        "min": session.minBet,
-        "max": session.maxBet,
-        "id": session.id,
-        "activeStatus": session.activeStatus,
-        "createdAt": session.createdAt,
-        "updatedAt": session.updatedAt,
-        exposureLimit: session.exposureLimit,
-        isCommissionActive: session.isCommissionActive
-      };
+      let obj = {};
+      if (session.isManual) {
+        session.nat = session.name;
+        session.gstatus = session.status;
+        session.odds = [{
+          price: session.yesRate,
+          size: session.yesPercent,
+          otype: "back",
+          oname: "back1",
+          tno: 0
+        }, {
+          price: session.noRate,
+          size: session.noPercent,
+          otype: "lay",
+          oname: "lay1",
+          tno: 0
+        }];
+        obj = formateSession(session);
+      }
+      obj["SelectionId"] = session.selectionId;
+      obj["RunnerName"] = session.name;
+      obj["min"] = session.minBet;
+      obj["max"] = session.maxBet;
+      obj["id"] = session.id
+      obj["activeStatus"] = session.activeStatus;
+      obj["createdAt"] = session.createdAt;
+      obj["updatedAt"] = session.updatedAt;
+      obj["exposureLimit"] = session.exposureLimit;
+      obj["isCommissionActive"] = session.isCommissionActive;
       if (obj["activeStatus"] == 'live') {
         onlyLiveSession.push(obj);
       }
