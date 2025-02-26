@@ -886,13 +886,13 @@ function formateSessionMarket(key, customObject, sessionAPIObj) {
         session.nat = session.name;
         session.gstatus = session.status;
         session.odds = [{
-          price: session.yesRate,
+          odds: session.yesRate,
           size: session.yesPercent,
           otype: "back",
           oname: "back1",
           tno: 0
         }, {
-          price: session.noRate,
+          odds: session.noRate,
           size: session.noPercent,
           otype: "lay",
           oname: "lay1",
