@@ -36,7 +36,12 @@ let io = socketIO(server, {
     methods: ["GET", "POST"]
   },
   transports: ["websocket", "polling"], // Enable both WebSocket and polling
-
+  perMessageDeflate: {
+    threshold: 1024, // Compress messages larger than 1KB
+    zlibDeflateOptions: {
+      level: 3
+    }
+  }
 });
 app.set('socketio', io);
 
