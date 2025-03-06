@@ -7,6 +7,7 @@ const fs = require("fs");
 var cors = require('cors');
 const path = require('path');
 require("dotenv").config();
+const compression = require('compression');
 
 let app = express();
 // Check environment to determine SSL setup
@@ -28,6 +29,15 @@ if (process.env.NODE_ENV == "production" || process.env.NODE_ENV == "dev") {
   console.log("Running with HTTP in development mode");
 }
 app.use(cors());
+// Configure compression for ALL HTTP traffic
+app.use(compression({
+  brotli: {
+    quality: 4, // 4-6 is ideal for APIs (balance speed/size)
+  },
+  level: 6, // gzip level 6 (optimal balance)
+  threshold: '1kb', // Skip compressing tiny responses
+}));
+
 
 const ThirdPartyController = require('./thirdPartyController');
 let io = socketIO(server, {
@@ -37,10 +47,12 @@ let io = socketIO(server, {
   },
   transports: ["websocket", "polling"], // Enable both WebSocket and polling
   perMessageDeflate: {
-    threshold: 1024, // Compress messages larger than 1KB
-    zlibDeflateOptions: {
-      level: 3
-    }
+    threshold: 1024,  // Only compress messages larger than 1024 bytes
+    zlibDeflateOptions: { level: 6 }, // Maximum compression
+    zlibInflateOptions: { chunkSize: 64 * 1024 }, // Efficient decompression
+    clientNoContextTakeover: true, // Reduce memory usage
+    serverNoContextTakeover: true, // Reduce memory usage
+    serverMaxWindowBits: 10, // Low memory usage
   }
 });
 app.set('socketio', io);
@@ -319,8 +331,8 @@ io.on('connection', async (socket) => {
     } else {
       roomName = matchId;
     }
-//    socket.leave(roomName);
-//    CheckAndClearInterval(matchId);
+    //    socket.leave(roomName);
+    //    CheckAndClearInterval(matchId);
   });
 
   socket.on('disconnect', async () => {
