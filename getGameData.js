@@ -187,6 +187,7 @@ async function getCricketData(marketId, matchId) {
         if (isRedisExist < 0) {
           let obj = {};
           let parseData = item;
+          let isTwoTeam = parseData.runnerName.length == 2;
           obj = {
             "id": parseData.id,
             "marketId": parseData.marketId,
@@ -209,12 +210,12 @@ async function getCricketData(marketId, matchId) {
               parentRunnerId: item.parentRunnerId,
               ex: {
                 availableToBack: [{
-                  price: item.backRate > 2 ? Math.floor(item.backRate) - 2 : 0,
+                  price: item.backRate > 2 ? isTwoTeam && item.backRate > 100 ? 0 : Math.floor(item.backRate) - 2 : 0,
                   otype: "back",
                   oname: "back3",
                   tno: 2
                 }, {
-                  price: item.backRate > 1 ? Math.floor(item.backRate) - 1 : 0,
+                  price: item.backRate > 1 ? isTwoTeam && item.backRate > 100 ? 0 : Math.floor(item.backRate) - 1 : 0,
                   otype: "back",
                   oname: "back2",
                   tno: 1
@@ -230,12 +231,12 @@ async function getCricketData(marketId, matchId) {
                   oname: "lay1",
                   tno: 0
                 }, {
-                  price: ((!matchDetail.rateThan100 && item.layRate > 99.99) || (item.layRate <= 0)) ? 0 : Math.floor(item.layRate) + 1,
+                  price: isTwoTeam && item.layRate > 100 ? 0 : ((!matchDetail.rateThan100 && item.layRate > 99.99) || (item.layRate <= 0)) ? 0 : Math.floor(item.layRate) + 1,
                   otype: "lay",
                   oname: "lay2",
                   tno: 1
                 }, {
-                  price: ((!matchDetail.rateThan100 && item.layRate > 98.99) || ((item.layRate <= 0))) ? 0 : Math.floor(item.layRate) + 2,
+                  price: isTwoTeam && item.layRate > 100 ? 0 : ((!matchDetail.rateThan100 && item.layRate > 98.99) || ((item.layRate <= 0))) ? 0 : Math.floor(item.layRate) + 2,
                   otype: "lay",
                   oname: "lay3",
                   tno: 2
@@ -535,6 +536,7 @@ async function getFootBallData(marketId, matchId) {
         if (isRedisExist < 0) {
           let obj = {};
           let parseData = item;
+          let isTwoTeam = parseData.runnerName.length == 2;
           obj = {
             "id": parseData.id,
             "marketId": parseData.marketId,
@@ -557,12 +559,12 @@ async function getFootBallData(marketId, matchId) {
               parentRunnerId: item.parentRunnerId,
               ex: {
                 availableToBack: [{
-                  price: item.backRate > 2 ? Math.floor(item.backRate) - 2 : 0,
+                  price: item.backRate > 2 ? isTwoTeam && item.backRate > 100 ? 0 : Math.floor(item.backRate) - 2 : 0,
                   otype: "back",
                   oname: "back3",
                   tno: 2
                 }, {
-                  price: item.backRate > 1 ? Math.floor(item.backRate) - 1 : 0,
+                  price: item.backRate > 1 ? isTwoTeam && item.backRate > 100 ? 0 : Math.floor(item.backRate) - 1 : 0,
                   otype: "back",
                   oname: "back2",
                   tno: 1
@@ -578,12 +580,12 @@ async function getFootBallData(marketId, matchId) {
                   oname: "lay1",
                   tno: 0
                 }, {
-                  price: ((!matchDetail.rateThan100 && item.layRate > 99.99) || (item.layRate <= 0)) ? 0 : Math.floor(item.layRate) + 1,
+                  price: isTwoTeam && item.layRate > 100 ? 0 : ((!matchDetail.rateThan100 && item.layRate > 99.99) || (item.layRate <= 0)) ? 0 : Math.floor(item.layRate) + 1,
                   otype: "lay",
                   oname: "lay2",
                   tno: 1
                 }, {
-                  price: ((!matchDetail.rateThan100 && item.layRate > 98.99) || ((item.layRate <= 0))) ? 0 : Math.floor(item.layRate) + 2,
+                  price: isTwoTeam && item.layRate > 100 ? 0 : ((!matchDetail.rateThan100 && item.layRate > 98.99) || ((item.layRate <= 0))) ? 0 : Math.floor(item.layRate) + 2,
                   otype: "lay",
                   oname: "lay3",
                   tno: 2
