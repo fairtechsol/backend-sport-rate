@@ -187,7 +187,7 @@ async function getCricketData(marketId, matchId) {
         if (isRedisExist < 0) {
           let obj = {};
           let parseData = item;
-          let isTwoTeam = parseData.runnerName?.length == 2;
+          let isTwoTeam = parseData.runners?.length == 2;
           obj = {
             "id": parseData.id,
             "marketId": parseData.marketId,
@@ -536,7 +536,7 @@ async function getFootBallData(marketId, matchId) {
         if (isRedisExist < 0) {
           let obj = {};
           let parseData = item;
-          let isTwoTeam = parseData.runnerName?.length == 2;
+          let isTwoTeam = parseData.runners?.length == 2;
           obj = {
             "id": parseData.id,
             "marketId": parseData.marketId,
