@@ -228,15 +228,16 @@ class ThirdPartyController {
 	}
 	
 	async getScoreIframeUrl(eventid, apiType = 1) {
-		return new Promise((resolve, reject) => {
-			let options = {
-				method: 'GET',
-				url: apiEndPoints.ScoreIframeUrl + apiType + "&eventid=" + eventid,
-				headers: { 'cache-control': 'no-cache' }
-			};
-			let errorConst = `at reject get ScoreCad IframeUrl ${eventid}`;
-			this.callAxios(options, resolve, errorConst);
-		});
+		return `https://dpmatka.in/sr.php?eventid=${eventid}&sportid=${apiType}`;
+		// return new Promise((resolve, reject) => {
+		// 	let options = {
+		// 		method: 'GET',
+		// 		url: apiEndPoints.ScoreIframeUrl + apiType + "&eventid=" + eventid,
+		// 		headers: { 'cache-control': 'no-cache' }
+		// 	};
+		// 	let errorConst = `at reject get ScoreCad IframeUrl ${eventid}`;
+		// 	this.callAxios(options, resolve, errorConst);
+		// });
 	}
 
 	async gettvIframeUrl(eventid, apiType = 1) {
