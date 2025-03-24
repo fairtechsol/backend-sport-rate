@@ -237,7 +237,7 @@ class ThirdPartyController {
 		return new Promise((resolve, reject) => {
 			let options = {
 				method: 'GET',
-				url: apiEndPoints.ScoreIframeUrl + apiType + "&eventid=" + eventid,
+				url: apiEndPoints.ScoreIframeUrl + eventid + "&sportid=" + apiType,
 				headers: { 'cache-control': 'no-cache' }
 			};
 			let errorConst = `at reject get ScoreCad IframeUrl ${eventid}`;
