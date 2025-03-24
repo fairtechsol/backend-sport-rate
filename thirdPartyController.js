@@ -228,16 +228,21 @@ class ThirdPartyController {
 	}
 	
 	async getScoreIframeUrl(eventid, apiType = 1) {
-		return `https://dpmatka.in/sr.php?eventid=${eventid}&sportid=${apiType}`;
-		// return new Promise((resolve, reject) => {
-		// 	let options = {
-		// 		method: 'GET',
-		// 		url: apiEndPoints.ScoreIframeUrl + apiType + "&eventid=" + eventid,
-		// 		headers: { 'cache-control': 'no-cache' }
-		// 	};
-		// 	let errorConst = `at reject get ScoreCad IframeUrl ${eventid}`;
-		// 	this.callAxios(options, resolve, errorConst);
-		// });
+		// let sportsList = (await this.sportsListCall(apiType)) || [];
+		// let beventId = sportsList.find(item => item.gmid == eventid)?.beventId;
+		// return {
+		// 	"message": true,
+		// 	"iframeUrl": `https://dpmatka.in/sr.php?eventid=${beventId}&sportid=${apiType}`
+		// };
+		return new Promise((resolve, reject) => {
+			let options = {
+				method: 'GET',
+				url: apiEndPoints.ScoreIframeUrl + apiType + "&eventid=" + eventid,
+				headers: { 'cache-control': 'no-cache' }
+			};
+			let errorConst = `at reject get ScoreCad IframeUrl ${eventid}`;
+			this.callAxios(options, resolve, errorConst);
+		});
 	}
 
 	async gettvIframeUrl(eventid, apiType = 1) {
