@@ -8,6 +8,8 @@ var cors = require('cors');
 const path = require('path');
 require("dotenv").config();
 const compression = require('compression');
+const NodeCache = require("node-cache");
+const myCache = new NodeCache({ stdTTL: 60, checkperiod: 60 });
 
 let app = express();
 // Check environment to determine SSL setup
@@ -206,6 +208,10 @@ app.get("/sportsList", (req, res) => {
   let type = req.query.type;
   let typeId = gameType[type];
 
+  if(myCache.has(type)){
+    return res.send(myCache.get(type));
+  }
+
   ThirdPartyController.sportsList(typeId).then(function (data) {
     return res.send(data);
   });
@@ -382,4 +388,28 @@ server.listen(port, () => {
       }
     });
   }
+
+
+  const getSportListAndSetCache = async () => {
+    Promise.all([ThirdPartyController.sportsList(gameType.cricket).then(function (data) {
+      myCache.set("cricket", data, 60);
+    }),
+    ThirdPartyController.sportsList(gameType.football).then(function (data) {
+      myCache.set("football", data, 60);
+    }),
+    ThirdPartyController.sportsList(gameType.tennis).then(function (data) {
+      myCache.set("tennis", data, 60);
+    })]);
+  }
+  getSportListAndSetCache();
+  myCache.on("expired", () => {
+    getSportListAndSetCache();
+  });
+  myCache.on("del", function () {
+    getSportListAndSetCache();
+  });
+  myCache.on("flush", function () {
+    getSportListAndSetCache();
+  });
+
 });

@@ -17,6 +17,7 @@
     "express": "^4.21.2",
     "ioredis": "^5.6.0",
     "moment-timezone": "^0.5.47",
+    "node-cache": "^5.1.2",
     "node-cron": "^3.0.3",
     "nodemon": "^3.1.9",
     "path": "^0.12.7",
