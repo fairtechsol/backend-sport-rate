@@ -213,6 +213,7 @@ app.get("/sportsList", (req, res) => {
   }
 
   ThirdPartyController.sportsList(typeId).then(function (data) {
+    myCache.set(type, data, 60);
     return res.send(data);
   });
 });
@@ -402,14 +403,6 @@ server.listen(port, () => {
     })]);
   }
   getSportListAndSetCache();
-  myCache.on("expired", () => {
-    getSportListAndSetCache();
-  });
-  myCache.on("del", function () {
-    getSportListAndSetCache();
-  });
-  myCache.on("flush", function () {
-    getSportListAndSetCache();
-  });
+
 
 });
