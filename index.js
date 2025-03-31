@@ -208,7 +208,7 @@ app.get("/sportsList", (req, res) => {
   let type = req.query.type;
   let typeId = gameType[type];
 
-  if(myCache.has(type)){
+  if (myCache.has(type)) {
     return res.send(myCache.get(type));
   }
 
@@ -391,18 +391,15 @@ server.listen(port, () => {
   }
 
 
-  const getSportListAndSetCache = async () => {
-    Promise.all([ThirdPartyController.sportsList(gameType.cricket).then(function (data) {
-      myCache.set("cricket", data, 60);
-    }),
-    ThirdPartyController.sportsList(gameType.football).then(function (data) {
-      myCache.set("football", data, 60);
-    }),
-    ThirdPartyController.sportsList(gameType.tennis).then(function (data) {
-      myCache.set("tennis", data, 60);
-    })]);
-  }
-  getSportListAndSetCache();
+  Promise.all([ThirdPartyController.sportsList(gameType.cricket).then(function (data) {
+    myCache.set("cricket", data, 60);
+  }),
+  ThirdPartyController.sportsList(gameType.football).then(function (data) {
+    myCache.set("football", data, 60);
+  }),
+  ThirdPartyController.sportsList(gameType.tennis).then(function (data) {
+    myCache.set("tennis", data, 60);
+  })]);
 
 
 });
