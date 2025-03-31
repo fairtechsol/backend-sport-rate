@@ -390,16 +390,4 @@ server.listen(port, () => {
     });
   }
 
-
-  Promise.all([ThirdPartyController.sportsList(gameType.cricket).then(function (data) {
-    myCache.set("cricket", data, 60);
-  }),
-  ThirdPartyController.sportsList(gameType.football).then(function (data) {
-    myCache.set("football", data, 60);
-  }),
-  ThirdPartyController.sportsList(gameType.tennis).then(function (data) {
-    myCache.set("tennis", data, 60);
-  })]);
-
-
 });
