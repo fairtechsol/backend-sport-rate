@@ -228,12 +228,13 @@ class ThirdPartyController {
 	}
 	
 	async getScoreIframeUrl(eventid, apiType = 1) {
-		// let sportsList = (await this.sportsListCall(apiType)) || [];
-		// let beventId = sportsList.find(item => item.gmid == eventid)?.beventId;
-		// return {
-		// 	"message": true,
-		// 	"iframeUrl": `https://dpmatka.in/sr.php?eventid=${beventId}&sportid=${apiType}`
-		// };
+		let sportsList = (await this.sportsListCall(apiType)) || [];
+		let beventId = sportsList.find(item => item.gmid == eventid)?.beventId;
+		return {
+			"message": true,
+			"iframeUrl": `https://dpmatka.in/sr.php?eventid=${beventId}&sportid=1`
+		};
+			// "iframeUrl": `https://dpmatka.in/sr.php?eventid=${beventId}&sportid=${apiType}`
 		return new Promise((resolve, reject) => {
 			let options = {
 				method: 'GET',

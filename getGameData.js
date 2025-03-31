@@ -16,9 +16,9 @@ if (!fs.existsSync(logsDir)) {
 const createEventLogger = (matchId) => {
   const transport = new DailyRotateFile({
     filename: path.join(logsDir, `event-${matchId}-%DATE%.log`),
-    datePattern: 'YYYY-MM-DD',
+    datePattern: 'YYYY-MM-DD-HH',
     zippedArchive: false,
-    maxFiles: '2d'  // automatically delete logs older than 2 days
+    maxFiles: '15h'  // automatically delete logs older than 15 hours
   });
 
   // Add error event listener to the transport:
