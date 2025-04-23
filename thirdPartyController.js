@@ -179,7 +179,8 @@ class ThirdPartyController {
 			let options = {
 				method: 'GET',
 				url: apiEndPoints.scoreCardEndPoint[apiType] + eventid,
-				headers: { 'cache-control': 'no-cache' }
+				headers: { 'cache-control': 'no-cache' },
+				signal: AbortSignal.timeout(1000) 
 			};
 			let errorConst = `at reject get  Cricket Score `;
 			this.callAxios(options, resolve, errorConst);
