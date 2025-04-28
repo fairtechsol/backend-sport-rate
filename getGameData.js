@@ -339,7 +339,8 @@ async function getCricketData(marketId, matchId) {
               gtype: casinoItem.gtype,
               section: casinoItem.section,
               GameStatus: casinoItem.status,
-              rem: casinoItem.rem
+              rem: casinoItem.rem,
+              mid: casinoItem?.mid,
             }
             let sessionIndex = sessionAPI?.findIndex(obj => obj.selectionId == casinoSession.SelectionId);
             if (sessionIndex > -1) {
