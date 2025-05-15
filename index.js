@@ -296,6 +296,7 @@ io.on('connection', async (socket) => {
     return;
   }
 
+  try {
   matchIdArray.forEach(async (matchId) => {
     if (roleName == 'expert') {
       socket.join(matchId + 'expert');
@@ -304,18 +305,22 @@ io.on('connection', async (socket) => {
     }
 
     if (!matchIntervalIds[matchId]) {
+      console.log("matchId ", matchId);
       let matchDetail = await internalRedis.hgetall(matchId + "_match");
       if (!matchDetail) {
+        console.log("matchDetail not found in redis ", matchId, "  ", new Date());
         let tryTime = 10;
         while (tryTime > 0 && !matchDetail) {
           tryTime--;
           await delay(500);
+        console.log("matchDetail not found in redis ", matchId, " try time ", tryTime, "  ", new Date());
           matchDetail = await internalRedis.hgetall(matchId + "_match");
         }
       } 
       let marketId = matchDetail?.marketId;
 
       if (marketId) {
+        console.log("matchDetail redis ", matchId, "  ", new Date());
         switch (matchDetail.matchType) {
           case 'football':
           case 'tennis':
@@ -336,6 +341,9 @@ io.on('connection', async (socket) => {
       }
     }
   });
+} catch (error) {
+    console.log("Error in socket connection:", error);
+  }
 
   socket.on('disconnectCricketData', async function (event) {
     let matchId = event.matchId;
