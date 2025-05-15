@@ -317,6 +317,7 @@ io.on('connection', async (socket) => {
           matchDetail = await internalRedis.hgetall(matchId + "_match");
         }
       } 
+      console.log("matchDetail ", matchDetail?.markertId);
       let marketId = matchDetail?.marketId;
 
       if (marketId) {
