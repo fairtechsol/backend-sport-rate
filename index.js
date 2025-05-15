@@ -307,6 +307,7 @@ io.on('connection', async (socket) => {
     if (!matchIntervalIds[matchId]) {
       console.log("matchId ", matchId);
       let matchDetail = await internalRedis.hgetall(matchId + "_match");
+      console.log("matchDetail  initial ", !matchDetail, " ", matchId, " ", matchDetail?.marketId, " ", matchDetail?.matchType);
       if (!matchDetail) {
         console.log("matchDetail not found in redis ", matchId, "  ", new Date());
         let tryTime = 10;
@@ -317,7 +318,7 @@ io.on('connection', async (socket) => {
           matchDetail = await internalRedis.hgetall(matchId + "_match");
         }
       } 
-      console.log("matchDetail ", matchDetail?.markertId);
+      console.log("matchDetail ", matchDetail?.marketId, " ", matchDetail?.matchType);
       let marketId = matchDetail?.marketId;
 
       if (marketId) {
