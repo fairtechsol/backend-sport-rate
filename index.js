@@ -305,24 +305,18 @@ io.on('connection', async (socket) => {
     }
 
     if (!matchIntervalIds[matchId]) {
-      console.log("matchId ", matchId);
       let matchDetail = await internalRedis.hgetall(matchId + "_match");
-      console.log("matchDetail  initial ", !matchDetail, " ", matchId, " ", matchDetail);
       if (!Object.keys(matchDetail || {}).length) {
-        console.log("matchDetail not found in redis ", matchId, "  ", new Date());
         let tryTime = 10;
         while (tryTime > 0 && !Object.keys(matchDetail || {}).length) {
           tryTime--;
           await delay(500);
-        console.log("matchDetail not found in redis ", matchId, " try time ", tryTime, "  ", new Date());
           matchDetail = await internalRedis.hgetall(matchId + "_match");
         }
-      } 
-      console.log("matchDetail ", matchDetail?.marketId, " ", matchDetail?.matchType);
+      }
       let marketId = matchDetail?.marketId;
 
       if (marketId) {
-        console.log("matchDetail redis ", matchId, "  ", new Date());
         switch (matchDetail.matchType) {
           case 'football':
           case 'tennis':
