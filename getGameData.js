@@ -77,7 +77,7 @@ async function getCricketData(marketId, matchId) {
     returnResult.scoreBoard = scoreBoard.status === 'fulfilled' ? scoreBoard.value : [];
 
     let mainData = data.status === 'fulfilled' ? data?.value?.data || [] : [];
-    addLogs(matchId, mainData);
+    // addLogs(matchId, mainData);
     returnResult.gmid = mainData[0]?.gmid || '';
     expertResult.gmid = mainData[0]?.gmid || '';
 
@@ -400,57 +400,13 @@ async function getCricketData(marketId, matchId) {
     }
 
   }
-
-  let redisPromise = [];
-  redisPromise.push(internalRedis.hgetall(matchId + "_manualBetting"));
-
-  let manuallyResponse = await Promise.allSettled(redisPromise);
+  
   if (isManualSessionActive) {
     // let result = manuallyResponse[1].value;
     returnResult.sessionBettings = sessionManual?.filter((item) => JSON.parse(item)?.["activeStatus"] == 'live');
     key = 'manualSession';
     let { expertResult1 } = formateSessionMarket(key, {}, { [key]: sessionManual.map(item => JSON.parse(item)) });
     expertResult.apiSession[key] = expertResult1;
-  }
-  let manuallyMatchDetails = manuallyResponse[0].value;
-  if (manuallyMatchDetails) {
-    returnResult.quickbookmaker = [];
-    expertResult.quickbookmaker = [];
-    if (manuallyMatchDetails.tiedMatch2) {
-      let json = JSON.parse(manuallyMatchDetails.tiedMatch2);
-      if (json.isActive) {
-        returnResult["manualTideMatch"] = json;
-        expertResult["manualTideMatch"] = json;
-      }
-    }
-    if (manuallyMatchDetails.quickbookmaker1) {
-      let json = JSON.parse(manuallyMatchDetails.quickbookmaker1);
-      if (json.isActive) {
-        returnResult.quickbookmaker.push(json);
-        expertResult.quickbookmaker.push(json);
-      }
-    }
-    if (manuallyMatchDetails.quickbookmaker2) {
-      let json = JSON.parse(manuallyMatchDetails.quickbookmaker2);
-      if (json.isActive) {
-        returnResult.quickbookmaker.push(json);
-        expertResult.quickbookmaker.push(json);
-      }
-    }
-    if (manuallyMatchDetails.quickbookmaker3) {
-      let json = JSON.parse(manuallyMatchDetails.quickbookmaker3);
-      if (json.isActive) {
-        returnResult.quickbookmaker.push(json);
-        expertResult.quickbookmaker.push(json);
-      }
-    }
-    if (manuallyMatchDetails.completeManual) {
-      let json = JSON.parse(manuallyMatchDetails.completeManual);
-      if (json.isActive) {
-        returnResult["completeManual"] = json;
-        expertResult["completeManual"] = json;
-      }
-    }
   }
 
   io.to(matchId).emit("liveData" + matchId, returnResult);
@@ -605,38 +561,6 @@ async function getFootBallData(marketId, matchId) {
           returnResult.tournament.push(formateData);
 
         }
-      }
-    }
-  }
-
-  let redisPromise = [];
-  redisPromise.push(internalRedis.hgetall(matchId + "_manualBetting"));
-
-  let manuallyResponse = await Promise.allSettled(redisPromise);
-  let manuallyMatchDetails = manuallyResponse[0].value;
-
-  if (manuallyMatchDetails) {
-    returnResult.quickbookmaker = [];
-    expertResult.quickbookmaker = [];
-    if (manuallyMatchDetails.quickbookmaker1) {
-      let json = JSON.parse(manuallyMatchDetails.quickbookmaker1);
-      if (json.isActive) {
-        returnResult.quickbookmaker.push(json);
-        expertResult.quickbookmaker.push(json);
-      }
-    }
-    if (manuallyMatchDetails.quickbookmaker2) {
-      let json = JSON.parse(manuallyMatchDetails.quickbookmaker2);
-      if (json.isActive) {
-        returnResult.quickbookmaker.push(json);
-        expertResult.quickbookmaker.push(json);
-      }
-    }
-    if (manuallyMatchDetails.quickbookmaker3) {
-      let json = JSON.parse(manuallyMatchDetails.quickbookmaker3);
-      if (json.isActive) {
-        returnResult.quickbookmaker.push(json);
-        expertResult.quickbookmaker.push(json);
       }
     }
   }

@@ -4,6 +4,7 @@ const { apiEndPoints } = require('./constant');
 class ThirdPartyController {
 
 	callAxios(options, resolve, errorConst) {
+		options.timeout = 3000;
 		axios(options)
 			.then(response => {
 				resolve(response.data);

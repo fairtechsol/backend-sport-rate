@@ -305,6 +305,14 @@ io.on('connection', async (socket) => {
 
     if (!matchIntervalIds[matchId]) {
       let matchDetail = await internalRedis.hgetall(matchId + "_match");
+      if (!matchDetail) {
+        let tryTime = 10;
+        while (tryTime > 0 && !matchDetail) {
+          tryTime--;
+          await delay(500);
+          matchDetail = await internalRedis.hgetall(matchId + "_match");
+        }
+      } 
       let marketId = matchDetail?.marketId;
 
       if (marketId) {
@@ -362,6 +370,7 @@ process.on('unhandledRejection', (reason, promise) => {
   process.exit(1); // Exit to let PM2 restart the process
 });
 
+async function delay(ms) { return new Promise(resolve => setTimeout(resolve, ms)); }
 
 server.listen(port, () => {
   console.log(`Betting app listening at Port:${port}`)
