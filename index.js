@@ -311,7 +311,7 @@ io.on('connection', async (socket) => {
       if (!Object.keys(matchDetail || {}).length) {
         console.log("matchDetail not found in redis ", matchId, "  ", new Date());
         let tryTime = 10;
-        while (tryTime > 0 && !matchDetail) {
+        while (tryTime > 0 && !Object.keys(matchDetail || {}).length) {
           tryTime--;
           await delay(500);
         console.log("matchDetail not found in redis ", matchId, " try time ", tryTime, "  ", new Date());
