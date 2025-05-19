@@ -307,10 +307,10 @@ io.on('connection', async (socket) => {
     if (!matchIntervalIds[matchId]) {
       let matchDetail = await internalRedis.hgetall(matchId + "_match");
       if (!Object.keys(matchDetail || {}).length) {
-        let tryTime = 10;
+        let tryTime = 20;
         while (tryTime > 0 && !Object.keys(matchDetail || {}).length) {
           tryTime--;
-          await delay(500);
+          await delay(300);
           matchDetail = await internalRedis.hgetall(matchId + "_match");
         }
       }

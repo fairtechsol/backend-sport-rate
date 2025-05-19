@@ -181,7 +181,7 @@ class ThirdPartyController {
 				method: 'GET',
 				url: apiEndPoints.scoreCardEndPoint[apiType] + eventid,
 				headers: { 'cache-control': 'no-cache' },
-				signal: AbortSignal.timeout(1000) 
+				signal: AbortSignal.timeout(1000)
 			};
 			let errorConst = `at reject get  Cricket Score `;
 			this.callAxios(options, resolve, errorConst);
@@ -199,7 +199,7 @@ class ThirdPartyController {
 			this.callAxios(options, resolve, errorConst);
 		});
 	}
-	
+
 	async getAllRateFootBallTennis(eventId, apiType = 3) {
 		return new Promise((resolve, reject) => {
 			let options = {
@@ -211,10 +211,10 @@ class ThirdPartyController {
 			this.callAxios(options, resolve, errorConst);
 		});
 	}
-		
+
 	async sportsList(typeId) {
 		let data = await this.sportsListCall(typeId);
-		return typeId == 4 ? data?.filter(match => match.vir == 1 ) : data;
+		return typeId == 4 ? data?.filter(match => match.vir == 1) : data;
 	}
 
 	async sportsListCall(typeId) {
@@ -228,15 +228,15 @@ class ThirdPartyController {
 			this.callAxios(options, resolve, errorConst);
 		});
 	}
-	
+
 	async getScoreIframeUrl(eventid, apiType = 1) {
 		let sportsList = (await this.sportsListCall(apiType)) || [];
 		let beventId = sportsList.find(item => item.gmid == eventid)?.beventId;
-		return {
+		return beventId ? {
 			"message": true,
 			"iframeUrl": `https://dpmatka.in/sr.php?eventid=${beventId}&sportid=1`
-		};
-			// "iframeUrl": `https://dpmatka.in/sr.php?eventid=${beventId}&sportid=${apiType}`
+		} : null;
+		// "iframeUrl": `https://dpmatka.in/sr.php?eventid=${beventId}&sportid=${apiType}`
 		return new Promise((resolve, reject) => {
 			let options = {
 				method: 'GET',
