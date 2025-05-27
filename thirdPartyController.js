@@ -214,7 +214,20 @@ class ThirdPartyController {
 
 	async sportsList(typeId) {
 		let data = await this.sportsListCall(typeId);
-		return typeId == 4 ? data?.filter(match => match.vir == 1) : data;
+		if(typeId == 4 && data) {
+			data = Object.values(data).flat();
+		}
+		return typeId == 4 ? data?.filter(match =>{
+			if(match.iscc == 0){
+				if(!match.beventId){
+					match.beventId = match.oldgmid;
+				}
+				if(!match.beventId){
+					return false;
+				}
+				return match;
+			}
+		}) : data;
 	}
 
 	async sportsListCall(typeId) {
