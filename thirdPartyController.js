@@ -262,6 +262,11 @@ class ThirdPartyController {
 	}
 
 	async gettvIframeUrl(eventid, apiType = 1) {
+		return {
+			"message": true,
+			"eventid": eventid,
+			"iframeUrl": `https://dpmatka.in/protv.php?sportId=${apiType}&eventId=${eventid}`
+		}
 		return new Promise((resolve, reject) => {
 			let options = {
 				method: 'GET',
