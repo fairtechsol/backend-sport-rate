@@ -3,14 +3,12 @@ const socketIO = require('socket.io');
 const Redis = require('ioredis');
 const http2 = require("http2"); // Use http2 instead of http
 const http = require("http");
-const { createAdapter } = require('@socket.io/redis-adapter');
-const { createClient } = require('redis');
 const fs = require("fs");
 var cors = require('cors');
 const path = require('path');
+require("dotenv").config();
 const compression = require('compression');
 const NodeCache = require("node-cache");
-require("dotenv").config();
 const myCache = new NodeCache({ stdTTL: 60, checkperiod: 60 });
 
 const app = express();
@@ -59,20 +57,6 @@ let io = socketIO(server, {
     serverMaxWindowBits: 10, // Low memory usage
   }
 });
-const localRedis = new Redis({
-  host: 'localhost',
-  port: 6379
-});
-(async () => {
-  const pubClient = createClient({
-    url: `redis://localhost:6379`
-  });
-  const subClient = pubClient.duplicate();
-  await pubClient.connect();
-  await subClient.connect();
-  io.adapter(createAdapter(pubClient, subClient));
-  console.log("✅ Redis adapter is attached");
-})();
 app.set('socketio', io);
 
 if (process.env.NODE_ENV !== 'production') {
@@ -95,38 +79,27 @@ internalRedis.on('connect', async () => {
 exports.internalRedis = internalRedis;
 exports.io = io;
 
+// Create a Map to store match IDs instead of using localStorage
+const matchDBMap = new Map();
+
 let matchIntervalIds = {};
-
-async function acquireLock(lockKey, ttl = 60) {
-  const result = await localRedis.set(lockKey, process.pid, 'NX', 'EX', ttl);
-  if (result === 'OK') {
-    // The lock was acquired successfully. Now, remove the expiration if needed.
-    await localRedis.persist(lockKey);
-    return true;
-  }
-  return false;
-}
-
-const CheckAndClearInterval = async (matchId) => {
+const CheckAndClearInterval = (matchId) => {
   // to check is any user exist in the interval or not. if not then close the interval
   const room = io.sockets.adapter.rooms.get(matchId);
   const roomExpert = io.sockets.adapter.rooms.get(`${matchId}expert`);
 
   try {
     if (!(room && room.size != 0) && !(roomExpert && roomExpert.size != 0)) {
-      const lockKey = `lock:matchInterval:${matchId}`;
-      clearInterval(matchIntervalIds[matchId]);
+      if (matchIntervalIds[matchId]) {
+        let intervalId = matchIntervalIds[matchId];
+        setTimeout(() => {
+          clearInterval(intervalId);
+        }, 10000);
+      }
       delete matchIntervalIds[matchId];
-      await internalRedis.del(lockKey);
-      return;
-      
-      //  if (matchIntervalIds[matchId]) {
-      //   let intervalId = matchIntervalIds[matchId];
-      //   setTimeout(() => {
-      //     clearInterval(intervalId);
-      //   }, 10000);
-      // }
-      // delete matchIntervalIds[matchId];
+      if (matchDBMap.has(matchId)) {
+        matchDBMap.delete(matchId);
+      }
     }
   } catch (error) {
     console.log("error at disconnectCricketData ", error);
@@ -331,8 +304,7 @@ io.on('connection', async (socket) => {
       socket.join(matchId);
     }
 
-    const lockKey = `lock:matchInterval:${matchId}`;
-    if (!matchIntervalIds[matchId] && await acquireLock(lockKey, 60)) {
+    if (!matchIntervalIds[matchId]) {
       let matchDetail = await internalRedis.hgetall(matchId + "_match");
       if (!Object.keys(matchDetail || {}).length) {
         let tryTime = 20;
@@ -361,6 +333,7 @@ io.on('connection', async (socket) => {
             matchIntervalIds[matchId] = setInterval(getGreyHoundRacingData, liveGameTypeTime, marketId, matchId);
             break;
         }
+        matchDBMap.set(matchId, true);
       }
     }
   });
