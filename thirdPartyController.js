@@ -4,6 +4,7 @@ const { apiEndPoints } = require('./constant');
 class ThirdPartyController {
 
 	callAxios(options, resolve, errorConst) {
+		options.timeout = 3000;
 		axios(options)
 			.then(response => {
 				resolve(response.data);
@@ -169,17 +170,18 @@ class ThirdPartyController {
 				url: 'http://13.42.165.216/betfair/get_latest_event_list/' + typeId,
 				headers: { 'cache-control': 'no-cache' }
 			};
-			let errorConst = `at reject get extra event list `;
+			let errorConst = `at reject get direct match list `;
 			this.callAxios(options, resolve, errorConst);
 		});
 	}
 
-	async getCricketScore(eventid) {
+	async getCricketScore(eventid, apiType = 0) {
 		return new Promise((resolve, reject) => {
 			let options = {
 				method: 'GET',
-				url: 'http://172.104.206.227:3000/t10score?marketId=' + eventid,
-				headers: { 'cache-control': 'no-cache' }
+				url: apiEndPoints.scoreCardEndPoint[apiType] + eventid,
+				headers: { 'cache-control': 'no-cache' },
+				signal: AbortSignal.timeout(1000)
 			};
 			let errorConst = `at reject get  Cricket Score `;
 			this.callAxios(options, resolve, errorConst);
@@ -197,7 +199,7 @@ class ThirdPartyController {
 			this.callAxios(options, resolve, errorConst);
 		});
 	}
-	
+
 	async getAllRateFootBallTennis(eventId, apiType = 3) {
 		return new Promise((resolve, reject) => {
 			let options = {
@@ -205,14 +207,27 @@ class ThirdPartyController {
 				url: apiEndPoints.matchOdd[apiType] + eventId,
 				headers: { 'cache-control': 'no-cache' }
 			};
-			let errorConst = "at reject get All Rate Cricket " + eventId;
+			let errorConst = "at reject get All Rate FootBall/Tennis " + eventId;
 			this.callAxios(options, resolve, errorConst);
 		});
 	}
-		
+
 	async sportsList(typeId) {
 		let data = await this.sportsListCall(typeId);
-		return typeId == 4 ? data?.filter(match => match.vir == 1 ) : data;
+		if(typeId == 4 && data) {
+			data = Object.values(data).flat();
+		}
+		return typeId == 4 ? data?.filter(match =>{
+			if(match.iscc == 0){
+				if(!match.beventId){
+					match.beventId = match.oldgmid;
+				}
+				if(!match.beventId){
+					return false;
+				}
+				return match;
+			}
+		}) : data;
 	}
 
 	async sportsListCall(typeId) {
@@ -227,6 +242,41 @@ class ThirdPartyController {
 		});
 	}
 
+	async getScoreIframeUrl(eventid, apiType = 1) {
+		let sportsList = (await this.sportsListCall(apiType)) || [];
+		let beventId = sportsList.find(item => item.gmid == eventid)?.beventId;
+		return beventId ? {
+			"message": true,
+			"iframeUrl": `https://dpmatka.in/sr.php?eventid=${beventId}&sportid=1`
+		} : null;
+		// "iframeUrl": `https://dpmatka.in/sr.php?eventid=${beventId}&sportid=${apiType}`
+		return new Promise((resolve, reject) => {
+			let options = {
+				method: 'GET',
+				url: apiEndPoints.ScoreIframeUrl + eventid + "&sportid=" + apiType,
+				headers: { 'cache-control': 'no-cache' }
+			};
+			let errorConst = `at reject get ScoreCad IframeUrl ${eventid}`;
+			this.callAxios(options, resolve, errorConst);
+		});
+	}
+
+	async gettvIframeUrl(eventid, apiType = 1) {
+		return {
+			"message": true,
+			"eventid": eventid,
+			"iframeUrl": `https://dpmatka.in/protv.php?sportId=${apiType}&eventId=${eventid}`
+		}
+		return new Promise((resolve, reject) => {
+			let options = {
+				method: 'GET',
+				url: apiEndPoints.tvIframeUrl + apiType + "&eventid=" + eventid,
+				headers: { 'cache-control': 'no-cache' }
+			};
+			let errorConst = `at reject get TV IframeUrl ${eventid}`;
+			this.callAxios(options, resolve, errorConst);
+		});
+	}
 }
 
 

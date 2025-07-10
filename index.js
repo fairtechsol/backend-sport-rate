@@ -5,11 +5,13 @@ const http2 = require("http2"); // Use http2 instead of http
 const http = require("http");
 const fs = require("fs");
 var cors = require('cors');
-var LocalStorage = require('node-localstorage').LocalStorage;
 const path = require('path');
 require("dotenv").config();
+const compression = require('compression');
+const NodeCache = require("node-cache");
+const myCache = new NodeCache({ stdTTL: 60, checkperiod: 60 });
 
-let app = express();
+const app = express();
 // Check environment to determine SSL setup
 let server;
 
@@ -20,37 +22,50 @@ if (process.env.NODE_ENV == "production" || process.env.NODE_ENV == "dev") {
     cert: fs.readFileSync(`/etc/letsencrypt/live/${process.env.SSL_PATH}/fullchain.pem`),
     allowHTTP1: true, // Allows HTTP/1.1 fallback
   };
-
   // Create an HTTP/2 server with SSL options
   server = http2.createSecureServer(sslOptions, app);
-
   console.log("Running with HTTPS in production mode");
 } else {
   // Create an HTTP server for local development
   server = http.createServer(app);
-
   console.log("Running with HTTP in development mode");
 }
 app.use(cors());
+// Configure compression for ALL HTTP traffic
+app.use(compression({
+  brotli: {
+    quality: 4, // 4-6 is ideal for APIs (balance speed/size)
+  },
+  level: 6, // gzip level 6 (optimal balance)
+  threshold: '1kb', // Skip compressing tiny responses
+}));
+
 
 const ThirdPartyController = require('./thirdPartyController');
 let io = socketIO(server, {
   cors: {
     origin: "*",
     methods: ["GET", "POST"]
+  },
+  transports: ["websocket", "polling"], // Enable both WebSocket and polling
+  perMessageDeflate: {
+    threshold: 1024,  // Only compress messages larger than 1024 bytes
+    zlibDeflateOptions: { level: 6 }, // Maximum compression
+    zlibInflateOptions: { chunkSize: 64 * 1024 }, // Efficient decompression
+    clientNoContextTakeover: true, // Reduce memory usage
+    serverNoContextTakeover: true, // Reduce memory usage
+    serverMaxWindowBits: 10, // Low memory usage
   }
 });
 app.set('socketio', io);
-
-localStorage = new LocalStorage('./scratch');
 
 if (process.env.NODE_ENV !== 'production') {
   __dirname = path.resolve();
   app.use(express.static(path.join(__dirname, "public")));
 }
 
-const port = process.env.port ? parseInt(process.env.port) : 3200 // setting the port
-let liveGameTypeTime = process.env.liveGameTypeTime ? parseInt(process.env.liveGameTypeTime) : 1000;
+const port = parseInt(process.env.port || 3200);
+const liveGameTypeTime = parseInt(process.env.liveGameTypeTime || 1000);
 
 const internalRedis = new Redis({
   host: process.env.INTERNAL_REDIS_HOST || 'localhost',
@@ -64,29 +79,35 @@ internalRedis.on('connect', async () => {
 exports.internalRedis = internalRedis;
 exports.io = io;
 
+// Create a Map to store match IDs instead of using localStorage
+const matchDBMap = new Map();
 
 let matchIntervalIds = {};
-exports.CheckAndClearInterval = (matchId) => {
+const CheckAndClearInterval = (matchId) => {
   // to check is any user exist in the interval or not. if not then close the interval
   const room = io.sockets.adapter.rooms.get(matchId);
   const roomExpert = io.sockets.adapter.rooms.get(`${matchId}expert`);
 
   try {
     if (!(room && room.size != 0) && !(roomExpert && roomExpert.size != 0)) {
-      clearInterval(matchIntervalIds[matchId]);
+      if (matchIntervalIds[matchId]) {
+        let intervalId = matchIntervalIds[matchId];
+        setTimeout(() => {
+          clearInterval(intervalId);
+        }, 10000);
+      }
       delete matchIntervalIds[matchId];
-      let matchIds = localStorage.getItem("matchDBds") ? JSON.parse(localStorage.getItem("matchDBds")) : null;
-      if (matchIds) {
-        matchIds.splice(matchIds.indexOf(matchId), 1);
-        localStorage.setItem("matchDBds", JSON.stringify(matchIds));
+      if (matchDBMap.has(matchId)) {
+        matchDBMap.delete(matchId);
       }
     }
   } catch (error) {
     console.log("error at disconnectCricketData ", error);
   }
 }
+exports.CheckAndClearInterval = CheckAndClearInterval;
 
-const { getFootBallData, getCricketData, getTennisData, getHorseRacingData, getGreyHoundRacingData } = require('./getGameData');
+const { getFootBallData, getCricketData, getHorseRacingData, getGreyHoundRacingData } = require('./getGameData');
 
 // Handle other Redis events if needed
 internalRedis.on('error', (error) => {
@@ -187,7 +208,12 @@ app.get("/sportsList", (req, res) => {
   let type = req.query.type;
   let typeId = gameType[type];
 
+  if (myCache.has(type)) {
+    return res.send(myCache.get(type));
+  }
+
   ThirdPartyController.sportsList(typeId).then(function (data) {
+    myCache.set(type, data, 60);
     return res.send(data);
   });
 });
@@ -196,6 +222,9 @@ app.get("/getAllRateCricket/:eventId", (req, res) => {
   let eventId = req.params.eventId;
   let { apiType } = req.query;
   apiType = apiType || 2;
+  if (!eventId) {
+    return res.send([]);
+  }
 
   ThirdPartyController.getAllRateCricket(eventId, apiType).then(function (data) {
     return res.send(data);
@@ -206,12 +235,14 @@ app.get("/getAllRateFootBallTennis/:eventId", (req, res) => {
   let eventId = req.params.eventId;
   let { apiType } = req.query;
   apiType = apiType || 3;
+  if (!eventId) {
+    return res.send([]);
+  }
 
   ThirdPartyController.getAllRateFootBallTennis(eventId, apiType).then(function (data) {
     return res.send(data);
   });
 });
-
 
 app.get("/bookmakerNew/:marketId", (req, res) => {
   let markertId = req.params.marketId;
@@ -230,32 +261,62 @@ app.get("/getDirectMatchList", (req, res) => {
 
 app.get("/cricketScore", (req, res) => {
   let { eventId } = req.query;
+  if (!eventId) {
+    return res.send([]);
+  }
   ThirdPartyController.getCricketScore(eventId).then(function (data) {
     return res.send(data);
   });
 });
 
-io.on('connection', (socket) => {
+app.get("/getIframeUrl/:eventid", async (req, res) => {
+  const [scoreResult, tvResult] = await Promise.allSettled([
+    req.query.isScore == 'true' ? ThirdPartyController.getScoreIframeUrl(req.params.eventid, gameType[req.query.sportType]) : null,
+    req.query.isTv == 'true' ? ThirdPartyController.gettvIframeUrl(req.params.eventid, gameType[req.query.sportType]) : null
+  ]);
+  const scoreData = scoreResult.status === 'fulfilled' ? scoreResult.value : [];
+  const tvData = tvResult.status === 'fulfilled' ? tvResult.value : [];
 
-  socket.on('initCricketData', async function (event) {
-    let matchId = event.matchId;
+  res.send({ scoreData, tvData });
+});
 
-    let roleName = event.roleName;
+io.on('connection', async (socket) => {
+  let matchIdArray = []
+  // Extract the match id from the client's handshake headers or auth object
+  const roleName = socket.handshake.query.roleName;
+  try {
+    // Parse the string back into an array
+    matchIdArray = socket.handshake.query.matchIdArray?.split(',') || [];
+  } catch (err) {
+    console.error("Error parsing matchId array:", err);
+  }
+  // If no match id is provided, disconnect the client
+  if (!matchIdArray.length || !roleName) {
+    socket.disconnect();
+    return;
+  }
+
+  try {
+  matchIdArray.forEach(async (matchId) => {
     if (roleName == 'expert') {
       socket.join(matchId + 'expert');
     } else {
       socket.join(matchId);
     }
-    let matchDetail = await internalRedis.hgetall(matchId + "_match");
-    let matchIds = localStorage.getItem("matchDBds") ? JSON.parse(localStorage.getItem("matchDBds")) : null;
 
     if (!matchIntervalIds[matchId]) {
+      let matchDetail = await internalRedis.hgetall(matchId + "_match");
+      if (!Object.keys(matchDetail || {}).length) {
+        let tryTime = 20;
+        while (tryTime > 0 && !Object.keys(matchDetail || {}).length) {
+          tryTime--;
+          await delay(300);
+          matchDetail = await internalRedis.hgetall(matchId + "_match");
+        }
+      }
       let marketId = matchDetail?.marketId;
 
       if (marketId) {
-        if (matchIds == null) {
-          matchIds = [];
-        }
         switch (matchDetail.matchType) {
           case 'football':
           case 'tennis':
@@ -272,11 +333,13 @@ io.on('connection', (socket) => {
             matchIntervalIds[matchId] = setInterval(getGreyHoundRacingData, liveGameTypeTime, marketId, matchId);
             break;
         }
-        matchIds.push(matchId);
-        localStorage.setItem("matchDBds", JSON.stringify(matchIds));
+        matchDBMap.set(matchId, true);
       }
     }
   });
+} catch (error) {
+    console.log("Error in socket connection:", error);
+  }
 
   socket.on('disconnectCricketData', async function (event) {
     let matchId = event.matchId;
@@ -287,21 +350,8 @@ io.on('connection', (socket) => {
     } else {
       roomName = matchId;
     }
-    socket.leave(roomName);
-    const room = io.sockets.adapter.rooms.get(matchId);
-    try {
-      if (!(room && room.size != 0)) {
-        clearInterval(matchIntervalIds[matchId]);
-        delete matchIntervalIds[matchId];
-        let matchIds = localStorage.getItem("matchDBds") ? JSON.parse(localStorage.getItem("matchDBds")) : null;
-        if (matchIds) {
-          matchIds.splice(matchIds.indexOf(matchId), 1);
-          localStorage.setItem("matchDBds", JSON.stringify(matchIds));
-        }
-      }
-    } catch (error) {
-      console.log("error at disconnectCricketData ", error);
-    }
+    //    socket.leave(roomName);
+    //    CheckAndClearInterval(matchId);
   });
 
   socket.on('disconnect', async () => {
@@ -314,32 +364,18 @@ io.on('connection', (socket) => {
 
 });
 
+process.on('uncaughtException', (err) => {
+  console.error('Uncaught Exception:', err);
+  process.exit(1); // Exit to let PM2 restart the process
+});
+
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('Unhandled Rejection:', reason);
+  process.exit(1); // Exit to let PM2 restart the process
+});
+
+async function delay(ms) { return new Promise(resolve => setTimeout(resolve, ms)); }
 
 server.listen(port, () => {
-  console.log(`Betting app listening at Port:${port}`)
-  let matchDBds = localStorage.getItem("matchDBds") ? JSON.parse(localStorage.getItem("matchDBds")) : null;
-  if (matchDBds && matchDBds.length) {
-    matchDBds.map(async matchId => {
-      let matchDetail = await internalRedis.hgetall(matchId + "_match");
-      let marketId = matchDetail?.marketId;
-      if (marketId) {
-        switch (matchDetail.matchType) {
-          case 'football':
-          case 'tennis':
-            matchIntervalIds[matchId] = setInterval(getFootBallData, liveGameTypeTime, marketId, matchId);
-            break;
-          case 'cricket':
-          case 'politics':
-            matchIntervalIds[matchId] = setInterval(getCricketData, liveGameTypeTime, marketId, matchId);
-            break;
-          case 'horseRacing':
-            matchIntervalIds[matchId] = setInterval(getHorseRacingData, liveGameTypeTime, marketId, matchId);
-            break;
-          case 'greyHound':
-            matchIntervalIds[matchId] = setInterval(getGreyHoundRacingData, liveGameTypeTime, marketId, matchId);
-            break;
-        }
-      }
-    })
-  }
+  console.log(`Betting app listening at Port:${port}`);
 });

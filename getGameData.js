@@ -1,5 +1,54 @@
+const winston = require('winston');
+const fs = require('fs');
+const path = require('path');
+const moment = require('moment-timezone');
+const DailyRotateFile = require('winston-daily-rotate-file');
+
 const ThirdPartyController = require('./thirdPartyController.js');
 const { internalRedis, io, CheckAndClearInterval } = require('./index.js');
+
+// Create logs directory if it doesn't exist
+const logsDir = path.join(__dirname, 'logs');
+if (!fs.existsSync(logsDir)) {
+  fs.mkdirSync(logsDir);
+}
+// Create logger factory function
+const createEventLogger = (matchId) => {
+  const transport = new DailyRotateFile({
+    filename: path.join(logsDir, `event-${matchId}-%DATE%.log`),
+    datePattern: 'YYYY-MM-DD-HH',
+    zippedArchive: false,
+    maxFiles: '15h'  // automatically delete logs older than 15 hours
+  });
+
+  // Add error event listener to the transport:
+  transport.on('error', (err) => {
+    console.error('Logging transport error:', err);
+    // Optionally: Implement retry logic or fallback behavior here.
+  });
+
+  const logger = winston.createLogger({
+    format: winston.format.combine(
+      winston.format.timestamp(),
+      winston.format.json()
+    ),
+    transports: [transport]
+  });
+  logger.on('error', (err) => {
+    console.error('Logger error:', err);
+  });
+  return logger;
+};
+
+const addLogs = async (matchId, data) => {
+  if (process.env.NODE_ENV == 'production') {
+    const logger = createEventLogger(matchId);
+    data = data.filter(item => { if (item.gtype == 'match' || item.gtype == 'match1') return item; });
+    const indiaTime = moment().tz('Asia/Kolkata').format();
+    // Log request
+    logger.info({ data, dateTime: indiaTime });
+  }
+}
 
 
 async function getCricketData(marketId, matchId) {
@@ -17,14 +66,24 @@ async function getCricketData(marketId, matchId) {
 
   let isManual = marketId?.split(/(\d+)/)[0] == 'manual';
   if (!isManual) {
-    let data = await ThirdPartyController.getAllRateCricket(matchDetail.eventId, 2);
+    // Run API calls in parallel
+    const [data, scoreBoard] = await Promise.allSettled([
+      ThirdPartyController.getAllRateCricket(matchDetail.eventId, 2),
+      ThirdPartyController.getCricketScore(matchDetail.eventId, 0)
+    ]);
 
-    let mainData = data?.data || [];
+    // let data = await ThirdPartyController.getAllRateCricket(matchDetail.eventId, 2);
+    // scoreBoard = await ThirdPartyController.getCricketScore(matchDetail.eventId, 0);
+    returnResult.scoreBoard = scoreBoard.status === 'fulfilled' ? scoreBoard.value : [];
 
-    let customObject = { other: [] };
+    let mainData = data.status === 'fulfilled' ? data?.value?.data || [] : [];
+    // addLogs(matchId, mainData);
+    returnResult.gmid = mainData[0]?.gmid || '';
+    expertResult.gmid = mainData[0]?.gmid || '';
+
+    let customObject = { tournament: [] };
 
     if (!matchDetail?.teamB) {
-      customObject.tournament = [];
       mainData.forEach(da => {
         switch (da.gtype) {
           case "match":
@@ -48,31 +107,6 @@ async function getCricketData(marketId, matchId) {
       mainData.forEach(da => {
         const mname = da.mname.toLowerCase();
         switch (mname) {
-          case "match_odds":
-            customObject.matchOdd = da;
-            break;
-          case "tied_match":
-            customObject.apiTiedMatch = da;
-            break;
-          case "tied match":
-            customObject.apiTiedMatch2 = da;
-            break;
-          case "bookmaker":
-            if (customObject.bookmaker) {
-              customObject.bookmaker2 = da;
-            } else {
-              customObject.bookmaker = da;
-            }
-            break;
-          case "bookmaker 2":
-            customObject.bookmaker2 = da;
-            break;
-          case "completed_match":
-            customObject.marketCompleteMatch = da;
-            break;
-          case "completed match":
-            customObject.marketCompleteMatch1 = da;
-            break;
           case "normal":
             customObject.session = da;
             break;
@@ -102,208 +136,13 @@ async function getCricketData(marketId, matchId) {
                 customObject.cricketCasino = [da];
               }
             } else {
-              if (da.gtype == 'match1') customObject.other.push(da);
+              if (da.gtype == 'match1' || da.gtype == 'match') customObject.tournament.push(da);
             }
             break;
         }
       });
     }
-    if (matchDetail.matchOdd || customObject.matchOdd) {
-      let parseData = JSON.parse(matchDetail.matchOdd || "{}");
-      let obj = {
-        "id": parseData.id,
-        "marketId": marketId,
-        "name": parseData.name,
-        "minBet": parseData.minBet,
-        "maxBet": parseData.maxBet,
-        "type": parseData.type || "matchOdd",
-        "isActive": parseData.isActive,
-        "activeStatus": parseData.activeStatus,
-        gtype: parseData.gtype,
-        betLimit: parseData.betLimit
-      };
-      expertResult.matchOdd = await formateOdds(customObject.matchOdd, obj);
-      if (parseData.isActive) {
-        returnResult.matchOdd = expertResult.matchOdd;
-      }
-    }
 
-    if (matchDetail.marketCompleteMatch || customObject.marketCompleteMatch) {
-      let parseData = JSON.parse(matchDetail.marketCompleteMatch || "{}");
-      let obj = {
-        "id": parseData.id,
-        "marketId": marketId,
-        "name": parseData.name,
-        "minBet": parseData.minBet,
-        "maxBet": parseData.maxBet,
-        "type": parseData.type || "completeMatch",
-        "isActive": parseData.isActive,
-        "activeStatus": parseData.activeStatus,
-        gtype: parseData.gtype,
-        betLimit: parseData.betLimit
-      };
-      expertResult.marketCompleteMatch = await formateOdds(customObject.marketCompleteMatch, obj);
-      if (parseData.isActive) {
-        returnResult.marketCompleteMatch = expertResult.marketCompleteMatch;
-      }
-    }
-
-    if (matchDetail.marketCompleteMatch1 || customObject.marketCompleteMatch1) {
-      let parseData = JSON.parse(matchDetail.marketCompleteMatch1 || "{}");
-      let obj = {
-        "id": parseData.id,
-        "marketId": marketId,
-        "name": parseData.name,
-        "minBet": parseData.minBet,
-        "maxBet": parseData.maxBet,
-        "type": parseData.type || "completeMatch1",
-        "isActive": parseData.isActive,
-        "activeStatus": parseData.activeStatus,
-        gtype: parseData.gtype,
-        betLimit: parseData.betLimit
-      };
-      expertResult.marketCompleteMatch1 = await formateOdds(customObject.marketCompleteMatch1, obj);
-      if (parseData.isActive) {
-        returnResult.marketCompleteMatch1 = expertResult.marketCompleteMatch1;
-      }
-    }
-
-    if (matchDetail.marketTiedMatch || customObject.apiTiedMatch) {
-      let parseData = JSON.parse(matchDetail.marketTiedMatch || "{}");
-      let obj = {
-        "id": parseData.id,
-        "marketId": marketId,
-        "name": parseData.name,
-        "minBet": parseData.minBet,
-        "maxBet": parseData.maxBet,
-        "type": parseData.type || "tiedMatch1",
-        "isActive": parseData.isActive,
-        "activeStatus": parseData.activeStatus,
-        gtype: parseData.gtype,
-        betLimit: parseData.betLimit
-      };
-      expertResult.apiTiedMatch = await formateOdds(customObject.apiTiedMatch, obj);
-      if (parseData.isActive) {
-        returnResult.apiTiedMatch = expertResult.apiTiedMatch;
-      }
-    }
-
-    if (matchDetail.marketTiedMatch2 || customObject.apiTiedMatch2) {
-      let parseData = JSON.parse(matchDetail.marketTiedMatch2 || "{}");
-      let obj = {
-        "id": parseData.id,
-        "marketId": marketId,
-        "name": parseData.name,
-        "minBet": parseData.minBet,
-        "maxBet": parseData.maxBet,
-        "type": parseData.type || "tiedMatch3",
-        "isActive": parseData.isActive,
-        "activeStatus": parseData.activeStatus,
-        gtype: parseData.gtype,
-        betLimit: parseData.betLimit
-      };
-      expertResult.apiTiedMatch2 = await formateOdds(customObject.apiTiedMatch2, obj);
-      if (parseData.isActive) {
-        returnResult.apiTiedMatch2 = expertResult.apiTiedMatch2;
-      }
-    }
-
-    if (matchDetail.marketBookmaker || customObject.bookmaker) {
-      let parseData = JSON.parse(matchDetail.marketBookmaker || "{}");
-      let obj = {
-        "id": parseData.id,
-        "marketId": marketId,
-        "name": parseData.name,
-        "minBet": parseData.minBet,
-        "maxBet": parseData.maxBet,
-        "type": parseData.type || "bookmaker",
-        "isActive": parseData.isActive,
-        "activeStatus": parseData.activeStatus,
-        gtype: parseData.gtype,
-        betLimit: parseData.betLimit
-      };
-      expertResult.bookmaker = await formateOdds(customObject.bookmaker, obj);
-      if (parseData.isActive) {
-        returnResult.bookmaker = expertResult.bookmaker;
-      }
-    }
-
-    if (matchDetail.marketBookmaker2 || customObject.bookmaker2) {
-      let parseData = JSON.parse(matchDetail.marketBookmaker2 || "{}");
-      let obj = {
-        "id": parseData.id,
-        "marketId": marketId,
-        "name": parseData.name,
-        "minBet": parseData.minBet,
-        "maxBet": parseData.maxBet,
-        "type": parseData.type || "bookmaker2",
-        "isActive": parseData.isActive,
-        "activeStatus": parseData.activeStatus,
-        gtype: parseData.gtype,
-        betLimit: parseData.betLimit
-      };
-      expertResult.bookmaker2 = await formateOdds(customObject.bookmaker2, obj);
-      if (parseData.isActive) {
-        returnResult.bookmaker2 = expertResult.bookmaker2;
-      }
-    }
-
-    if (matchDetail.other || customObject.other) {
-      expertResult.other = [];
-      returnResult.other = [];
-      let iterated = [];
-      let otherData = JSON.parse(matchDetail.other || "[]");
-      for (let item of customObject.other) {
-        let isRedisExist = otherData?.findIndex(it => it?.name == item?.mname);
-        let obj = {};
-        if (isRedisExist > -1) {
-          iterated.push(item?.mname);
-          let parseData = otherData[isRedisExist];
-          obj = {
-            "id": parseData.id,
-            "marketId": marketId,
-            "name": parseData.name,
-            "minBet": parseData.minBet,
-            "maxBet": parseData.maxBet,
-            "type": parseData.type,
-            "isActive": parseData.isActive,
-            "activeStatus": parseData.activeStatus,
-            gtype: parseData.gtype,
-            betLimit: parseData.betLimit
-          };
-        }
-        let formateData = await formateOdds(item, obj);
-        expertResult.other.push(formateData);
-        if (obj.isActive) {
-          returnResult.other.push(formateData);
-        }
-      }
-      for (let item of otherData) {
-        let isRedisExist = iterated?.findIndex(it => it == item?.name);
-        let obj = {};
-        if (isRedisExist < 0) {
-          let parseData = item;
-          obj = {
-            "id": parseData.id,
-            "marketId": marketId,
-            "name": parseData.name,
-            "minBet": parseData.minBet,
-            "maxBet": parseData.maxBet,
-            "type": parseData.type,
-            "isActive": parseData.isActive,
-            "activeStatus": parseData.activeStatus,
-            "runners": [{ "nat": parseData?.metaData?.teamA }, { "nat": parseData?.metaData?.teamB }],
-            gtype: parseData.gtype,
-            betLimit: parseData.betLimit
-          };
-          let formateData = await formateOdds(null, obj);
-          expertResult.other.push(formateData);
-          if (obj.isActive) {
-            returnResult.other.push(formateData);
-          }
-        }
-      }
-    }
 
     if (matchDetail.tournament || customObject.tournament) {
       expertResult.tournament = [];
@@ -311,58 +150,112 @@ async function getCricketData(marketId, matchId) {
       let iterated = [];
       let otherData = JSON.parse(matchDetail.tournament || "[]");
       for (let item of (customObject?.tournament || [])) {
-        let isRedisExist = otherData.findIndex(it => it?.name == item?.mname);
+        let isRedisExist = otherData.findIndex(it => it?.mid == item?.mid);
         let obj = {};
         if (isRedisExist > -1) {
-          iterated.push(item?.mname);
+          iterated.push(item?.mid);
           let parseData = otherData[isRedisExist];
           obj = {
             "id": parseData.id,
-            "marketId": marketId,
+            "marketId": parseData.marketId,
             "name": parseData.name,
             "minBet": parseData.minBet,
             "maxBet": parseData.maxBet,
             "type": parseData.type,
             "isActive": parseData.isActive,
             "activeStatus": parseData.activeStatus,
+            isManual: parseData.isManual,
             dbRunner: parseData?.runners,
             gtype: parseData.gtype,
-            betLimit: parseData.betLimit
+            exposureLimit: parseData.exposureLimit,
+            betLimit: parseData.betLimit,
+            isCommissionActive: parseData.isCommissionActive,
+            sno: parseData.sNo,
           };
         }
         let formateData = await formateOdds(item, obj);
         expertResult.tournament.push(formateData);
-        if (obj.isActive) {
+        if (obj.activeStatus == 'live') {
           returnResult.tournament.push(formateData);
         }
       }
       for (let item of otherData) {
-        let isRedisExist = iterated?.findIndex(it => it == item?.name);
-        let obj = {};
+        if (item.activeStatus == "close") {
+          continue;
+        }
+        let isRedisExist = iterated?.findIndex(it => it == item?.mid);
         if (isRedisExist < 0) {
+          let obj = {};
           let parseData = item;
+          let isTwoTeam = parseData.runners?.length == 2;
           obj = {
             "id": parseData.id,
-            "marketId": marketId,
+            "marketId": parseData.marketId,
             "name": parseData.name,
             "minBet": parseData.minBet,
             "maxBet": parseData.maxBet,
             "type": parseData.type,
             "isActive": parseData.isActive,
             "activeStatus": parseData.activeStatus,
-            "runners": parseData.runners?.map(run => {
-              return { "nat": run?.runnerName, id: run?.id, selectionId: run.selectionId }
+            isCommissionActive: parseData.isCommissionActive,
+            sno: parseData.sNo,
+            "isManual": parseData.isManual,
+            parentBetId: parseData.parentBetId,
+            "runners": parseData.isManual ? parseData.runners?.map(item => ({
+              selectionId: item.selectionId,
+              status: item.status?.toUpperCase(),
+              nat: item.runnerName,
+              id: item.id,
+              sortPriority: item.sortPriority,
+              parentRunnerId: item.parentRunnerId,
+              ex: {
+                availableToBack: [{
+                  price: item.backRate > 2 ? isTwoTeam && item.backRate > 100 ? 0 : Math.floor(item.backRate) - 2 : 0,
+                  otype: "back",
+                  oname: "back3",
+                  tno: 2
+                }, {
+                  price: item.backRate > 1 ? isTwoTeam && item.backRate > 100 ? 0 : Math.floor(item.backRate) - 1 : 0,
+                  otype: "back",
+                  oname: "back2",
+                  tno: 1
+                }, {
+                  price: item.backRate < 0 ? 0 : item.backRate,
+                  otype: "back",
+                  oname: "back1",
+                  tno: 0
+                }],
+                availableToLay: [{
+                  price: item.layRate < 0 ? 0 : item.layRate,
+                  otype: "lay",
+                  oname: "lay1",
+                  tno: 0
+                }, {
+                  price: isTwoTeam && item.layRate > 100 ? 0 : ((!matchDetail.rateThan100 && item.layRate > 99.99) || (item.layRate <= 0)) ? 0 : Math.floor(item.layRate) + 1,
+                  otype: "lay",
+                  oname: "lay2",
+                  tno: 1
+                }, {
+                  price: isTwoTeam && item.layRate > 100 ? 0 : ((!matchDetail.rateThan100 && item.layRate > 98.99) || ((item.layRate <= 0))) ? 0 : Math.floor(item.layRate) + 2,
+                  otype: "lay",
+                  oname: "lay3",
+                  tno: 2
+                }]
+              }
+            })) : parseData.runners?.map(run => {
+              return { "nat": run?.runnerName, id: run?.id, selectionId: run.selectionId, sortPriority: run.sortPriority, }
             }),
             gtype: parseData.gtype,
+            exposureLimit: parseData.exposureLimit,
             betLimit: parseData.betLimit
           };
           let formateData = await formateOdds(null, obj);
+
           expertResult.tournament.push(formateData);
-          if (obj.isActive) {
-            returnResult.tournament.push(formateData);
-          }
+          returnResult.tournament.push(formateData);
         }
       }
+
     }
 
     let sessionAPIObj = {}
@@ -425,7 +318,7 @@ async function getCricketData(marketId, matchId) {
         returnResult.apiSession[key] = returnResult1;
         expertResult.apiSession[key] = expertResult1;
       }
-      
+
       key = 'meter';
       if (customObject.meter || sessionAPIObj[key]) {
         let { expertResult1, returnResult1 } = formateSessionMarket(key, customObject, sessionAPIObj);
@@ -446,7 +339,8 @@ async function getCricketData(marketId, matchId) {
               gtype: casinoItem.gtype,
               section: casinoItem.section,
               GameStatus: casinoItem.status,
-              rem: casinoItem.rem
+              rem: casinoItem.rem,
+              mid: casinoItem?.mid,
             }
             let sessionIndex = sessionAPI?.findIndex(obj => obj.selectionId == casinoSession.SelectionId);
             if (sessionIndex > -1) {
@@ -454,6 +348,7 @@ async function getCricketData(marketId, matchId) {
               casinoSession["activeStatus"] = sessionAPI[sessionIndex].activeStatus;
               casinoSession["min"] = sessionAPI[sessionIndex].minBet;
               casinoSession["max"] = sessionAPI[sessionIndex].maxBet;
+              casinoSession["isCommissionActive"] = sessionAPI[sessionIndex].isCommissionActive;
               casinoSession["createdAt"] = sessionAPI[sessionIndex].createdAt;
               casinoSession["updatedAt"] = sessionAPI[sessionIndex].updatedAt;
 
@@ -474,7 +369,8 @@ async function getCricketData(marketId, matchId) {
               "max": session.maxBet,
               "id": session.id,
               "activeStatus": session.activeStatus,
-              "updatedAt": session.updatedAt
+              "updatedAt": session.updatedAt,
+              isCommissionActive: session.isCommissionActive
             };
             if (obj["activeStatus"] == 'live') {
               onlyLiveSession.push(obj);
@@ -498,62 +394,19 @@ async function getCricketData(marketId, matchId) {
           "status": result?.status,
           "section": expertSession,
           mid: result?.mid,
-
         };
       }
 
     }
 
   }
-
-  let redisPromise = [];
-  redisPromise.push(internalRedis.hgetall(matchId + "_manualBetting"));
-
-  let manuallyResponse = await Promise.allSettled(redisPromise);
+  
   if (isManualSessionActive) {
     // let result = manuallyResponse[1].value;
-    returnResult.sessionBettings = sessionManual;
-    // returnResult.sessionBettings = Object.values(result);
-  }
-  let manuallyMatchDetails = manuallyResponse[0].value;
-  if (manuallyMatchDetails) {
-    returnResult.quickbookmaker = [];
-    expertResult.quickbookmaker = [];
-    if (manuallyMatchDetails.tiedMatch2) {
-      let json = JSON.parse(manuallyMatchDetails.tiedMatch2);
-      if (json.isActive) {
-        returnResult["manualTideMatch"] = json;
-        expertResult["manualTideMatch"] = json;
-      }
-    }
-    if (manuallyMatchDetails.quickbookmaker1) {
-      let json = JSON.parse(manuallyMatchDetails.quickbookmaker1);
-      if (json.isActive) {
-        returnResult.quickbookmaker.push(json);
-        expertResult.quickbookmaker.push(json);
-      }
-    }
-    if (manuallyMatchDetails.quickbookmaker2) {
-      let json = JSON.parse(manuallyMatchDetails.quickbookmaker2);
-      if (json.isActive) {
-        returnResult.quickbookmaker.push(json);
-        expertResult.quickbookmaker.push(json);
-      }
-    }
-    if (manuallyMatchDetails.quickbookmaker3) {
-      let json = JSON.parse(manuallyMatchDetails.quickbookmaker3);
-      if (json.isActive) {
-        returnResult.quickbookmaker.push(json);
-        expertResult.quickbookmaker.push(json);
-      }
-    }
-    if (manuallyMatchDetails.completeManual) {
-      let json = JSON.parse(manuallyMatchDetails.completeManual);
-      if (json.isActive) {
-        returnResult["completeManual"] = json;
-        expertResult["completeManual"] = json;
-      }
-    }
+    returnResult.sessionBettings = sessionManual?.filter((item) => JSON.parse(item)?.["activeStatus"] == 'live');
+    key = 'manualSession';
+    let { expertResult1 } = formateSessionMarket(key, {}, { [key]: sessionManual.map(item => JSON.parse(item)) });
+    expertResult.apiSession[key] = expertResult1;
   }
 
   io.to(matchId).emit("liveData" + matchId, returnResult);
@@ -569,15 +422,14 @@ async function getFootBallData(marketId, matchId) {
   let returnResult = { id: matchId, marketId, eventId: matchDetail.eventId };
   let expertResult = { id: matchId, marketId, eventId: matchDetail.eventId };
 
-  let liveIds = [];
-  let promiseRequestArray = [];
-  let typeIdObject = {}; // it will store the marketId as key and key as value so find id, min, max and other
-
   let isManual = marketId?.split(/(\d+)/)[0] == 'manual';
   if (!isManual) {
     let data = await ThirdPartyController.getAllRateFootBallTennis(matchDetail.eventId, 3);
     let mainData = data?.data || [];
     let customObject = { other: [] };
+
+    returnResult.gmid = mainData[0]?.gmid || '';
+    expertResult.gmid = mainData[0]?.gmid || '';
 
     if (!matchDetail?.teamB) {
       customObject.tournament = [];
@@ -594,86 +446,8 @@ async function getFootBallData(marketId, matchId) {
     } else {
       customObject.tournament = [];
       mainData.forEach(da => {
-        const mname = da.mname.toLowerCase();
-        switch (mname) {
-          case "match_odds":
-            customObject.matchOdd = da;
-            break;
-          case "bookmaker":
-            if (customObject.bookmaker) {
-              customObject.bookmaker2 = da;
-            } else {
-              customObject.bookmaker = da;
-            }
-            break;
-          case "bookmaker 2":
-            customObject.bookmaker2 = da;
-            break;
-          default:
-            customObject.tournament.push(da);
-            break;
-        }
+        customObject.tournament.push(da);
       });
-    }
-
-
-    if (matchDetail.matchOdd || customObject.matchOdd) {
-      let parseData = JSON.parse(matchDetail.matchOdd || "{}");
-      let obj = {
-        "id": parseData.id,
-        "marketId": marketId,
-        "name": parseData.name,
-        "minBet": parseData.minBet,
-        "maxBet": parseData.maxBet,
-        "type": parseData.type || "matchOdd",
-        "isActive": parseData.isActive,
-        "activeStatus": parseData.activeStatus,
-        gtype: parseData.gtype,
-        betLimit: parseData.betLimit
-      };
-      expertResult.matchOdd = await formateOdds(customObject.matchOdd, obj);
-      if (parseData.isActive) {
-        returnResult.matchOdd = expertResult.matchOdd;
-      }
-    }
-    if (matchDetail.marketBookmaker || customObject.bookmaker) {
-      let parseData = JSON.parse(matchDetail.marketBookmaker || "{}");
-      let obj = {
-        "id": parseData.id,
-        "marketId": marketId,
-        "name": parseData.name,
-        "minBet": parseData.minBet,
-        "maxBet": parseData.maxBet,
-        "type": parseData.type || "bookmaker",
-        "isActive": parseData.isActive,
-        "activeStatus": parseData.activeStatus,
-        gtype: parseData.gtype,
-        betLimit: parseData.betLimit
-      };
-      expertResult.bookmaker = await formateOdds(customObject.bookmaker, obj);
-      if (parseData.isActive) {
-        returnResult.bookmaker = expertResult.bookmaker;
-      }
-    }
-
-    if (matchDetail.marketBookmaker2 || customObject.bookmaker2) {
-      let parseData = JSON.parse(matchDetail.marketBookmaker2 || "{}");
-      let obj = {
-        "id": parseData.id,
-        "marketId": marketId,
-        "name": parseData.name,
-        "minBet": parseData.minBet,
-        "maxBet": parseData.maxBet,
-        "type": parseData.type || "bookmaker2",
-        "isActive": parseData.isActive,
-        "activeStatus": parseData.activeStatus,
-        gtype: parseData.gtype,
-        betLimit: parseData.betLimit
-      };
-      expertResult.bookmaker2 = await formateOdds(customObject.bookmaker2, obj);
-      if (parseData.isActive) {
-        returnResult.bookmaker2 = expertResult.bookmaker2;
-      }
     }
 
     if (matchDetail.tournament || customObject.tournament) {
@@ -682,91 +456,111 @@ async function getFootBallData(marketId, matchId) {
       let iterated = [];
       let otherData = JSON.parse(matchDetail.tournament || "[]");
       for (let item of (customObject?.tournament || [])) {
-        let isRedisExist = otherData.findIndex(it => it?.name == item?.mname);
+        let isRedisExist = otherData.findIndex(it => it?.mid == item?.mid);
         let obj = {};
         if (isRedisExist > -1) {
-          iterated.push(item?.mname);
+          iterated.push(item?.mid);
           let parseData = otherData[isRedisExist];
           obj = {
             "id": parseData.id,
-            "marketId": marketId,
+            "marketId": parseData.marketId,
             "name": parseData.name,
             "minBet": parseData.minBet,
             "maxBet": parseData.maxBet,
             "type": parseData.type,
             "isActive": parseData.isActive,
             "activeStatus": parseData.activeStatus,
+            isManual: parseData.isManual,
             dbRunner: parseData?.runners,
             gtype: parseData.gtype,
-            betLimit: parseData.betLimit
+            exposureLimit: parseData.exposureLimit,
+            betLimit: parseData.betLimit,
+            isCommissionActive: parseData.isCommissionActive,
+            sno: parseData.sNo,
           };
         }
         let formateData = await formateOdds(item, obj);
         expertResult.tournament.push(formateData);
-        if (obj.isActive) {
+        if (obj.activeStatus == 'live') {
           returnResult.tournament.push(formateData);
         }
       }
       for (let item of otherData) {
-        let isRedisExist = iterated?.findIndex(it => it == item?.name);
-        let obj = {};
+        if (item.activeStatus == "close") {
+          continue;
+        }
+        let isRedisExist = iterated?.findIndex(it => it == item?.mid);
         if (isRedisExist < 0) {
+          let obj = {};
           let parseData = item;
+          let isTwoTeam = parseData.runners?.length == 2;
           obj = {
             "id": parseData.id,
-            "marketId": marketId,
+            "marketId": parseData.marketId,
             "name": parseData.name,
             "minBet": parseData.minBet,
             "maxBet": parseData.maxBet,
             "type": parseData.type,
             "isActive": parseData.isActive,
             "activeStatus": parseData.activeStatus,
-            "runners": parseData.runners?.map(run => {
-              return { "nat": run?.runnerName, id: run?.id, selectionId: run.selectionId }
+            parentBetId: parseData.parentBetId,
+            isCommissionActive: parseData.isCommissionActive,
+            sno: parseData.sNo,
+            "isManual": parseData.isManual,
+            "runners": parseData.isManual ? parseData.runners?.map(item => ({
+              selectionId: item.selectionId,
+              status: item.status?.toUpperCase(),
+              nat: item.runnerName,
+              id: item.id,
+              sortPriority: item.sortPriority,
+              parentRunnerId: item.parentRunnerId,
+              ex: {
+                availableToBack: [{
+                  price: item.backRate > 2 ? isTwoTeam && item.backRate > 100 ? 0 : Math.floor(item.backRate) - 2 : 0,
+                  otype: "back",
+                  oname: "back3",
+                  tno: 2
+                }, {
+                  price: item.backRate > 1 ? isTwoTeam && item.backRate > 100 ? 0 : Math.floor(item.backRate) - 1 : 0,
+                  otype: "back",
+                  oname: "back2",
+                  tno: 1
+                }, {
+                  price: item.backRate < 0 ? 0 : item.backRate,
+                  otype: "back",
+                  oname: "back1",
+                  tno: 0
+                }],
+                availableToLay: [{
+                  price: item.layRate < 0 ? 0 : item.layRate,
+                  otype: "lay",
+                  oname: "lay1",
+                  tno: 0
+                }, {
+                  price: isTwoTeam && item.layRate > 100 ? 0 : ((!matchDetail.rateThan100 && item.layRate > 99.99) || (item.layRate <= 0)) ? 0 : Math.floor(item.layRate) + 1,
+                  otype: "lay",
+                  oname: "lay2",
+                  tno: 1
+                }, {
+                  price: isTwoTeam && item.layRate > 100 ? 0 : ((!matchDetail.rateThan100 && item.layRate > 98.99) || ((item.layRate <= 0))) ? 0 : Math.floor(item.layRate) + 2,
+                  otype: "lay",
+                  oname: "lay3",
+                  tno: 2
+                }]
+              }
+            })) : parseData.runners?.map(run => {
+              return { "nat": run?.runnerName, id: run?.id, selectionId: run.selectionId, sortPriority: run.sortPriority, }
             }),
             gtype: parseData.gtype,
+            exposureLimit: parseData.exposureLimit,
             betLimit: parseData.betLimit
           };
           let formateData = await formateOdds(null, obj);
+
           expertResult.tournament.push(formateData);
-          if (obj.isActive) {
-            returnResult.tournament.push(formateData);
-          }
+          returnResult.tournament.push(formateData);
+
         }
-      }
-    }
-
-
-  }
-
-  let redisPromise = [];
-  redisPromise.push(internalRedis.hgetall(matchId + "_manualBetting"));
-
-  let manuallyResponse = await Promise.allSettled(redisPromise);
-  let manuallyMatchDetails = manuallyResponse[0].value;
-
-  if (manuallyMatchDetails) {
-    returnResult.quickbookmaker = [];
-    expertResult.quickbookmaker = [];
-    if (manuallyMatchDetails.quickbookmaker1) {
-      let json = JSON.parse(manuallyMatchDetails.quickbookmaker1);
-      if (json.isActive) {
-        returnResult.quickbookmaker.push(json);
-        expertResult.quickbookmaker.push(json);
-      }
-    }
-    if (manuallyMatchDetails.quickbookmaker2) {
-      let json = JSON.parse(manuallyMatchDetails.quickbookmaker2);
-      if (json.isActive) {
-        returnResult.quickbookmaker.push(json);
-        expertResult.quickbookmaker.push(json);
-      }
-    }
-    if (manuallyMatchDetails.quickbookmaker3) {
-      let json = JSON.parse(manuallyMatchDetails.quickbookmaker3);
-      if (json.isActive) {
-        returnResult.quickbookmaker.push(json);
-        expertResult.quickbookmaker.push(json);
       }
     }
   }
@@ -775,136 +569,6 @@ async function getFootBallData(marketId, matchId) {
   io.to(matchId + 'expert').emit("liveData" + matchId, expertResult);
 }
 exports.getFootBallData = getFootBallData;
-
-async function getTennisData(marketId, matchId) {
-
-  CheckAndClearInterval(matchId);
-
-  let matchDetail = await internalRedis.hgetall(matchId + "_match");
-  let returnResult = {};
-  let expertResult = {};
-  returnResult.id = matchId;
-  returnResult.marketId = marketId;
-  expertResult.id = matchId;
-  expertResult.marketId = marketId;
-
-  let liveIds = [];
-  let promiseRequestArray = [];
-  let typeIdObject = {}; // it will store the marketId as key and key as value so find id, min, max and other
-
-  let matchOddLive = Object.keys(matchDetail).filter(key => key.startsWith("matchOdd"));
-  matchOddLive.forEach(key => {
-    let value = matchDetail[key];
-    value = JSON.parse(value);
-    let isLive = value.isActive;
-    if (!value?.stopAt && isLive) {
-      liveIds.push(value.marketId);
-      typeIdObject[value.marketId] = key;
-    }
-    else {
-      expertResult["matchOdd"] = value;
-
-    }
-  });
-
-  let firstHalfGoldLive = Object.keys(matchDetail).filter(key => key.startsWith("setWinner"));
-  returnResult["setWinner"] = [];
-  expertResult["setWinner"] = [];
-  firstHalfGoldLive.forEach(key => {
-    let value = matchDetail[key];
-    value = JSON.parse(value);
-    let isLive = value.isActive;
-    if (!value?.stopAt && isLive) {
-      liveIds.push(value.marketId);
-      typeIdObject[value.marketId] = key;
-    }
-    else {
-      expertResult["setWinner"].push(value);
-    }
-  });
-
-  if (liveIds.length) {
-    let matchOddDetails = JSON.parse(matchDetail.matchOdd);
-    promiseRequestArray.push(ThirdPartyController.getMatchOdds(liveIds.join(','), matchOddDetails?.apiType));
-  }
-  let ismarketBookmakerActive = matchDetail.marketBookmaker ? (JSON.parse(matchDetail.marketBookmaker)).isActive : false;
-  if (ismarketBookmakerActive) {
-    promiseRequestArray.push(ThirdPartyController.getBookmakerMarket(matchDetail.marketId));
-  }
-  let respo = await Promise.allSettled(promiseRequestArray);
-  let index = 0;
-
-  let results = respo[index]?.value;
-  if (results) {
-    results.map((result, index) => {
-      let marketId = liveIds[index];
-      let key = typeIdObject[marketId];
-      let value = matchDetail[key];
-      value = JSON.parse(value);
-      if (!result) {
-        result = {};
-      }
-      result.id = value.id;
-      result.name = value.name;
-      result.minBet = value.minBet;
-      result.maxBet = value.maxBet;
-      result.type = value.type;
-      result.isActive = value.isActive;
-      result.activeStatus = value.activeStatus;
-
-      if (key.startsWith("setWinner")) {
-        expertResult["setWinner"].push(result);
-        if (result.isActive) {
-          returnResult["setWinner"].push(result);
-        }
-      }
-      else {
-        expertResult[value.type] = result;
-        if (result.isActive) {
-          returnResult[value.type] = result;
-        }
-      }
-    });
-  }
-
-  let redisPromise = [];
-  redisPromise.push(internalRedis.hgetall(matchId + "_manualBetting"));
-
-  let manuallyResponse = await Promise.allSettled(redisPromise);
-  let manuallyMatchDetails = manuallyResponse[0].value;
-
-  if (manuallyMatchDetails) {
-    returnResult.quickbookmaker = [];
-    expertResult.quickbookmaker = [];
-    if (manuallyMatchDetails.quickbookmaker1) {
-      let json = JSON.parse(manuallyMatchDetails.quickbookmaker1);
-      if (json.isActive) {
-        returnResult.quickbookmaker.push(json);
-        expertResult.quickbookmaker.push(json);
-      }
-    }
-    if (manuallyMatchDetails.quickbookmaker2) {
-      let json = JSON.parse(manuallyMatchDetails.quickbookmaker2);
-      if (json.isActive) {
-        returnResult.quickbookmaker.push(json);
-        expertResult.quickbookmaker.push(json);
-      }
-    }
-    if (manuallyMatchDetails.quickbookmaker3) {
-      let json = JSON.parse(manuallyMatchDetails.quickbookmaker3);
-      if (json.isActive) {
-        returnResult.quickbookmaker.push(json);
-        expertResult.quickbookmaker.push(json);
-      }
-    }
-  }
-
-  io.to(matchId).emit("liveData" + matchId, returnResult);
-  io.to(matchId + 'expert').emit("liveData" + matchId, expertResult);
-  return;
-
-}
-exports.getTennisData = getTennisData;
 
 async function getHorseRacingData(marketId, matchId) {
 
@@ -1047,15 +711,22 @@ exports.getGreyHoundRacingData = getGreyHoundRacingData;
 function formateOdds(data, additionDetails) {
   return {
     marketId: additionDetails.marketId,
-    mid: data?.mid,
+    mid: data?.mid || additionDetails?.marketId,
+    gmid: data?.gmid,
     status: data?.status,
     inplay: data?.inplay,
     gtype: additionDetails.gtype || data?.gtype,
     rem: data?.rem,
+    isManual: additionDetails?.isManual || data?.isManual,
+    exposureLimit: additionDetails.exposureLimit,
+    isCommissionActive: additionDetails.isCommissionActive,
+    sno: data?.sno || additionDetails?.sno,
+    parentBetId: additionDetails?.parentBetId,
     runners: data?.section?.map(item => ({
       selectionId: item.sid,
       status: item.gstatus,
       nat: item.nat,
+      sortPriority: item.sno,
       id: additionDetails?.dbRunner?.find((items) => items?.selectionId?.toString() == item?.sid?.toString())?.id,
       ex: {
         availableToBack: item.odds?.filter(odd => odd.otype === 'back').map(odd => ({
@@ -1125,6 +796,8 @@ function formateSessionMarket(key, customObject, sessionAPIObj) {
         sessionObj["max"] = sessionAPI[sessionIndex].maxBet;
         sessionObj["createdAt"] = sessionAPI[sessionIndex].createdAt;
         sessionObj["updatedAt"] = sessionAPI[sessionIndex].updatedAt;
+        sessionObj["exposureLimit"] = sessionAPI[sessionIndex].exposureLimit;
+        sessionObj["isCommissionActive"] = sessionAPI[sessionIndex].isCommissionActive;
         if (sessionObj["activeStatus"] == 'live') {
           onlyLiveSession.push(sessionObj);
         }
@@ -1135,16 +808,35 @@ function formateSessionMarket(key, customObject, sessionAPIObj) {
   }
   sessionAPI?.map(session => {
     if (!addedSession.includes(session.selectionId)) {
-      let obj = {
-        "SelectionId": session.selectionId,
-        "RunnerName": session.name,
-        "min": session.minBet,
-        "max": session.maxBet,
-        "id": session.id,
-        "activeStatus": session.activeStatus,
-        "createdAt": session.createdAt,
-        "updatedAt": session.updatedAt
-      };
+      let obj = {};
+      if (session.isManual) {
+        session.nat = session.name;
+        session.gstatus = session.status;
+        session.odds = [{
+          odds: session.yesRate,
+          size: session.yesPercent,
+          otype: "back",
+          oname: "back1",
+          tno: 0
+        }, {
+          odds: session.noRate,
+          size: session.noPercent,
+          otype: "lay",
+          oname: "lay1",
+          tno: 0
+        }];
+        obj = formateSession(session);
+      }
+      obj["SelectionId"] = session.selectionId;
+      obj["RunnerName"] = session.name;
+      obj["min"] = session.minBet;
+      obj["max"] = session.maxBet;
+      obj["id"] = session.id
+      obj["activeStatus"] = session.activeStatus;
+      obj["createdAt"] = session.createdAt;
+      obj["updatedAt"] = session.updatedAt;
+      obj["exposureLimit"] = session.exposureLimit;
+      obj["isCommissionActive"] = session.isCommissionActive;
       if (obj["activeStatus"] == 'live') {
         onlyLiveSession.push(obj);
       }

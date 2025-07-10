@@ -6,10 +6,16 @@ exports.apiEndPoints = {
         3: "https://pro.shamexch.xyz/getdatasports?eventId="
     },
     sportListEndPoint: {
-        4: "http://marketsarket.qnsports.live/getcricketmatches",
+        4: "https://marketsarket.qnsports.live/cricketmatches",
+        // 4: "http://marketsarket.qnsports.live/getcricketmatches",
         1: "https://marketsarket.qnsports.live/getsoccerallmatches2",
         2: "https://marketsarket.qnsports.live/gettennisallmatches2",
-    }
+    },
+    scoreCardEndPoint: {
+        0: "http://172.104.206.227:3000/t10score?marketId=", // cricket
+    },
+    ScoreIframeUrl: "http://172.105.54.97:8085/api/v2/graphanim?eventid=",
+    tvIframeUrl: "http://172.105.54.97:8085/api/v2/GetDtvurl?sportid="
 }
 
 
