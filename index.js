@@ -285,7 +285,7 @@ io.on('connection', async (socket) => {
   let matchIdArray = []
   // Extract the match id from the client's handshake headers or auth object
   const roleName = socket.handshake.query.roleName;
-  const isSession = socket.handshake.query.isSession || false;
+  const isSession = JSON.parse(socket.handshake.query.isSession || 'false');
   try {
     // Parse the string back into an array
     matchIdArray = socket.handshake.query.matchIdArray?.split(',') || [];
