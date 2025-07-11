@@ -400,7 +400,7 @@ async function getCricketData(marketId, matchId) {
     }
 
   }
-  
+
   if (isManualSessionActive) {
     // let result = manuallyResponse[1].value;
     returnResult.sessionBettings = sessionManual?.filter((item) => JSON.parse(item)?.["activeStatus"] == 'live');
@@ -409,8 +409,11 @@ async function getCricketData(marketId, matchId) {
     expertResult.apiSession[key] = expertResult1;
   }
 
+  const { tournament, sessionBettings, ...restReturnResult } = expertResult;
+
   io.to(matchId).emit("liveData" + matchId, returnResult);
-  io.to(matchId + 'expert').emit("liveData" + matchId, expertResult);
+  io.to(matchId + 'expert').emit("liveData" + matchId, { ...restReturnResult, tournament });
+  io.to(matchId + 'expertSession').emit("liveData" + matchId, { ...restReturnResult, sessionBettings });
 }
 exports.getCricketData = getCricketData;
 

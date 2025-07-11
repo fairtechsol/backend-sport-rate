@@ -87,9 +87,10 @@ const CheckAndClearInterval = (matchId) => {
   // to check is any user exist in the interval or not. if not then close the interval
   const room = io.sockets.adapter.rooms.get(matchId);
   const roomExpert = io.sockets.adapter.rooms.get(`${matchId}expert`);
+  const roomExpertSession = io.sockets.adapter.rooms.get(`${matchId}expertSession`);
 
   try {
-    if (!(room && room.size != 0) && !(roomExpert && roomExpert.size != 0)) {
+    if (!(room && room.size != 0) && !(roomExpert && roomExpert.size != 0) && !(roomExpertSession && roomExpertSession.size != 0)) {
       if (matchIntervalIds[matchId]) {
         let intervalId = matchIntervalIds[matchId];
         setTimeout(() => {
@@ -284,6 +285,7 @@ io.on('connection', async (socket) => {
   let matchIdArray = []
   // Extract the match id from the client's handshake headers or auth object
   const roleName = socket.handshake.query.roleName;
+  const isSession = socket.handshake.query.isSession || false;
   try {
     // Parse the string back into an array
     matchIdArray = socket.handshake.query.matchIdArray?.split(',') || [];
@@ -299,7 +301,11 @@ io.on('connection', async (socket) => {
   try {
   matchIdArray.forEach(async (matchId) => {
     if (roleName == 'expert') {
-      socket.join(matchId + 'expert');
+      if (isSession) {
+        socket.join(matchId + 'expertSession');
+      } else {
+        socket.join(matchId + 'expert');
+      }
     } else {
       socket.join(matchId);
     }
@@ -340,19 +346,6 @@ io.on('connection', async (socket) => {
 } catch (error) {
     console.log("Error in socket connection:", error);
   }
-
-  socket.on('disconnectCricketData', async function (event) {
-    let matchId = event.matchId;
-    let roleName = event.roleName;
-    let roomName = '';
-    if (roleName == 'expert') {
-      roomName = matchId + 'expert';
-    } else {
-      roomName = matchId;
-    }
-    //    socket.leave(roomName);
-    //    CheckAndClearInterval(matchId);
-  });
 
   socket.on('disconnect', async () => {
     socket.leaveAll();
